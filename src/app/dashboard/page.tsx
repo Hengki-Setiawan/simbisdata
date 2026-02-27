@@ -1,0 +1,395 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+    DollarSign,
+    Package,
+    TrendingUp,
+    RotateCcw,
+    Upload,
+    Brain,
+    Loader2,
+    FileDown,
+} from "lucide-react";
+import Link from "next/link";
+import {
+    LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
+} from "recharts";
+import { analyzeData, type AnalysisResult } from "@/lib/analysis";
+import { generatePDFReport } from "@/lib/pdf-export";
+import { exportToExcel, exportToCSV } from "@/lib/excel-export";
+import { generatePremiumPDFHTML } from "@/lib/premium-pdf-template";
+import { db } from "@/lib/local-db";
+
+const COLORS = ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#a78bfa", "#f472b6", "#34d399"];
+
+function formatRupiah(num: number): string {
+    if (num >= 1_000_000) return `Rp${(num / 1_000_000).toFixed(1)}jt`;
+    if (num >= 1_000) return `Rp${(num / 1_000).toFixed(0)}K`;
+    return `Rp${num.toFixed(0)}`;
+}
+
+function KPICard({ icon: Icon, label, value, sub, color, delay }: {
+    icon: React.ElementType; label: string; value: string; sub: string; color: string; delay: number;
+}) {
+    return (
+        <motion.div
+            className="glass-card"
+            style={{ padding: "24px" }}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay }}
+        >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                    <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "8px" }}>{label}</p>
+                    <p style={{ fontSize: "1.6rem", fontWeight: 800 }}>{value}</p>
+                    <p style={{ color: color, fontSize: "0.8rem", fontWeight: 600, marginTop: "4px" }}>{sub}</p>
+                </div>
+                <div style={{
+                    width: 44, height: 44, borderRadius: "var(--radius)",
+                    background: `${color}22`, display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                    <Icon size={22} style={{ color }} />
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+const tooltipStyle = {
+    backgroundColor: "var(--bg-card)",
+    border: "1px solid var(--border-color)",
+    borderRadius: "8px",
+    color: "var(--text-primary)",
+    fontSize: "0.8rem",
+};
+
+export default function DashboardPage() {
+    const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [aiInsight, setAiInsight] = useState<string>("");
+    const [aiLoading, setAiLoading] = useState(false);
+    const [exportOpen, setExportOpen] = useState(false);
+    const [exportingPremium, setExportingPremium] = useState(false);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const data = await db.getAllData();
+                if (data && data.length > 0) {
+                    const result = analyzeData(data);
+                    setAnalysis(result);
+                }
+            } catch { /* ignore */ }
+            setLoading(false);
+        };
+        load();
+    }, []);
+
+    const generateAIInsight = async () => {
+        if (!analysis) return;
+        setAiLoading(true);
+
+        const prompt = `Berdasarkan data analisis penjualan berikut:
+- Total penjualan: ${analysis.overview.totalOrders} pesanan, ${formatRupiah(analysis.overview.totalRevenue * 1000)}
+- Periode: ${analysis.overview.dateRange.start} sampai ${analysis.overview.dateRange.end}
+- Produk terlaris: ${analysis.productPerformance[0]?.name} (${analysis.productPerformance[0]?.percentage.toFixed(1)}%)
+- Size terlaris: ${analysis.variantAnalysis[0]?.name} (${analysis.variantAnalysis[0]?.percentage.toFixed(1)}%)
+- Region terbesar: ${analysis.regionalAnalysis[0]?.province} (${analysis.regionalAnalysis[0]?.percentage.toFixed(1)}%)
+- Metode bayar terbanyak: ${analysis.paymentAnalysis[0]?.method} (${analysis.paymentAnalysis[0]?.percentage.toFixed(1)}%)
+- Return rate: ${analysis.overview.returnRate.toFixed(1)}%
+- Growth rate: ${analysis.overview.growthRate.toFixed(1)}%
+
+Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight tersembunyi, dan 5 rekomendasi aksi prioritas untuk meningkatkan penjualan. Format dengan emoji dan poin-poin jelas.`;
+
+        try {
+            const resp = await fetch("/api/ai/narrate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ prompt }),
+            });
+            const data = await resp.json();
+            setAiInsight(data.narrative || "Gagal generate insight. Coba lagi nanti.");
+        } catch {
+            setAiInsight("⚠️ Tidak dapat terhubung ke AI. Pastikan API key sudah diset atau coba lagi nanti.");
+        }
+        setAiLoading(false);
+    };
+
+    if (loading) {
+        return (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh" }}>
+                <Loader2 size={40} style={{ color: "var(--primary)", animation: "spin 1s linear infinite" }} />
+            </div>
+        );
+    }
+
+    if (!analysis) {
+        return (
+            <div style={{ textAlign: "center", padding: "80px 24px" }}>
+                <Upload size={64} style={{ color: "var(--text-muted)", marginBottom: "24px" }} />
+                <h2 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "12px" }}>Belum Ada Data</h2>
+                <p style={{ color: "var(--text-muted)", marginBottom: "32px", maxWidth: "400px", margin: "0 auto 32px" }}>
+                    Upload file Excel penjualan kamu untuk melihat analisis lengkap di sini.
+                </p>
+                <Link href="/dashboard/upload" className="btn-primary">
+                    <Upload size={18} />
+                    Upload Data Sekarang
+                </Link>
+            </div>
+        );
+    }
+
+    const { overview, productPerformance, variantAnalysis, regionalAnalysis, paymentAnalysis, timeAnalysis } = analysis;
+
+    return (
+        <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+                <div>
+                    <h1 style={{ fontSize: "1.8rem", fontWeight: 800 }}>Dashboard Analytics</h1>
+                    <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                        {overview.dateRange.start} — {overview.dateRange.end}
+                    </p>
+                </div>
+                <div style={{ display: "flex", gap: "8px", position: "relative" }}>
+                    <div style={{ position: "relative" }}>
+                        <button onClick={() => setExportOpen(!exportOpen)} className="btn-secondary" style={{ padding: "8px 16px", fontSize: "0.85rem" }}>
+                            <FileDown size={16} /> Export ▾
+                        </button>
+                        {exportOpen && (
+                            <div style={{
+                                position: "absolute", top: "100%", right: 0, marginTop: "4px",
+                                background: "var(--bg-card)", border: "1px solid var(--border-color)",
+                                borderRadius: "var(--radius)", padding: "8px", minWidth: "200px", zIndex: 100,
+                                boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+                            }}>
+                                <button onClick={() => { analysis && generatePDFReport(analysis, aiInsight); setExportOpen(false); }}
+                                    style={{ width: "100%", textAlign: "left", padding: "10px 12px", background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", borderRadius: "6px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}
+                                    onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                                    📄 PDF Report
+                                </button>
+                                <button onClick={() => { analysis && exportToExcel(analysis, aiInsight); setExportOpen(false); }}
+                                    style={{ width: "100%", textAlign: "left", padding: "10px 12px", background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", borderRadius: "6px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}
+                                    onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                                    📊 Excel (.xlsx)
+                                </button>
+                                <button onClick={() => { analysis && exportToCSV(analysis); setExportOpen(false); }}
+                                    style={{ width: "100%", textAlign: "left", padding: "10px 12px", background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", borderRadius: "6px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}
+                                    onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                                    📋 CSV
+                                </button>
+                                <div style={{ height: "1px", background: "var(--border-color)", margin: "6px 0" }} />
+                                <button onClick={async () => {
+                                    if (!analysis) return;
+                                    setExportingPremium(true); setExportOpen(false);
+                                    try {
+                                        const html = generatePremiumPDFHTML(analysis, aiInsight);
+                                        const res = await fetch("/api/export/premium-pdf", {
+                                            method: "POST", headers: { "Content-Type": "application/json" },
+                                            body: JSON.stringify({ html }),
+                                        });
+                                        if (res.ok) {
+                                            const blob = await res.blob();
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement("a"); a.href = url;
+                                            a.download = `SimbisData_Premium_${new Date().toISOString().split("T")[0]}.pdf`;
+                                            a.click(); URL.revokeObjectURL(url);
+                                        } else { alert("Premium PDF belum tersedia. Tambahkan BROWSERLESS_API_KEY."); }
+                                    } catch { alert("Gagal generate Premium PDF."); }
+                                    setExportingPremium(false);
+                                }}
+                                    style={{ width: "100%", textAlign: "left", padding: "10px 12px", background: "none", border: "none", color: "var(--primary-light)", cursor: "pointer", borderRadius: "6px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}
+                                    onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                                    {exportingPremium ? "⏳ Generating..." : "✨ Premium PDF (Pro)"}
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                    <Link href="/dashboard/upload" className="btn-secondary" style={{ padding: "8px 16px", fontSize: "0.85rem" }}>
+                        <Upload size={16} /> Upload Baru
+                    </Link>
+                </div>
+            </div>
+
+            {/* KPI Cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "32px" }}>
+                <KPICard icon={DollarSign} label="Total Revenue" value={formatRupiah(overview.totalRevenue * 1000)} sub={`${overview.growthRate >= 0 ? "↑" : "↓"} ${Math.abs(overview.growthRate).toFixed(1)}%`} color="var(--success)" delay={0} />
+                <KPICard icon={Package} label="Total Pesanan" value={overview.totalOrders.toLocaleString()} sub={`${productPerformance.length} produk`} color="var(--primary)" delay={0.1} />
+                <KPICard icon={TrendingUp} label="Rata-rata Order" value={formatRupiah(overview.avgOrderValue * 1000)} sub="per pesanan" color="var(--accent)" delay={0.2} />
+                <KPICard icon={RotateCcw} label="Return Rate" value={`${overview.returnRate.toFixed(1)}%`} sub={overview.returnRate < 2 ? "✅ Sangat baik" : "⚠️ Perlu perhatian"} color={overview.returnRate < 2 ? "var(--success)" : "var(--warning)"} delay={0.3} />
+            </div>
+
+            {/* Charts Row 1 */}
+            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                {/* Trend Chart */}
+                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>📈 Tren Penjualan Bulanan</h3>
+                    <ResponsiveContainer width="100%" height={280}>
+                        <AreaChart data={timeAnalysis.monthly}>
+                            <defs>
+                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                            <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
+                            <YAxis stroke="var(--text-muted)" fontSize={12} />
+                            <Tooltip contentStyle={tooltipStyle} />
+                            <Area type="monotone" dataKey="orders" stroke="#6366f1" fill="url(#colorRevenue)" strokeWidth={2} name="Pesanan" />
+                        </AreaChart>
+                    </ResponsiveContainer>
+                </motion.div>
+
+                {/* Product Distribution */}
+                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>🥧 Distribusi Produk</h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                        <PieChart>
+                            <Pie data={productPerformance} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
+                                {productPerformance.map((_, i) => (
+                                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                                ))}
+                            </Pie>
+                            <Tooltip contentStyle={tooltipStyle} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                    <div style={{ marginTop: "8px" }}>
+                        {productPerformance.map((p, i) => (
+                            <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.8rem", marginBottom: "6px" }}>
+                                <div style={{ width: 10, height: 10, borderRadius: "50%", background: COLORS[i % COLORS.length], flexShrink: 0 }} />
+                                <span style={{ color: "var(--text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
+                                <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{p.percentage.toFixed(1)}%</span>
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            </div>
+
+            {/* Charts Row 2 */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                {/* Variant Analysis */}
+                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>📏 Distribusi Ukuran/Variasi</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={variantAnalysis} layout="vertical">
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                            <XAxis type="number" stroke="var(--text-muted)" fontSize={12} />
+                            <YAxis type="category" dataKey="name" stroke="var(--text-muted)" fontSize={12} width={50} />
+                            <Tooltip contentStyle={tooltipStyle} />
+                            <Bar dataKey="count" name="Jumlah" radius={[0, 6, 6, 0]}>
+                                {variantAnalysis.map((_, i) => (
+                                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </motion.div>
+
+                {/* Day of Week */}
+                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>📅 Penjualan per Hari</h3>
+                    <ResponsiveContainer width="100%" height={250}>
+                        <BarChart data={timeAnalysis.dayOfWeek}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                            <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} />
+                            <YAxis stroke="var(--text-muted)" fontSize={12} />
+                            <Tooltip contentStyle={tooltipStyle} />
+                            <Bar dataKey="count" name="Pesanan" fill="#06b6d4" radius={[6, 6, 0, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </motion.div>
+            </div>
+
+            {/* Charts Row 3 */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+                {/* Regional TOP 10 */}
+                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>🌍 Top 10 Provinsi</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={regionalAnalysis.slice(0, 10)} layout="vertical">
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                            <XAxis type="number" stroke="var(--text-muted)" fontSize={12} />
+                            <YAxis type="category" dataKey="province" stroke="var(--text-muted)" fontSize={10} width={120} />
+                            <Tooltip contentStyle={tooltipStyle} />
+                            <Bar dataKey="count" name="Pesanan" fill="#10b981" radius={[0, 6, 6, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </motion.div>
+
+                {/* Payment Methods */}
+                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>💳 Metode Pembayaran</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={paymentAnalysis.slice(0, 8)} layout="vertical">
+                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                            <XAxis type="number" stroke="var(--text-muted)" fontSize={12} />
+                            <YAxis type="category" dataKey="method" stroke="var(--text-muted)" fontSize={9} width={140} />
+                            <Tooltip contentStyle={tooltipStyle} />
+                            <Bar dataKey="count" name="Jumlah" fill="#f59e0b" radius={[0, 6, 6, 0]} />
+                        </BarChart>
+                    </ResponsiveContainer>
+                </motion.div>
+            </div>
+
+            {/* Hourly Distribution */}
+            <motion.div className="glass-card" style={{ padding: "24px", marginBottom: "16px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
+                <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>⏰ Distribusi Pesanan per Jam</h3>
+                <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={timeAnalysis.hourly}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                        <XAxis dataKey="hour" stroke="var(--text-muted)" fontSize={11} tickFormatter={(h) => `${h}:00`} />
+                        <YAxis stroke="var(--text-muted)" fontSize={12} />
+                        <Tooltip contentStyle={tooltipStyle} labelFormatter={(h) => `${h}:00`} />
+                        <Line type="monotone" dataKey="count" stroke="#a78bfa" strokeWidth={2} dot={{ fill: "#a78bfa", r: 3 }} name="Pesanan" />
+                    </LineChart>
+                </ResponsiveContainer>
+            </motion.div>
+
+            {/* AI Insight Section */}
+            <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <Brain size={24} style={{ color: "var(--primary)" }} />
+                        <h3 style={{ fontSize: "1.1rem", fontWeight: 700 }}>AI Insight & Rekomendasi</h3>
+                    </div>
+                    <button onClick={generateAIInsight} className="btn-primary" disabled={aiLoading}
+                        style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
+                        {aiLoading ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <Brain size={16} />}
+                        {aiLoading ? "Menganalisis..." : "Generate Insight AI"}
+                    </button>
+                </div>
+
+                {aiInsight ? (
+                    <div style={{
+                        padding: "20px",
+                        borderRadius: "var(--radius)",
+                        background: "var(--bg-surface)",
+                        border: "1px solid var(--border-color)",
+                        whiteSpace: "pre-wrap",
+                        lineHeight: 1.8,
+                        fontSize: "0.9rem",
+                        color: "var(--text-secondary)",
+                    }}>
+                        {aiInsight}
+                    </div>
+                ) : (
+                    <div style={{
+                        padding: "40px",
+                        textAlign: "center",
+                        color: "var(--text-muted)",
+                        borderRadius: "var(--radius)",
+                        background: "var(--bg-surface)",
+                        border: "1px dashed var(--border-color)",
+                    }}>
+                        <Brain size={32} style={{ marginBottom: "12px", opacity: 0.5 }} />
+                        <p>Klik tombol &quot;Generate Insight AI&quot; untuk mendapatkan analisis mendalam dan rekomendasi bisnis.</p>
+                    </div>
+                )}
+            </motion.div>
+        </div>
+    );
+}
