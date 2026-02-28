@@ -47,7 +47,7 @@ export default function Footer() {
                 </div>
 
                 <div className="footer-bottom">
-                    build by hengki setiawan
+                    &copy; {new Date().getFullYear()} SimbisData. build by hengki setiawan
                 </div>
             </div>
         </footer>
