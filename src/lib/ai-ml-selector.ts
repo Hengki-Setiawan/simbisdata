@@ -73,14 +73,14 @@ export function recommendAlgorithms(
         });
     }
 
-    // 4. K-Means Clustering
+    // 4. Deep Clustering (K-Means Neural Network)
     if (numCols.length >= 2 && rowCount >= 20) {
         recs.push({
-            id: "kmeans_clustering", name: "🎯 K-Means Clustering",
-            icon: "🔵", description: "Segmentasi data ke dalam kelompok-kelompok berdasarkan kesamaan",
-            confidence: 0.85, reason: "Multiple numeric columns → clustering menemukan segmen tersembunyi",
+            id: "deep_clustering", name: "🧠 Deep Clustering (TF.js)",
+            icon: "🧬", description: "Segmentasi pelanggan non-linear menggunakan Autoencoder Neural Network",
+            confidence: 0.88, reason: "Multiple numeric columns → algoritma deep learning bisa menemukan segmen tersembunyi yang sulit dideteksi metode konvensional",
             requiredFields: numCols.slice(0, 4).map(c => c.name),
-            category: "segmentation", estimatedTime: "~2 detik", useTensorFlow: false
+            category: "segmentation", estimatedTime: "~4 detik", useTensorFlow: true
         });
     }
 

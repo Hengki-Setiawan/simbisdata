@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, CircleMarker, Tooltip, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, CircleMarker, Tooltip, Polyline, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { batchGeocode, type GeoResult } from "@/lib/external-apis";
 
@@ -71,6 +71,7 @@ export default function InteractiveLeafletMap({ data }: Props) {
 
     return (
         <div style={{ height: "400px", width: "100%", borderRadius: "8px", overflow: "hidden", border: "1px solid var(--border-color)", zIndex: 0 }}>
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossOrigin="" />
             <MapContainer center={center} zoom={5} scrollWheelZoom={false} style={{ height: "100%", width: "100%", background: "#1a1a24" }}>
                 <TileLayer
                     attribution='&copy; <a href="https://www.openstreetmap.org/">OSM</a>'
@@ -83,26 +84,40 @@ export default function InteractiveLeafletMap({ data }: Props) {
 
                     const radius = Math.max(10, (region.orders / maxOrders) * 30);
 
+                    // Route from hub (Jakarta) to destination
+                    const routeCoordinates: [number, number][] = [
+                        [-6.2088, 106.8456], // Jakarta Hub
+                        [geo.lat, geo.lng]
+                    ];
+
                     return (
-                        <CircleMarker
-                            key={region.province}
-                            center={[geo.lat, geo.lng]}
-                            pathOptions={{
-                                color: "var(--primary)",
-                                fillColor: "var(--primary)",
-                                fillOpacity: 0.6,
-                                weight: 2
-                            }}
-                            radius={radius}
-                        >
-                            <Tooltip direction="top" offset={[0, -10]} opacity={0.9}>
-                                <div style={{ fontSize: "0.85rem", color: "#1a1a24" }}>
-                                    <strong>{region.province}</strong><br />
-                                    Orders: {region.orders}<br />
-                                    Revenue: Rp{(region.revenue / 1000000).toFixed(1)}M
-                                </div>
-                            </Tooltip>
-                        </CircleMarker>
+                        <div key={region.province}>
+                            {/* Shipping Route Line */}
+                            <Polyline
+                                positions={routeCoordinates}
+                                pathOptions={{ color: "rgba(99,102,241,0.4)", weight: 1.5, dashArray: "4, 6" }}
+                            />
+
+                            {/* Destination Marker */}
+                            <CircleMarker
+                                center={[geo.lat, geo.lng]}
+                                pathOptions={{
+                                    color: "var(--primary)",
+                                    fillColor: "var(--primary)",
+                                    fillOpacity: 0.6,
+                                    weight: 2
+                                }}
+                                radius={radius}
+                            >
+                                <Tooltip direction="top" offset={[0, -10]} opacity={0.9}>
+                                    <div style={{ fontSize: "0.85rem", color: "#1a1a24" }}>
+                                        <strong>{region.province}</strong><br />
+                                        Orders: {region.orders}<br />
+                                        Revenue: Rp{(region.revenue / 1000000).toFixed(1)}M
+                                    </div>
+                                </Tooltip>
+                            </CircleMarker>
+                        </div>
                     );
                 })}
                 <MapBounds locations={Array.from(locations.values())} />

@@ -360,3 +360,153 @@ function statisticalAnomalyFallback(
         modelInfo: "Z-Score Fallback (TF.js unavailable)"
     };
 }
+
+// ═══════════════════════════════════════════════════════════
+// DEEP CLUSTERING (K-Means Neural Network for Non-Linear Segmenting)
+// ═══════════════════════════════════════════════════════════
+
+export interface DeepClusterResult {
+    clusters: { id: number; count: number; x: number; y: number }[];
+    assignments: { index: number; cluster: number; coords: [number, number] }[];
+    modelInfo: string;
+}
+
+export async function deepClustering(
+    matrix: number[][],
+    k: number = 3,
+    onProgress?: (p: number) => void
+): Promise<DeepClusterResult> {
+    const tfLib = await loadTF();
+
+    // Normalize data
+    const inputDim = matrix[0].length;
+    const mins = Array(inputDim).fill(0).map((_, i) => Math.min(...matrix.map(r => r[i])));
+    const maxs = Array(inputDim).fill(0).map((_, i) => Math.max(...matrix.map(r => r[i])));
+    const norm = matrix.map(row => row.map((v, i) => (maxs[i] - mins[i]) > 0 ? (v - mins[i]) / (maxs[i] - mins[i]) : 0));
+
+    if (!tfLib || matrix.length < k) {
+        // Fallback: Random Assignment
+        return {
+            clusters: Array.from({ length: k }, (_, i) => ({ id: i, count: Math.ceil(matrix.length / k), x: Math.random(), y: Math.random() })),
+            assignments: matrix.map((_, i) => ({ index: i, cluster: i % k, coords: [Math.random(), Math.random()] })),
+            modelInfo: "Random Fallback (TF.js unavailable)"
+        };
+    }
+
+    // Autoencoder for Dimensionality Reduction (compress to 2D for clustering)
+    const encoder = tfLib.sequential();
+    encoder.add(tfLib.layers.dense({ units: 8, activation: "relu", inputShape: [inputDim] }));
+    encoder.add(tfLib.layers.dense({ units: 2, activation: "linear" })); // 2D Latent Space
+
+    const decoder = tfLib.sequential();
+    decoder.add(tfLib.layers.dense({ units: 8, activation: "relu", inputShape: [2] }));
+    decoder.add(tfLib.layers.dense({ units: inputDim, activation: "sigmoid" }));
+
+    const autoencoder = tfLib.sequential();
+    autoencoder.add(encoder);
+    autoencoder.add(decoder);
+
+    autoencoder.compile({ optimizer: "adam", loss: "meanSquaredError" });
+
+    const tensor = tfLib.tensor2d(norm);
+    const epochs = 20;
+    await autoencoder.fit(tensor, tensor, {
+        epochs, batchSize: Math.min(32, norm.length), shuffle: true, verbose: 0,
+        callbacks: { onEpochEnd: (e: number) => onProgress?.(Math.round((e / epochs) * 50)) }
+    });
+
+    // Extract 2D features
+    const latentPred = encoder.predict(tensor) as any;
+    const latentData = await latentPred.array();
+
+    // Init centroids randomly in latent space
+    let centroids = Array.from({ length: k }, () => [Math.random(), Math.random()]);
+    let assignments = new Array(norm.length).fill(0);
+
+    // Manual K-Means over the latent 2D space tensor
+    for (let iter = 0; iter < 10; iter++) {
+        // Assign
+        assignments = latentData.map((pt: number[]) => {
+            let minDist = Infinity, best = 0;
+            centroids.forEach((c, i) => {
+                const dist = Math.sqrt((pt[0] - c[0]) ** 2 + (pt[1] - c[1]) ** 2);
+                if (dist < minDist) { minDist = dist; best = i; }
+            });
+            return best;
+        });
+
+        // Update Centroids
+        const newCentroids = Array.from({ length: k }, () => [0, 0]);
+        const counts = new Array(k).fill(0);
+        assignments.forEach((cIdx, i) => {
+            newCentroids[cIdx][0] += latentData[i][0];
+            newCentroids[cIdx][1] += latentData[i][1];
+            counts[cIdx]++;
+        });
+        centroids = newCentroids.map((c, i) => counts[i] > 0 ? [c[0] / counts[i], c[1] / counts[i]] : [Math.random(), Math.random()]);
+
+        onProgress?.(50 + Math.round((iter / 10) * 50));
+    }
+
+    const clusters = centroids.map((c, i) => ({
+        id: i, count: assignments.filter(a => a === i).length, x: Math.round(c[0] * 100) / 100, y: Math.round(c[1] * 100) / 100
+    }));
+
+    const resultAssignments = assignments.map((c, i) => ({
+        index: i, cluster: c, coords: [Math.round(latentData[i][0] * 100) / 100, Math.round(latentData[i][1] * 100) / 100] as [number, number]
+    }));
+
+    // Cleanup
+    autoencoder.dispose(); encoder.dispose(); decoder.dispose(); tensor.dispose(); latentPred.dispose();
+
+    return { clusters, assignments: resultAssignments, modelInfo: `Deep Autoencoder K-Means (${inputDim}→2D Latent Space)` };
+}
+
+// ═══════════════════════════════════════════════════════════
+// DEMAND PREDICTION MODEL (Multivariate Regression)
+// ═══════════════════════════════════════════════════════════
+
+export async function demandPrediction(
+    matrix: number[][], // [Price, DayOfWeek, MarketingSpend]
+    targets: number[]   // [QtySold]
+): Promise<{ predictions: number[]; weights: number[]; modelInfo: string }> {
+    const tfLib = await loadTF();
+    if (!tfLib || matrix.length < 5) {
+        return { predictions: targets, weights: matrix[0]?.map(() => 0) || [], modelInfo: "Fallback (Insufficient Data or TF.js unavailable)" };
+    }
+
+    const inputDim = matrix[0].length;
+
+    // Normalize targets
+    const tMin = Math.min(...targets), tMax = Math.max(...targets), tRange = tMax - tMin || 1;
+    const targetNorm = targets.map(t => (t - tMin) / tRange);
+
+    const model = tfLib.sequential();
+    model.add(tfLib.layers.dense({ units: 16, activation: "relu", inputShape: [inputDim] }));
+    model.add(tfLib.layers.dense({ units: 8, activation: "relu" }));
+    model.add(tfLib.layers.dense({ units: 1, activation: "linear" }));
+
+    model.compile({ optimizer: tfLib.train.adam(0.01), loss: "meanSquaredError" });
+
+    const xTensor = tfLib.tensor2d(matrix);
+    const yTensor = tfLib.tensor2d(targetNorm.map(v => [v]));
+
+    await model.fit(xTensor, yTensor, { epochs: 20, batchSize: Math.min(16, matrix.length), verbose: 0 });
+
+    const predTensor = model.predict(xTensor) as any;
+    const normPreds = await predTensor.array();
+    const predictions = normPreds.map((p: number[]) => Math.round(p[0] * tRange + tMin));
+
+    // Extract dense layer weights (feature importance proxy for linear-ish portions)
+    const rawWeights = (await model.layers[0].getWeights()[0].array()) as number[][];
+    // sum absolute weights per input feature
+    const featureImportance = rawWeights.map(featureRow => featureRow.reduce((s, w) => s + Math.abs(w), 0));
+
+    model.dispose(); xTensor.dispose(); yTensor.dispose(); predTensor.dispose();
+
+    return {
+        predictions,
+        weights: featureImportance,
+        modelInfo: `Multivariate Deep Regressor (${inputDim} features → 16 → 8 → 1)`
+    };
+}

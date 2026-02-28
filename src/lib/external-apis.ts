@@ -171,5 +171,55 @@ async function getLatestNewsHeadline() {
         "Pemerintah gencarkan subsidi logistik UMKM daerah.",
         "Inflasi terkendali, daya beli berangsur pulih."
     ];
+    // In a real implementation with a News API KEY:
+    // fetch(`https://newsapi.org/v2/top-headlines?country=id&category=business&apiKey=...`)
     return mockNews[Math.floor(Math.random() * mockNews.length)];
+}
+
+// ═══════════════════════════════════════════════════════════
+// NEW EXTERNAL APIs (REST Countries, VAT, QuickChart, Google Sheets)
+// ═══════════════════════════════════════════════════════════
+
+export async function getCountryData(countryName: string) {
+    try {
+        const res = await fetch(`https://restcountries.com/v3.1/name/${countryName}?fullText=true`);
+        const data = await res.json();
+        if (data && data[0]) {
+            return {
+                name: data[0].name.common,
+                currencyCode: Object.keys(data[0].currencies || {})[0],
+                region: data[0].region
+            };
+        }
+    } catch { /* ignore */ }
+    return null;
+}
+
+export async function validateVAT(vatNumber: string) {
+    try {
+        // Abstract VAT Validation (Requires API Key in production)
+        const apiKey = process.env.NEXT_PUBLIC_VAT_API_KEY;
+        if (!apiKey) return { valid: true, simulated: true, company: "Mock Company Ltd" };
+
+        const res = await fetch(`https://exchange.abstractapi.com/v1/live?api_key=${apiKey}&vat_number=${vatNumber}`);
+        const data = await res.json();
+        return { valid: data.valid, company: data.company?.name || null, simulated: false };
+    } catch {
+        return { valid: false, simulated: true, error: "Validation Failed" };
+    }
+}
+
+export function generateChartImage(chartConfig: string): string {
+    // QuickChart format (Chart.js syntax) to generate a static image URL
+    // e.g., chartConfig = "{ type: 'bar', data: { labels: ['A'], datasets: [{ data: [1] }] } }"
+    const encoded = encodeURIComponent(chartConfig);
+    return `https://quickchart.io/chart?c=${encoded}`;
+}
+
+export async function exportToGoogleSheets(data: any[], sheetName: string = "Export") {
+    // Note: Google Sheets API requires an OAuth2 token which requires a severe backend infrastructure.
+    // For this blueprint, we simulate the "send" confirmation. 
+    // Real implementation would POST to a backend endpoint like /api/sheets/export with the data.
+    console.log(`Exporting ${data.length} rows to Google Sheet: ${sheetName}...`);
+    return new Promise(resolve => setTimeout(() => resolve({ success: true, url: "https://docs.google.com/spreadsheets/d/mock-ID/edit" }), 1500));
 }
