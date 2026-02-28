@@ -123,6 +123,8 @@ export default function SubscriptionPage() {
         }
     };
 
+    const currentPlan = (session?.user as any)?.planId || "free";
+
     return (
         <div>
             <div style={{ marginBottom: "32px" }}>
@@ -135,6 +137,8 @@ export default function SubscriptionPage() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
                 {plans.map((plan, i) => {
                     const Icon = plan.icon;
+                    const isCurrentPlan = plan.name.toLowerCase() === currentPlan.toLowerCase();
+
                     return (
                         <motion.div
                             key={plan.name}
@@ -142,13 +146,21 @@ export default function SubscriptionPage() {
                             style={{
                                 padding: "28px 24px",
                                 position: "relative",
-                                border: plan.popular ? "2px solid var(--primary)" : undefined,
+                                border: isCurrentPlan ? "2px solid var(--success)" : plan.popular ? "2px solid var(--primary)" : undefined,
                             }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.1 }}
                         >
-                            {plan.popular && (
+                            {isCurrentPlan ? (
+                                <div style={{
+                                    position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)",
+                                    padding: "4px 16px", borderRadius: "100px", fontSize: "0.75rem", fontWeight: 700,
+                                    background: "var(--success)", color: "white",
+                                }}>
+                                    AKTIF
+                                </div>
+                            ) : plan.popular ? (
                                 <div style={{
                                     position: "absolute", top: "-12px", left: "50%", transform: "translateX(-50%)",
                                     padding: "4px 16px", borderRadius: "100px", fontSize: "0.75rem", fontWeight: 700,
@@ -156,7 +168,7 @@ export default function SubscriptionPage() {
                                 }}>
                                     POPULER
                                 </div>
-                            )}
+                            ) : null}
 
                             <div style={{ textAlign: "center", marginBottom: "24px" }}>
                                 <Icon size={28} style={{ color: plan.color, marginBottom: "12px" }} />
@@ -186,12 +198,12 @@ export default function SubscriptionPage() {
                             </div>
 
                             <button
-                                className={plan.popular ? "btn-primary" : "btn-secondary"}
+                                className={isCurrentPlan ? "btn-secondary" : plan.popular ? "btn-primary" : "btn-secondary"}
                                 style={{ width: "100%", justifyContent: "center", padding: "12px", opacity: loadingPlan === plan.name ? 0.7 : 1 }}
-                                disabled={loadingPlan === plan.name || plan.name === "Free"}
+                                disabled={loadingPlan === plan.name || isCurrentPlan}
                                 onClick={() => handleSubscribe(plan)}
                             >
-                                {loadingPlan === plan.name ? "Memproses..." : (plan.name === "Free" ? "Paket Saat Ini" : "Pilih Paket")}
+                                {loadingPlan === plan.name ? "Memproses..." : (isCurrentPlan ? "Paket Saat Ini" : "Pilih Paket")}
                             </button>
                         </motion.div>
                     );
