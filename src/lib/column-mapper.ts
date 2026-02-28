@@ -135,7 +135,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "subtotal after discount", "jumlah harga", "omset", "revenue", "pendapatan",
   ],
   total_payment: [
-    "total pembayaran", "total payment", "total bayar", "grand total", "total order", "total",
+    "total pembayaran", "total payment", "total bayar", "grand total", "total order", "total", "total pesanan",
     "amount paid", "total price", "total penjualan (idr)", "total penjualan", "total belanja",
     "total transaksi", "total (idr)", "bersih", "netto",
   ],
@@ -148,42 +148,39 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   platform_discount: ["diskon dari shopee", "shopee discount", "diskon shopee", "platform discount", "diskon dari tokopedia", "diskon lazada", "diskon tiktok", "marketplace discount"],
   seller_discount: ["diskon dari penjual", "seller discount", "diskon seller", "diskon penjual", "diskon toko", "voucher ditanggung penjual", "seller voucher", "voucher penjual", "voucher ditanggung shopee", "shopee voucher", "voucher shopee", "platform voucher"],
 
-  // === STATUS ===
-  order_status: ["status pesanan", "order status", "status", "status order", "status terakhir", "status pembatalan/ pengembalian", "cancel status", "return status", "status transaksi", "keterangan"],
-
-  // === DATES ===
-  order_date: [
-    "waktu pesanan dibuat", "order date", "tanggal pesanan", "tanggal order", "created at",
-    "date", "tanggal", "order time", "waktu order", "tgl pesanan", "created time",
-    "tanggal pembayaran", "tanggal transaksi", "tgl transaksi", "transaction date",
-    "waktu", "datetime", "hari", "bulan",
+  // === STATUS & LOGISTIK ===
+  order_status: [
+    "status pesanan", "status order", "status", "order status", "payment status",
+    "status pembayaran", "kondisi", "state", "status_pesanan",
   ],
-  payment_date: ["waktu pembayaran dilakukan", "payment date", "tanggal bayar", "paid at", "waktu bayar", "tgl bayar"],
-  ship_date: ["waktu pengiriman diatur", "shipping date", "tanggal kirim", "ship date", "tgl kirim", "shipped at"],
-  complete_date: ["waktu pesanan selesai", "completed date", "tanggal selesai", "delivered at", "completion date", "tgl selesai", "selesai"],
+  order_date: [
+    "waktu pesanan dibuat", "tanggal pesanan dibuat", "order date", "tanggal", "tanggal order", "tanggal transaksi",
+    "waktu pesanan", "date", "created at", "waktu", "waktu transaksi", "tgl", "hari",
+  ],
+  payment_date: ["waktu pembayaran", "tanggal pembayaran", "payment date", "tanggal bayar", "paid at", "waktu bayar", "tgl bayar"],
+  ship_date: ["waktu pengiriman", "tanggal pengiriman", "ship date", "tanggal kirim", "shipped at"],
+  complete_date: ["waktu pesanan selesai", "tanggal selesai", "waktu selesai", "completed at", "complete date", "tgl selesai"],
 
-  // === SHIPPING ===
-  courier: ["opsi pengiriman", "shipping option", "kurir", "courier", "jasa kirim", "logistik", "shipping method", "ekspedisi", "carrier", "pengiriman"],
-  tracking_no: ["no. resi", "no resi", "tracking number", "resi", "tracking", "awb", "awb number", "nomor pelacakan"],
-  shipping_cost: ["ongkos kirim dibayar oleh pembeli", "shipping fee", "ongkir", "ongkos kirim", "biaya kirim", "shipping cost", "ongkos kirim (idr)", "shipping fee (paid by buyer)", "perkiraan ongkos kirim", "estimasi ongkir", "biaya ongkir", "pengiriman (idr)"],
+  courier: ["opsi pengiriman", "kurir", "courier", "jasa kirim", "ekspedisi", "pengiriman", "shipping method", "logistic"],
+  tracking_no: ["no. resi", "no resi", "nomor resi", "tracking number", "tracking no", "resi", "awb", "waybill"],
+  shipping_cost: [
+    "perkiraan ongkos kirim", "ongkos kirim", "ongkir", "shipping cost", "shipping fee", "biaya pengiriman",
+    "biaya kirim", "ongkos kirim dibayar pembeli", "ongkir ditanggung penjual",
+  ],
 
   // === CUSTOMER ===
   customer_name: [
-    "username (pembeli)", "username", "pembeli", "buyer", "buyer name", "customer",
-    "pelanggan", "nama pembeli", "customer name", "nama penerima", "recipient",
-    "penerima", "recipient name", "nama customer", "nama pelanggan", "konsumen",
-    "client", "nama client", "tamu", "klien", "pengguna", "user"
+    "username (pembeli)", "nama pembeli", "nama pelanggan", "customer name", "customer", "pelanggan",
+    "pembeli", "client", "klien", "nama", "name", "buyer", "buyer name", "user", "username",
   ],
-  customer_phone: ["no. telepon", "no telepon", "phone", "telepon", "no hp", "handphone", "phone number", "hp", "nomor hp", "kontak", "whatsapp", "wa"],
-  address: ["alamat pengiriman", "address", "alamat", "shipping address", "alamat kirim", "alamat lengkap", "full address", "lokasi"],
-  city: ["kota/kabupaten", "kota", "kabupaten", "city", "district", "kota/kab", "kecamatan", "kelurahan"],
-  province: ["provinsi", "province", "propinsi", "state", "region", "wilayah", "area"],
-
-  // === PAYMENT ===
-  payment_method: ["metode pembayaran", "payment method", "metode bayar", "cara bayar", "payment type", "metode", "pembayaran", "tunai", "cash", "transfer", "tipe pembayaran", "qris", "edc", "kredit"],
+  customer_phone: ["no handphone", "telepon", "phone", "no hp", "nomor hp", "phone number", "whatsapp", "wa"],
+  address: ["alamat pengiriman", "alamat", "address", "shipping address", "delivery address", "jalan", "street"],
+  city: ["kota/kabupaten", "kota", "kabupaten", "city", "regency", "region", "kab"],
+  province: ["provinsi", "province", "state", "wilayah", "daerah"],
+  payment_method: ["metode pembayaran", "metode bayar", "payment method", "cara bayar", "payment", "tipe pembayaran", "tunai", "cash", "transfer", "qris", "edc", "kredit"],
 
   // === MISC ===
-  notes: ["catatan", "notes", "keterangan", "remark", "memo", "pesan", "note", "deskripsi"],
+  notes: ["catatan dari pembeli", "catatan", "notes", "remark", "keterangan", "memo", "pesan", "note", "deskripsi"],
 
   // === SURVEY / FEEDBACK ===
   question: ["pertanyaan", "question", "soal", "item penilaian", "aspek", "indikator"],

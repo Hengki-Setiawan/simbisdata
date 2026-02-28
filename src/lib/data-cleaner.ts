@@ -53,21 +53,21 @@ export function cleanData(rows: Record<string, any>[]): { cleaned: Record<string
 
     // Step 3: Fix numeric values (remove Rp, dots, commas from numbers)
     let numFixCount = 0;
-    const numericPatterns = /^[Rr]p\.?\s*|^IDR\s*|^\$\s*/;
+    const numericPatterns = /[Rr]p\.?\s*|IDR\s*|\$\s*|USD\s*|Rp/gi;
     const columns = Object.keys(cleaned[0] || {});
 
     for (const col of columns) {
         const values = cleaned.map((r) => r[col]).filter((v) => v != null && v !== "");
         const hasNumeric = values.some((v) => {
-            const s = String(v).replace(numericPatterns, "").replace(/\./g, "").replace(/,/g, ".");
+            const s = String(v).replace(numericPatterns, "").replace(/\s/g, "").replace(/\./g, "").replace(/,/g, ".");
             return !isNaN(parseFloat(s)) && s.length > 0;
         });
 
         // Check if this column looks like it should be numeric
         const looksNumeric = values.filter((v) => {
-            const s = String(v).replace(numericPatterns, "").replace(/\./g, "").replace(/,/g, ".");
+            const s = String(v).replace(numericPatterns, "").replace(/\s/g, "").replace(/\./g, "").replace(/,/g, ".");
             return !isNaN(parseFloat(s));
-        }).length > values.length * 0.6;
+        }).length > values.length * 0.4; // Lower threshold to 40% to catch messy currency columns
 
         if (looksNumeric && hasNumeric) {
             let fixed = 0;
@@ -75,10 +75,13 @@ export function cleanData(rows: Record<string, any>[]): { cleaned: Record<string
                 const val = row[col];
                 if (val == null || val === "") return row;
                 const str = String(val);
-                // Remove currency symbols & thousand separators
-                const cleaned_str = str.replace(numericPatterns, "").replace(/\./g, "").replace(/,/g, ".").trim();
+                // Remove currency symbols & thousand separators (Indonesian format assumes . is thousand, , is decimal)
+                // Also handles spaces like "Rp 1 000 000"
+                const cleaned_str = str.replace(numericPatterns, "").replace(/\s/g, "").replace(/\./g, "").replace(/,/g, ".").trim();
                 const num = parseFloat(cleaned_str);
-                if (!isNaN(num) && str !== String(num)) {
+
+                // Extra safety: If it's a valid number but original was a string with symbols
+                if (!isNaN(num) && (str !== String(num) || typeof val === "string")) {
                     fixed++;
                     return { ...row, [col]: num };
                 }
