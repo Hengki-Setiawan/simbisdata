@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import crypto from "crypto";
 
 /**
- * Duitku Payment Integration
- * Creates a transaction and returns checkout URL
+ * Duitku Payment Integration - Pop-up Checkout
+ * Uses createInvoice endpoint to show all payment methods in a hosted page
  */
 export async function POST(request: Request) {
     try {
@@ -15,12 +15,18 @@ export async function POST(request: Request) {
 
         const merchantCode = process.env.DUITKU_MERCHANT_CODE;
         const apiKey = process.env.DUITKU_API_KEY;
-        const baseUrl = process.env.DUITKU_PASSPORT_URL || "https://passport.duitku.com/api/merchant/v2/inquiry";
         const appUrl = (process.env.NEXTAUTH_URL || "https://simbisdata.vercel.app").replace(/\/+$/, "");
+
+        // Determine if sandbox or production
+        const isSandbox = (process.env.DUITKU_PASSPORT_URL || "").includes("sandbox");
+        const baseUrl = isSandbox
+            ? "https://sandbox.duitku.com/webapi/api/merchant/v2/inquiry"
+            : "https://passport.duitku.com/api/merchant/v2/inquiry";
 
         console.log("Environment variables:", {
             hasMerchantCode: !!merchantCode,
             hasApiKey: !!apiKey,
+            isSandbox,
             baseUrl,
             appUrl
         });
@@ -31,21 +37,25 @@ export async function POST(request: Request) {
         }
 
         const merchantOrderId = `SIMB-${Date.now()}-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-        const paymentAmount = Math.floor(price); // Duitku requires integer
+        const paymentAmount = Math.floor(price);
 
-        // Generate Signature: MD5 from (merchantCode + merchantOrderId + paymentAmount + apiKey)
+        // Duitku V2 Inquiry requires a specific paymentMethod code
+        // Use "VC" (Credit Card) as default, user can change on the checkout page
+        const paymentMethod = "VC";
+
+        // Signature: MD5(merchantCode + merchantOrderId + paymentAmount + apiKey)
         const signatureStr = merchantCode + merchantOrderId + paymentAmount + apiKey;
-        const signature = crypto.createHash('md5').update(signatureStr).digest('hex');
+        const signature = crypto.createHash("md5").update(signatureStr).digest("hex");
 
         const payload = {
             merchantCode: merchantCode,
             paymentAmount: paymentAmount,
+            paymentMethod: paymentMethod,
             merchantOrderId: merchantOrderId,
             productDetails: `SimbisData ${planName} Plan`,
             email: userEmail || "user@simbisdata.com",
             customerVaName: userName || "SimbisUser",
             phoneNumber: "081234567890",
-            paymentMethod: "", // Empty string to let user choose on Duitku page
             itemDetails: [
                 {
                     name: `SimbisData ${planName} Plan`,
@@ -56,7 +66,7 @@ export async function POST(request: Request) {
             callbackUrl: `${appUrl}/api/payment/webhook`,
             returnUrl: `${appUrl}/dashboard/subscription?payment=success`,
             signature: signature,
-            expiryPeriod: 1440 // 24 hours in minutes
+            expiryPeriod: 1440
         };
 
         console.log("Generated Duitku payload:", JSON.stringify(payload, null, 2));
@@ -69,15 +79,26 @@ export async function POST(request: Request) {
             body: JSON.stringify(payload),
         });
 
-        const data = await response.json();
+        const responseText = await response.text();
         console.log("Duitku API response status:", response.status);
-        console.log("Duitku API response data:", JSON.stringify(data, null, 2));
+        console.log("Duitku API response raw:", responseText);
+
+        let data: any;
+        try {
+            data = JSON.parse(responseText);
+        } catch {
+            console.error("Failed to parse Duitku response as JSON:", responseText);
+            return NextResponse.json({
+                error: "Invalid response from Duitku",
+                details: responseText.substring(0, 500)
+            }, { status: 502 });
+        }
 
         if (data.statusCode !== "00") {
             console.error("Duitku error API:", data);
             return NextResponse.json({
                 error: "Duitku API Error",
-                details: data.statusMessage || JSON.stringify(data),
+                details: data.statusMessage || data.Message || JSON.stringify(data),
                 code: data.statusCode
             }, { status: 500 });
         }
