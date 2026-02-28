@@ -78,6 +78,7 @@ export default function DashboardPage() {
     const [aiLoading, setAiLoading] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
     const [exportingPremium, setExportingPremium] = useState(false);
+    const [period, setPeriod] = useState("all");
 
     // Dashboard Customizer
     const [isEditingLayout, setIsEditingLayout] = useState(false);
@@ -205,8 +206,6 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
             </div>
         );
     }
-
-    const [period, setPeriod] = useState("all");
 
     const { overview, productPerformance, variantAnalysis, regionalAnalysis, paymentAnalysis, timeAnalysis } = analysis;
 
