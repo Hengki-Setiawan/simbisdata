@@ -9,6 +9,7 @@ import {
 import type { ChartRecommendation } from "@/lib/ai-viz-recommender";
 import { RegionalMap } from "./RegionalMap";
 import { AnimatedBarRace } from "./AnimatedBarRace";
+import { CustomWordCloud } from "./CustomWordCloud";
 
 const COLORS = ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#a78bfa", "#f472b6", "#34d399"];
 
@@ -210,6 +211,84 @@ export function DynamicChartRenderer({ rec, data }: Props) {
                 </ResponsiveContainer>
             );
 
+        case "waterfall":
+            // Create waterfall data structure: [start, end] arrays for Recharts
+            let cumulative = 0;
+            const waterfallData = processedData.map((d, i) => {
+                const val = parseFloat(d[rec.yField || "value"]) || 0;
+                const isTotal = i === processedData.length - 1 || String(d[rec.categoryField || "name"]).toLowerCase().includes("total");
+
+                const start = isTotal ? 0 : cumulative;
+                const end = isTotal ? val : cumulative + val;
+                cumulative = end;
+
+                return {
+                    name: d[rec.categoryField || "name"],
+                    range: [start, end],
+                    val: val,
+                    isTotal,
+                    isPositive: val >= 0
+                };
+            });
+
+            return (
+                <ResponsiveContainer width="100%" height="80%">
+                    <BarChart data={waterfallData}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
+                        <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} tickMargin={8} />
+                        <YAxis stroke="var(--text-muted)" fontSize={11} tickFormatter={formatNumber} />
+                        <Tooltip
+                            contentStyle={tooltipStyle}
+                            formatter={(v: any, name: any, props: any) => [formatNumber(props.payload.val), name]}
+                        />
+                        <Bar dataKey="range" radius={[4, 4, 0, 0]}>
+                            {waterfallData.map((d, i) => (
+                                <Cell key={`cell-${i}`} fill={d.isTotal ? "var(--primary)" : d.isPositive ? "var(--success)" : "var(--danger)"} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            );
+
+        case "gauge":
+            // Take the first metric from data for the gauge needle
+            const gaugeValue = parseFloat(processedData[0]?.[rec.yField || "value"]) || 0;
+            const gaugeMax = 100; // Assume percentage for default gauge
+            const gaugeRatio = Math.min(Math.max(gaugeValue / gaugeMax, 0), 1);
+
+            // Recharts pie chart trick for a half-donut gauge
+            const gaugeData = [
+                { name: "Achieved", value: gaugeRatio, fill: "var(--primary)" },
+                { name: "Remaining", value: 1 - gaugeRatio, fill: "var(--border-color)" }
+            ];
+
+            return (
+                <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie
+                                data={gaugeData}
+                                cx="50%" cy="75%"
+                                startAngle={180} endAngle={0}
+                                innerRadius="60%" outerRadius="80%"
+                                dataKey="value" stroke="none"
+                            >
+                                {gaugeData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.fill} />)}
+                            </Pie>
+                            <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => `${(v * 100).toFixed(1)}%`} />
+                        </PieChart>
+                    </ResponsiveContainer>
+                    <div style={{ position: "absolute", bottom: "10%", textAlign: "center" }}>
+                        <div style={{ fontSize: "2rem", fontWeight: 800, color: "var(--text-primary)", lineHeight: 1 }}>
+                            {gaugeValue.toLocaleString(undefined, { maximumFractionDigits: 1 })}%
+                        </div>
+                        <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                            {rec.yField || "Completion Rate"}
+                        </div>
+                    </div>
+                </div>
+            );
+
         case "map":
             return (
                 <div style={{ width: "100%", height: "80%", position: "relative" }}>
@@ -217,30 +296,22 @@ export function DynamicChartRenderer({ rec, data }: Props) {
                 </div>
             );
 
-        case "wordcloud":
-            const words = processedData;
-            if (!words || words.length === 0) return <div>Data teks terlalu sedikit.</div>;
-            const minFreq = Math.min(...words.map(w => w.value || 0));
-            const maxFreq = Math.max(...words.map(w => w.value || 0));
+        case "box_plot":
+        case "sankey":
+            // Fallback for complex D3 charts not yet fully native to Recharts
             return (
-                <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: "12px", padding: "20px", height: "80%", overflowY: "auto" }}>
-                    {words.map((w: any, i: number) => {
-                        const freq = w.value || 0;
-                        const size = 10 + ((freq - minFreq) / (maxFreq - minFreq || 1)) * 32;
-                        return (
-                            <span key={i} title={`${w.text}: ${freq}`} style={{
-                                fontSize: `${size}px`,
-                                color: COLORS[i % COLORS.length],
-                                opacity: 0.6 + (freq / maxFreq) * 0.4,
-                                fontWeight: freq > (maxFreq / 2) ? 800 : 500,
-                                whiteSpace: "nowrap",
-                                transition: "all 0.2s",
-                                cursor: "pointer"
-                            }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.1)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
-                                {w.text}
-                            </span>
-                        );
-                    })}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--text-muted)", fontSize: "0.9rem", textAlign: "center", padding: "20px" }}>
+                    <p>Visualisasi <b>{type}</b> sedang dalam tahap rendering khusus / kalkulasi D3.js.<br /><br /> Menampilkan data tabular di layar.</p>
+                </div>
+            );
+
+        case "wordcloud":
+            return (
+                <div style={{ width: "100%", height: "100%", minHeight: "250px" }}>
+                    <CustomWordCloud
+                        data={processedData}
+                        textKey={rec.categoryField || rec.fields?.[0] || "name"}
+                    />
                 </div>
             );
 

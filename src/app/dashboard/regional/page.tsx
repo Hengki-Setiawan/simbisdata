@@ -6,6 +6,10 @@ import { MapPin, Upload, TrendingUp, Brain, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { db } from "@/lib/local-db";
+import dynamic from "next/dynamic";
+
+// Leaflet relies on the window object, so we must load it dynamically
+const MapComponent = dynamic(() => import("@/components/dashboard/InteractiveLeafletMap"), { ssr: false });
 
 const tooltipStyle = { backgroundColor: "var(--bg-card)", border: "1px solid var(--border-color)", borderRadius: "8px", color: "var(--text-primary)", fontSize: "0.8rem" };
 
@@ -145,48 +149,14 @@ export default function RegionalPage() {
                     {/* Water background */}
                     <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(6,182,212,0.05) 0%, rgba(6,182,212,0.02) 100%)" }} />
 
-                    {/* Province dots */}
-                    <svg width="100%" height="100%" viewBox="0 0 650 420" style={{ position: "absolute", inset: 0 }}>
-                        {/* Simple Indonesia outline */}
-                        <text x="325" y="390" textAnchor="middle" fill="var(--text-muted)" fontSize="10" opacity="0.4">INDONESIA</text>
+                    {/* Maps */}
+                    <div style={{ position: "relative" }}>
+                        <MapComponent data={regions} />
+                    </div>
 
-                        {regions.map((region) => {
-                            const coords = provinceCoords[region.province];
-                            if (!coords) return null;
-                            const size = Math.max(6, Math.min(24, (region.orders / maxOrders) * 24));
-                            const isHovered = hovered === region.province;
-
-                            return (
-                                <g key={region.province}
-                                    onMouseEnter={() => setHovered(region.province)}
-                                    onMouseLeave={() => setHovered(null)}
-                                    style={{ cursor: "pointer" }}>
-                                    <circle cx={coords.x} cy={coords.y} r={size + 4} fill={getHeatColor(region.orders, maxOrders)} opacity={0.3} />
-                                    <circle cx={coords.x} cy={coords.y} r={size} fill={getHeatColor(region.orders, maxOrders)} stroke={isHovered ? "white" : "rgba(99,102,241,0.5)"} strokeWidth={isHovered ? 2 : 1} />
-                                    <text x={coords.x} y={coords.y + size + 14} textAnchor="middle" fill="var(--text-muted)" fontSize="8" fontWeight={isHovered ? "700" : "400"}>
-                                        {region.province.length > 12 ? region.province.slice(0, 10) + ".." : region.province}
-                                    </text>
-                                </g>
-                            );
-                        })}
-                    </svg>
-
-                    {/* Hover tooltip */}
-                    {hovered && regions.find((r) => r.province === hovered) && (
-                        <div style={{
-                            position: "absolute", top: "16px", right: "16px", padding: "12px 16px",
-                            background: "var(--bg-card)", border: "1px solid var(--border-color)",
-                            borderRadius: "var(--radius)", fontSize: "0.85rem", minWidth: "180px",
-                        }}>
-                            <p style={{ fontWeight: 700, marginBottom: "8px" }}>{hovered}</p>
-                            <p style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>
-                                📦 {regions.find((r) => r.province === hovered)!.orders} pesanan
-                            </p>
-                            <p style={{ color: "var(--text-muted)", fontSize: "0.8rem" }}>
-                                💰 Rp {(regions.find((r) => r.province === hovered)!.revenue / 1000).toFixed(0)}K
-                            </p>
-                        </div>
-                    )}
+                    <div style={{ textAlign: "center", marginTop: "24px", color: "var(--text-muted)", fontSize: "0.85rem" }}>
+                        <p>Titik wilayah dideteksi secara otomatis menggunakan <b>OpenStreetMap Geocoding Engine</b> berdasarkan histori data Anda.</p>
+                    </div>
                 </div>
 
                 {/* Legend */}

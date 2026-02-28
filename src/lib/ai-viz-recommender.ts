@@ -7,11 +7,10 @@
 
 import { type DataDomain } from "./data-domain-detector";
 
-export type ChartType =
-    | "line" | "area" | "stacked_area" | "bar" | "horizontal_bar" | "stacked_bar"
-    | "grouped_bar" | "pie" | "donut" | "scatter" | "bubble" | "heatmap"
-    | "treemap" | "radar" | "funnel" | "gauge" | "wordcloud" | "map"
-    | "calendar_heatmap" | "waterfall" | "sankey" | "box_plot" | "bar_race";
+export type ChartType = "line" | "area" | "stacked_area" | "bar" | "horizontal_bar" |
+    "grouped_bar" | "stacked_bar" | "pie" | "donut" | "scatter" | "bubble" | "heatmap" |
+    "radar" | "waterfall" | "gauge" | "treemap" | "box_plot" | // Phase 6 Advanced Charts
+    "funnel" | "map" | "calendar_heatmap" | "wordcloud" | "bar_race" | "sankey";
 
 export interface ChartRecommendation {
     id: string;
@@ -231,6 +230,77 @@ export function recommendCharts(
             confidence: 0.85, xField: dateCols[0].name, yField: numCols[0].name, categoryField: catCols[0].name,
             fields: [dateCols[0].name, catCols[0].name, numCols[0].name],
             reason: "Data longitudinal berseri dengan kategori unik → sangat cocok untuk visualisasi Bar Chart Race dinamis",
+            priority: priority++
+        });
+    }
+
+    // Phase 6 Advanced Visualizations: Radar, Treemap, Waterfall, Gauge, BoxPlot
+
+    // 9. Multi-Metrics comparison (3-6 numerical) → Radar Chart
+    if (numCols.length >= 3 && numCols.length <= 6 && catCols.length > 0) {
+        charts.push({
+            id: `radar_${catCols[0].name}`,
+            type: "radar", title: `🕸️ Analisis Profil ${catCols[0].name}`,
+            description: `Perbandingan multi-metrik untuk setiap ${catCols[0].name}`,
+            confidence: 0.8, categoryField: catCols[0].name,
+            fields: [catCols[0].name, ...numCols.slice(0, 5).map(c => c.name)],
+            reason: `${numCols.length} dimensi angka ditemukan → Radar Chart memvisualisasikan kekuatan dan kelemahan secara asimetris`,
+            priority: priority++
+        });
+    }
+
+    // 10. Financial Flow / Sequential Change → Waterfall Chart
+    const financialCols = numCols.filter(c => /cash|saldo|laba|rugi|profit|net|gross|margin|pajak|tax|fee|diskon/i.test(c.name));
+    if (financialCols.length > 0 && catCols.length > 0) {
+        charts.push({
+            id: `waterfall_${catCols[0].name}_${financialCols[0].name}`,
+            type: "waterfall", title: `💸 Aliran Keuangan ${financialCols[0].name}`,
+            description: `Efek kumulatif nilai ${financialCols[0].name} berdasar ${catCols[0].name}`,
+            confidence: 0.85, categoryField: catCols[0].name, yField: financialCols[0].name,
+            fields: [catCols[0].name, financialCols[0].name],
+            reason: "Istilah finansial/kumulatif terdeteksi → Waterfall chart ideal melacak kenaikan dan penurunan sebelum total",
+            priority: priority++
+        });
+    }
+
+    // 11. Hierarchical Data / High Cardinality → Treemap
+    const highCardCats = catCols.filter(c => c.uniqueCount > 7 && c.uniqueCount < 50);
+    if (highCardCats.length > 0 && numCols.length > 0) {
+        charts.push({
+            id: `treemap_${highCardCats[0].name}`,
+            type: "treemap", title: `🗂️ Peta Komposisi ${highCardCats[0].name}`,
+            description: `Proporsi struktural ${highCardCats[0].name} terhadap keseluruhan`,
+            confidence: 0.82, categoryField: highCardCats[0].name, yField: numCols[0].name,
+            fields: [highCardCats[0].name, numCols[0].name],
+            reason: "Kategori memiliki banyak varian (7-50) → Treemap memanfaatkan ruang lebih baik daripada Pie Chart yang padat",
+            priority: priority++
+        });
+    }
+
+    // 12. Single KPI / Target / Percentage → Gauge Chart
+    const ratioCols = numCols.filter(c => /persen|percent|rate|rasio|ratio|kpi|target|skor|score/i.test(c.name));
+    if (ratioCols.length > 0 || (numCols.length === 1 && catCols.length === 0)) {
+        const targetCol = ratioCols.length > 0 ? ratioCols[0] : numCols[0];
+        charts.push({
+            id: `gauge_${targetCol.name}`,
+            type: "gauge", title: `🎯 Pencapaian Target ${targetCol.name}`,
+            description: `Level pengukur (speedometer) untuk satu matriks kunci`,
+            confidence: 0.78, yField: targetCol.name,
+            fields: [targetCol.name],
+            reason: "Satu metrik utama atau bentuk rasio persentase terdeteksi → Setengah lingkar Gauge chart memusatkan fokus.",
+            priority: priority++
+        });
+    }
+
+    // 13. Distribution logic → BoxPlot
+    if (catCols.length > 0 && numCols.length > 0) {
+        charts.push({
+            id: `boxplot_${catCols[0].name}_${numCols[0].name}`,
+            type: "box_plot", title: `📏 Sebaran Data ${numCols[0].name}`,
+            description: `Deteksi Quartile dan Outlier pada ${catCols[0].name}`,
+            confidence: 0.75, categoryField: catCols[0].name, yField: numCols[0].name,
+            fields: [catCols[0].name, numCols[0].name],
+            reason: "Ingin melihat varians, sebaran (spread), dan pencilan ekstrem data dalam berbagai grup kategori",
             priority: priority++
         });
     }

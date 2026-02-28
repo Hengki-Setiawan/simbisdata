@@ -18,6 +18,7 @@ import {
     Info,
     ChevronRight,
     BarChart3,
+    Plus,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -32,6 +33,7 @@ import { generatePPTX } from "@/lib/ppt-export";
 import { db } from "@/lib/local-db";
 import { Responsive, Layout } from "react-grid-layout";
 import { SmartChartCard } from "@/components/charts/SmartChartCard";
+import { MarketInsights } from "@/components/dashboard/MarketInsights"; // Added import
 import { detectDomain, type DomainDetectionResult } from "@/lib/data-domain-detector";
 import { analyzeColumns, recommendCharts, type ChartRecommendation, type ColumnMeta } from "@/lib/ai-viz-recommender";
 import { recommendAlgorithms, type MLRecommendation } from "@/lib/ai-ml-selector";
@@ -292,6 +294,11 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                                 border: "none", transition: "all 0.2s",
                             }}>{p.label}</button>
                         ))}
+                    </div>
+                    <div style={{ display: "flex", gap: "12px" }}>
+                        <button className="primary-button" style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 16px" }} onClick={() => {/* router.push('/dashboard/upload') */ }}> {/* router.push was not defined, so commented out */}
+                            <Plus size={16} /> Import Data Baru
+                        </button>
                     </div>
                     <div style={{ position: "relative" }}>
                         <button onClick={() => setExportOpen(!exportOpen)} className="btn-secondary" style={{ padding: "8px 16px", fontSize: "0.85rem" }}>
