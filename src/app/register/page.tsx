@@ -112,6 +112,41 @@ export default function RegisterPage() {
                             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Min. 6 karakter" required style={inputStyle}
                                 onFocus={(e) => e.target.style.borderColor = "var(--primary)"} onBlur={(e) => e.target.style.borderColor = "var(--border-color)"} />
                         </div>
+                        {/* Password Strength Indicator */}
+                        {password.length > 0 && (() => {
+                            let score = 0;
+                            if (password.length >= 6) score++;
+                            if (password.length >= 8) score++;
+                            if (/[A-Z]/.test(password)) score++;
+                            if (/[0-9]/.test(password)) score++;
+                            if (/[^A-Za-z0-9]/.test(password)) score++;
+                            const colors = ["#ef4444", "#f59e0b", "#f59e0b", "#10b981", "#10b981"];
+                            const labels = ["Sangat Lemah", "Lemah", "Cukup", "Kuat", "Sangat Kuat"];
+                            return (
+                                <div style={{ marginTop: "10px" }}>
+                                    <div style={{ display: "flex", gap: "4px", marginBottom: "6px" }}>
+                                        {[0, 1, 2, 3, 4].map(i => (
+                                            <div key={i} style={{ flex: 1, height: "4px", borderRadius: "2px", background: i < score ? colors[score - 1] : "var(--border-color)", transition: "background 0.3s" }} />
+                                        ))}
+                                    </div>
+                                    <p style={{ fontSize: "0.75rem", color: colors[Math.max(score - 1, 0)], fontWeight: 600 }}>
+                                        {labels[Math.max(score - 1, 0)]}
+                                    </p>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "6px" }}>
+                                        {[
+                                            { ok: password.length >= 6, txt: "6+ karakter" },
+                                            { ok: /[A-Z]/.test(password), txt: "Huruf besar" },
+                                            { ok: /[0-9]/.test(password), txt: "Angka" },
+                                            { ok: /[^A-Za-z0-9]/.test(password), txt: "Simbol" },
+                                        ].map((c, i) => (
+                                            <span key={i} style={{ fontSize: "0.7rem", color: c.ok ? "var(--success)" : "var(--text-muted)" }}>
+                                                {c.ok ? "✓" : "○"} {c.txt}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     <button type="submit" className="btn-primary" disabled={loading || success}

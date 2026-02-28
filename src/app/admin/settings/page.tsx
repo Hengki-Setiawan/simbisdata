@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Settings, Save, CheckCircle2, Database, Zap, Shield, Bell } from "lucide-react";
 
 export default function AdminSettingsPage() {
     const [saved, setSaved] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [config, setConfig] = useState({
         siteName: "SimbisData",
         maintenanceMode: false,
@@ -19,7 +20,25 @@ export default function AdminSettingsPage() {
         demoExpireDays: "7",
     });
 
-    const handleSave = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
+    useEffect(() => {
+        fetch("/api/admin/settings").then(r => r.json()).then(data => {
+            if (data && Object.keys(data).length > 0) setConfig(data);
+        }).catch(() => { }).finally(() => setLoading(false));
+    }, []);
+
+    const handleSave = async () => {
+        try {
+            await fetch("/api/admin/settings", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(config),
+            });
+            setSaved(true);
+            setTimeout(() => setSaved(false), 2000);
+        } catch (e) {
+            console.error("Failed to save settings:", e);
+        }
+    };
 
     const inputStyle: React.CSSProperties = {
         width: "100%", padding: "10px 14px", background: "var(--bg-surface)", border: "1px solid var(--border-color)",

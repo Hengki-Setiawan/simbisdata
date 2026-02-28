@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import { PostHogProvider } from "@/providers/posthog-provider";
+import JsonLd from "@/components/seo/JsonLd";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,6 +61,7 @@ export default function RootLayout({
       >
         <PostHogProvider>
           <AuthProvider>
+            <JsonLd />
             <div className="bg-grid" />
             <div className="bg-glow bg-glow-1" />
             <div className="bg-glow bg-glow-2" />
