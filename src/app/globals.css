@@ -157,6 +157,38 @@ body {
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* Prevent overflow on Shadcn Card components */
+[class*="card"] {
+  overflow: hidden;
+  word-break: break-word;
+}
+
+/* Admin table overflow fix */
+table {
+  table-layout: fixed;
+  word-wrap: break-word;
+}
+
+th,
+td {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Grid containers shouldn't overflow */
+.grid,
+[style*="gridTemplateColumns"] {
+  max-width: 100%;
+}
+
+/* Recharts responsive fix */
+.recharts-responsive-container {
+  max-width: 100% !important;
+  overflow: hidden;
 }
 
 .glass-card:hover {

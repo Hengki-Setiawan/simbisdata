@@ -100,7 +100,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </aside>
 
             {/* Main Content Area */}
-            <main style={{ flex: 1, overflow: "auto", marginLeft: "260px" }}>
+            <main style={{ flex: 1, minWidth: 0, overflowX: "hidden", marginLeft: "260px" }}>
                 <header style={{
                     height: "64px",
                     borderBottom: "1px solid var(--border-color)",
@@ -130,7 +130,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         Live System
                     </div>
                 </header>
-                <div style={{ padding: "32px" }}>
+                <div style={{ padding: "32px", maxWidth: "100%", overflowX: "hidden" }}>
                     {children}
                 </div>
             </main>
