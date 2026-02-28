@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
     Brain, Users, AlertTriangle, Award, Target,
-    Loader2, Upload, ChevronRight, Activity
+    Loader2, Upload, ChevronRight, Activity, Sparkles
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -17,6 +17,8 @@ import type { MLWorker } from "@/lib/workers/ml.worker";
 import { db } from "@/lib/local-db";
 import Scatter3D from "@/components/charts/Scatter3D";
 import CohortHeatmap from "@/components/charts/CohortHeatmap";
+import { analyzeColumns } from "@/lib/ai-viz-recommender";
+import { recommendAlgorithms, type MLRecommendation } from "@/lib/ai-ml-selector";
 
 const COLORS = ["#ef4444", "#f59e0b", "#10b981", "#6366f1", "#a78bfa", "#f472b6"];
 
@@ -31,12 +33,19 @@ const tooltipStyle = {
 export default function AnalysisPage() {
     const [loading, setLoading] = useState(true);
     const [rawData, setRawData] = useState<Record<string, unknown>[] | null>(null);
+    const [recommendations, setRecommendations] = useState<MLRecommendation[]>([]);
+
+    // Results
     const [clusters, setClusters] = useState<ClusterResult | null>(null);
     const [anomalies, setAnomalies] = useState<AnomalyResult | null>(null);
     const [productScores, setProductScores] = useState<ProductScore[] | null>(null);
     const [rfm, setRfm] = useState<RFMResult | null>(null);
     const [cohort, setCohort] = useState<CohortResult | null>(null);
-    const [activeTab, setActiveTab] = useState<"cluster" | "anomaly" | "score" | "rfm" | "cohort">("cluster");
+
+    // Status
+    const [running, setRunning] = useState<Record<string, boolean>>({});
+    const [activeTab, setActiveTab] = useState<string>("cluster");
+    const [worker, setWorker] = useState<any>(null);
 
     useEffect(() => {
         const load = async () => {
@@ -45,30 +54,66 @@ export default function AnalysisPage() {
                 if (data && data.length > 0) {
                     setRawData(data);
 
-                    // Initialize background web worker
+                    // 1. AI Analysis & ML Recommendation
+                    const colMetas = analyzeColumns(data);
+                    const recs = recommendAlgorithms(colMetas, "ecommerce", data.length);
+                    setRecommendations(recs);
+
+                    // 2. Initialize background web worker
                     const workerInstance = new Worker(new URL("../../../lib/workers/ml.worker", import.meta.url));
                     const ml = Comlink.wrap<MLWorker>(workerInstance);
+                    setWorker(ml);
 
-                    // Execute heavy calculations concurrently off main thread
-                    const [c, a, p, r, coh] = await Promise.all([
-                        ml.kMeansClustering(data, 3),
-                        ml.detectAnomalies(data),
-                        ml.calculateProductScores(data),
-                        ml.rfmAnalysis(data),
-                        ml.cohortAnalysis(data)
-                    ]);
+                    // 3. Auto-run supported top recommendations (max 3)
+                    const supportedIds = ["kmeans_clustering", "autoencoder_anomaly", "abc_analysis", "rfm_analysis", "cohort_analysis"];
+                    const topSupported = recs.filter(r => supportedIds.includes(r.id) && r.confidence > 0.7).slice(0, 3);
 
-                    setClusters(c);
-                    setAnomalies(a);
-                    setProductScores(p);
-                    setRfm(r);
-                    setCohort(coh);
+                    if (topSupported.length > 0) setActiveTab(topSupported[0].id);
+
+                    topSupported.forEach(rec => runAlgorithm(rec.id, ml, data));
                 }
             } catch { /* ignore */ }
             setLoading(false);
         };
         load();
     }, []);
+
+    const runAlgorithm = async (id: string, mlInst?: any, data?: any[]) => {
+        const instance = mlInst || worker;
+        const targetData = data || rawData;
+        if (!instance || !targetData) return;
+
+        setRunning(prev => ({ ...prev, [id]: true }));
+        try {
+            if (id === "kmeans_clustering") {
+                const res = await instance.kMeansClustering(targetData, 3);
+                setClusters(res);
+                setActiveTab("kmeans_clustering");
+            } else if (id === "autoencoder_anomaly") {
+                const res = await instance.detectAnomalies(targetData);
+                setAnomalies(res);
+                setActiveTab("autoencoder_anomaly");
+            } else if (id === "abc_analysis") {
+                const res = await instance.calculateProductScores(targetData);
+                setProductScores(res);
+                setActiveTab("abc_analysis");
+            } else if (id === "rfm_analysis") {
+                const res = await instance.rfmAnalysis(targetData);
+                setRfm(res);
+                setActiveTab("rfm_analysis");
+            } else if (id === "cohort_analysis") {
+                const res = await instance.cohortAnalysis(targetData);
+                setCohort(res);
+                setActiveTab("cohort_analysis");
+            } else {
+                alert("Algoritma ini sedang dalam pengembangan.");
+            }
+        } catch (e) {
+            console.error("ML Error:", e);
+        } finally {
+            setRunning(prev => ({ ...prev, [id]: false }));
+        }
+    };
 
     if (loading) return (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh" }}>
@@ -86,11 +131,11 @@ export default function AnalysisPage() {
     );
 
     const tabs = [
-        { id: "cluster" as const, label: "Segmentasi", icon: Users },
-        { id: "anomaly" as const, label: "Anomali", icon: AlertTriangle },
-        { id: "score" as const, label: "Skor Produk", icon: Award },
-        { id: "rfm" as const, label: "RFM", icon: Target },
-        { id: "cohort" as const, label: "Retensi", icon: Activity },
+        ...(clusters ? [{ id: "kmeans_clustering", label: "Segmentasi", icon: Users }] : []),
+        ...(anomalies ? [{ id: "autoencoder_anomaly", label: "Anomali", icon: AlertTriangle }] : []),
+        ...(productScores ? [{ id: "abc_analysis", label: "Skor Produk", icon: Award }] : []),
+        ...(rfm ? [{ id: "rfm_analysis", label: "RFM", icon: Target }] : []),
+        ...(cohort ? [{ id: "cohort_analysis", label: "Retensi", icon: Activity }] : []),
     ];
 
     return (
@@ -98,33 +143,84 @@ export default function AnalysisPage() {
             <div style={{ marginBottom: "24px" }}>
                 <h1 style={{ fontSize: "1.8rem", fontWeight: 800, marginBottom: "8px" }}>
                     <Brain size={28} style={{ display: "inline", verticalAlign: "middle", marginRight: "8px", color: "var(--primary)" }} />
-                    Machine Learning Analysis
+                    Machine Learning Playground
                 </h1>
                 <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-                    Analisis lanjutan menggunakan algoritma ML — segmentasi, deteksi anomali, skor produk, dan RFM.
+                    Analisis lanjutan menggunakan algoritma ML — AI secara otomatis memilih dan menjalankan algoritma terbaik untuk data Anda.
                 </p>
             </div>
 
-            {/* Tabs */}
-            <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
-                {tabs.map((tab) => {
-                    const Icon = tab.icon;
-                    return (
-                        <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
-                            padding: "10px 20px", borderRadius: "var(--radius)", border: "1px solid var(--border-color)",
-                            background: activeTab === tab.id ? "rgba(99, 102, 241, 0.15)" : "var(--bg-card)",
-                            color: activeTab === tab.id ? "var(--primary-light)" : "var(--text-muted)",
-                            cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", fontWeight: 600,
-                            transition: "all 0.2s ease",
-                        }}>
-                            <Icon size={16} /> {tab.label}
-                        </button>
-                    );
-                })}
+            {/* AI Recommendations Panel */}
+            <div style={{ marginBottom: "24px" }}>
+                <h3 style={{ fontSize: "1.1rem", fontWeight: 700, marginBottom: "12px", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <Sparkles size={18} style={{ color: "var(--warning)" }} /> AI Rekomendasi Algoritma
+                </h3>
+                <div style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: "12px", scrollbarWidth: "thin" }}>
+                    {recommendations.slice(0, 6).map((rec, i) => {
+                        const isRunning = running[rec.id];
+                        const isDone =
+                            (rec.id === "kmeans_clustering" && clusters) ||
+                            (rec.id === "autoencoder_anomaly" && anomalies) ||
+                            (rec.id === "abc_analysis" && productScores) ||
+                            (rec.id === "rfm_analysis" && rfm) ||
+                            (rec.id === "cohort_analysis" && cohort);
+
+                        return (
+                            <div key={i} className="glass-card" style={{
+                                minWidth: "260px", padding: "16px",
+                                borderLeft: `3px solid ${isDone ? "var(--success)" : "var(--primary)"}`,
+                                opacity: i > 2 && !isDone ? 0.7 : 1
+                            }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
+                                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700 }}>{rec.icon} {rec.name.replace(/[^a-zA-Z \-]/g, '')}</h4>
+                                    <span style={{ fontSize: "0.7rem", fontWeight: 600, background: "var(--bg-surface)", padding: "2px 6px", borderRadius: "10px", color: "var(--primary-light)" }}>
+                                        {Math.round(rec.confidence * 100)}% Match
+                                    </span>
+                                </div>
+                                <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "12px", minHeight: "34px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                    {rec.description}
+                                </p>
+                                <button
+                                    onClick={() => !isDone && !isRunning && runAlgorithm(rec.id)}
+                                    disabled={isRunning || Boolean(isDone)}
+                                    className="btn-primary"
+                                    style={{
+                                        width: "100%", padding: "6px", fontSize: "0.8rem",
+                                        background: isDone ? "var(--bg-surface)" : isRunning ? "var(--bg-surface)" : "var(--primary)",
+                                        color: isDone || isRunning ? "var(--text-secondary)" : "white",
+                                        cursor: isDone || isRunning ? "default" : "pointer"
+                                    }}
+                                >
+                                    {isRunning ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}><Loader2 size={12} className="spin" /> Memproses... {rec.estimatedTime}</span> : isDone ? "Lihat Hasil (Selesai)" : "Jalankan Manual"}
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
 
+            {/* Dynamic Tabs */}
+            {tabs.length > 0 && (
+                <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
+                    {tabs.map((tab) => {
+                        const Icon = tab.icon;
+                        return (
+                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+                                padding: "10px 20px", borderRadius: "var(--radius)", border: "1px solid var(--border-color)",
+                                background: activeTab === tab.id ? "rgba(99, 102, 241, 0.15)" : "var(--bg-card)",
+                                color: activeTab === tab.id ? "var(--primary-light)" : "var(--text-muted)",
+                                cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", fontWeight: 600,
+                                transition: "all 0.2s ease",
+                            }}>
+                                <Icon size={16} /> {tab.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            )}
+
             {/* Cluster Tab */}
-            {activeTab === "cluster" && clusters && (
+            {activeTab === "kmeans_clustering" && clusters && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                         <div className="glass-card" style={{ padding: "24px" }}>
@@ -164,7 +260,7 @@ export default function AnalysisPage() {
             )}
 
             {/* Anomaly Tab */}
-            {activeTab === "anomaly" && anomalies && (
+            {activeTab === "autoencoder_anomaly" && anomalies && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div className="glass-card" style={{ padding: "24px", marginBottom: "16px" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
@@ -203,7 +299,7 @@ export default function AnalysisPage() {
             )}
 
             {/* Product Score Tab */}
-            {activeTab === "score" && productScores && (
+            {activeTab === "abc_analysis" && productScores && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div className="glass-card" style={{ padding: "24px" }}>
                         <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>🏆 Product Performance Score</h3>
@@ -239,7 +335,7 @@ export default function AnalysisPage() {
             )}
 
             {/* RFM Tab */}
-            {activeTab === "rfm" && rfm && (
+            {activeTab === "rfm_analysis" && rfm && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
                         <div className="glass-card" style={{ padding: "24px" }}>
@@ -280,7 +376,7 @@ export default function AnalysisPage() {
             )}
 
             {/* Cohort Tab */}
-            {activeTab === "cohort" && cohort && (
+            {activeTab === "cohort_analysis" && cohort && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div className="glass-card" style={{ padding: "24px", marginBottom: "16px", overflowX: "auto" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
@@ -296,22 +392,7 @@ export default function AnalysisPage() {
                 </motion.div>
             )}
 
-            {/* Cohort Tab */}
-            {activeTab === "cohort" && cohort && (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                    <div className="glass-card" style={{ padding: "24px", marginBottom: "16px", overflowX: "auto" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-                            <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>
-                                📅 Retensi Pelanggan dari Waktu ke Waktu (Cohort Heatmap)
-                            </h3>
-                            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginLeft: "12px" }}>
-                                {cohort.cohorts.length} Cohort
-                            </span>
-                        </div>
-                        <CohortHeatmap data={cohort} />
-                    </div>
-                </motion.div>
-            )}
+
         </div>
     );
 }

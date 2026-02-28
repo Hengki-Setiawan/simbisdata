@@ -6,7 +6,7 @@
  */
 
 export interface CleaningIssue {
-    type: "format_ambiguous" | "currency_mixed" | "date_unparseable" | "encoding_broken" | "missing_critical";
+    type: "format_ambiguous" | "currency_mixed" | "date_unparseable" | "encoding_broken" | "missing_critical" | "fuzzy_duplicate";
     column: string;
     sampleValues: string[];
     rowIndices: number[];
@@ -110,6 +110,49 @@ export function detectUnresolvedIssues(rows: Record<string, any>[], cleanReport:
                 rowIndices: values.slice(0, 10).map(v => v.idx),
                 autoFixed: false,
                 description: `Format numerik campur: ${[...uniquePatterns].join(", ")}`,
+            });
+        }
+
+        // 5. Fuzzy Duplicates (Inconsistent spelling/casing like "iPhone 13" vs "iphone-13")
+        if (values.length > 0) {
+            const strValues = values.map(v => String(v.val));
+            // Only check if it looks like a categorical or text column with some repetitions
+            const uniqueRaw = new Set(strValues);
+            if (uniqueRaw.size > 1 && uniqueRaw.size < strValues.length * 0.4) {
+                // Normalize by stripping space, case, symbols
+                const normalized = new Map<string, string[]>();
+                for (const raw of uniqueRaw) {
+                    const norm = raw.toLowerCase().replace(/[^a-z0-9]/g, "");
+                    if (norm.length > 3) {
+                        if (!normalized.has(norm)) normalized.set(norm, []);
+                        normalized.get(norm)!.push(raw);
+                    }
+                }
+                const fuzzySets = Array.from(normalized.values()).filter(arr => arr.length > 1);
+                if (fuzzySets.length > 0) {
+                    issues.push({
+                        type: "fuzzy_duplicate",
+                        column: col,
+                        sampleValues: fuzzySets[0],
+                        rowIndices: values.filter(v => fuzzySets[0].includes(String(v.val))).slice(0, 10).map(v => v.idx),
+                        autoFixed: false,
+                        description: `Terdeteksi penulisan tidak konsisten: ${fuzzySets.slice(0, 2).map(s => `[${s.join(", ")}]`).join(", ")}`,
+                    });
+                }
+            }
+        }
+
+        // 6. Missing Critical (High missing rate > 20% but < 90%) - "Smart Fill" candidate
+        const missingCount = rows.length - values.length;
+        const missingRatio = missingCount / rows.length;
+        if (missingRatio > 0.2 && missingRatio < 0.9) {
+            issues.push({
+                type: "missing_critical",
+                column: col,
+                sampleValues: values.slice(0, 3).map(v => String(v.val)),
+                rowIndices: [], // Too many missing rows to list usefully
+                autoFixed: false,
+                description: `${(missingRatio * 100).toFixed(0)}% data kosong, direkomendasikan Smart Fill (Imputasi AI)`,
             });
         }
     }

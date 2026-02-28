@@ -211,7 +211,7 @@ export function recommendCharts(
         });
     }
 
-    // 8. Date + Category + Number → Grouped Bar
+    // 8. Date + Category + Number → Grouped Bar & Animated Bar Race
     if (dateCols.length > 0 && catCols.length > 0 && numCols.length > 0) {
         charts.push({
             id: `grouped_bar_${dateCols[0].name}_${catCols[0].name}`,
@@ -220,6 +220,17 @@ export function recommendCharts(
             confidence: 0.7, xField: dateCols[0].name, yField: numCols[0].name, categoryField: catCols[0].name,
             fields: [dateCols[0].name, catCols[0].name, numCols[0].name],
             reason: "Tanggal + kategori + angka → grouped bar menunjukkan evolusi kategori",
+            priority: priority++
+        });
+
+        // 8.5 Bar Chart Race
+        charts.push({
+            id: `bar_race_${dateCols[0].name}_${catCols[0].name}`,
+            type: "bar_race", title: `🏎️ Animasi Balapan ${catCols[0].name}`,
+            description: `Evolusi pergerakan ${catCols[0].name} sepanjang waktu`,
+            confidence: 0.85, xField: dateCols[0].name, yField: numCols[0].name, categoryField: catCols[0].name,
+            fields: [dateCols[0].name, catCols[0].name, numCols[0].name],
+            reason: "Data longitudinal berseri dengan kategori unik → sangat cocok untuk visualisasi Bar Chart Race dinamis",
             priority: priority++
         });
     }

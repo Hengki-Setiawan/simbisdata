@@ -31,10 +31,12 @@ import { generatePremiumPDFHTML } from "@/lib/premium-pdf-template";
 import { generatePPTX } from "@/lib/ppt-export";
 import { db } from "@/lib/local-db";
 import { Responsive, Layout } from "react-grid-layout";
+import { SmartChartCard } from "@/components/charts/SmartChartCard";
 import { detectDomain, type DomainDetectionResult } from "@/lib/data-domain-detector";
 import { analyzeColumns, recommendCharts, type ChartRecommendation, type ColumnMeta } from "@/lib/ai-viz-recommender";
 import { recommendAlgorithms, type MLRecommendation } from "@/lib/ai-ml-selector";
 import { generateExecutiveBriefing, type ExecutiveBriefing } from "@/lib/ai-executive-briefing";
+import ExecutiveSummary from "@/components/dashboard/ExecutiveSummary";
 
 const COLORS = ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#a78bfa", "#f472b6", "#34d399"];
 
@@ -99,18 +101,7 @@ export default function DashboardPage() {
 
     // Dashboard Customizer
     const [isEditingLayout, setIsEditingLayout] = useState(false);
-    const [layouts, setLayouts] = useState<Partial<Record<string, Layout>>>({
-        lg: [
-            { i: "trend", x: 0, y: 0, w: 8, h: 3, minW: 4, minH: 2 },
-            { i: "product", x: 8, y: 0, w: 4, h: 3, minW: 3, minH: 2 },
-            { i: "variant", x: 0, y: 3, w: 6, h: 3, minW: 3, minH: 2 },
-            { i: "day", x: 6, y: 3, w: 6, h: 3, minW: 3, minH: 2 },
-            { i: "region", x: 0, y: 6, w: 6, h: 3, minW: 3, minH: 2 },
-            { i: "payment", x: 6, y: 6, w: 6, h: 3, minW: 3, minH: 2 },
-            { i: "hourly", x: 0, y: 9, w: 12, h: 2, minW: 4, minH: 2 },
-            { i: "ai", x: 0, y: 11, w: 12, h: 2, minW: 4, minH: 2 }
-        ]
-    });
+    const [layouts, setLayouts] = useState<Partial<Record<string, Layout>>>({ lg: [] });
 
     // Load saved layout from localStorage
     useEffect(() => {
@@ -144,6 +135,39 @@ export default function DashboardPage() {
 
                     const charts = recommendCharts(meta, domain.domain, data);
                     setChartRecs(charts);
+
+                    // Generate layout for dynamic charts
+                    const newLgLayout = charts.map((c, i) => ({
+                        i: c.id,
+                        x: (i % 2) * 6, // 2 columns (6 width each on 12-col grid)
+                        y: Math.floor(i / 2) * 3,
+                        w: 6,
+                        h: 3,
+                        minW: 3,
+                        minH: 2
+                    }));
+                    // Add AI section at bottom
+                    newLgLayout.push({
+                        i: "ai",
+                        x: 0,
+                        y: Math.ceil(charts.length / 2) * 3,
+                        w: 12, h: 2, minW: 4, minH: 2
+                    });
+
+                    // Only override if no valid saved layout for these exact charts
+                    const saved = localStorage.getItem("simbis_dashboard_layout");
+                    let useSaved = false;
+                    if (saved) {
+                        try {
+                            const parsed = JSON.parse(saved);
+                            if (parsed.lg && parsed.lg.some((l: any) => charts.find(c => c.id === l.i))) {
+                                useSaved = true;
+                            }
+                        } catch (e) { }
+                    }
+                    if (!useSaved) {
+                        setLayouts({ lg: newLgLayout });
+                    }
 
                     const ml = recommendAlgorithms(meta, domain.domain, data.length);
                     setMlRecs(ml);
@@ -337,57 +361,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
             </div>
 
             {/* AI Executive Briefing Banner */}
-            {briefing && (
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                    style={{
-                        marginBottom: "24px", padding: "20px 24px", borderRadius: "var(--radius)",
-                        background: "linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(6,182,212,0.08) 100%)",
-                        border: "1px solid rgba(99,102,241,0.25)",
-                    }}
-                >
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: "16px" }}>
-                        <div style={{ width: 40, height: 40, borderRadius: "12px", background: "rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <Sparkles size={20} style={{ color: "var(--primary)" }} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                                <h3 style={{ fontSize: "0.95rem", fontWeight: 700 }}>🧠 AI Executive Briefing</h3>
-                                {domainResult && (
-                                    <span style={{ fontSize: "0.7rem", padding: "2px 10px", borderRadius: "100px", background: "rgba(99,102,241,0.15)", color: "var(--primary)", fontWeight: 600 }}>
-                                        {domainResult.icon} {domainResult.label}
-                                    </span>
-                                )}
-                            </div>
-                            <p style={{ fontSize: "0.88rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "12px" }}>
-                                {briefing.headline}
-                            </p>
-                            {briefing.insights.length > 0 && (
-                                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "10px" }}>
-                                    {briefing.insights.slice(0, 3).map((insight, i) => (
-                                        <span key={i} style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1.5 }}>{insight}</span>
-                                    ))}
-                                </div>
-                            )}
-                            {briefing.alerts.length > 0 && (
-                                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                                    {briefing.alerts.map((alert, i) => (
-                                        <span key={i} style={{
-                                            fontSize: "0.73rem", padding: "3px 10px", borderRadius: "6px",
-                                            background: alert.severity === "critical" ? "rgba(239,68,68,0.12)" : alert.severity === "warning" ? "rgba(245,158,11,0.12)" : "rgba(99,102,241,0.08)",
-                                            color: alert.severity === "critical" ? "var(--error)" : alert.severity === "warning" ? "var(--warning)" : "var(--text-muted)",
-                                            display: "flex", alignItems: "center", gap: "4px"
-                                        }}>
-                                            {alert.severity === "critical" ? <AlertTriangle size={11} /> : alert.severity === "warning" ? <AlertTriangle size={11} /> : <Info size={11} />}
-                                            {alert.message}
-                                        </span>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </motion.div>
-            )}
+            <ExecutiveSummary data={rawData} />
 
             {/* KPI Cards */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "24px" }}>
@@ -474,160 +448,12 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                     {...{ isDraggable: isEditingLayout, isResizable: isEditingLayout } as any}
                     margin={[16, 16]}
                 >
-                    {/* Trend Chart */}
-                    <div key="trend">
-                        <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                                <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>📈 Tren Penjualan Bulanan</h3>
-                                <span title="Model Machine Learning ARIMA (AutoRegressive Integrated Moving Average) menganalisis pola historis waktu untuk memprediksi fluktuasi order di bulan-bulan mendatang." style={{ cursor: "help", fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--primary)", color: "var(--primary)", display: "flex", alignItems: "center", gap: "4px" }}>
-                                    <Brain size={12} /> Time-Series (ARIMA)
-                                </span>
-                            </div>
-                            <ResponsiveContainer width="100%" height="80%">
-                                <AreaChart data={timeAnalysis.monthly}>
-                                    <defs>
-                                        <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                                    <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
-                                    <YAxis stroke="var(--text-muted)" fontSize={12} />
-                                    <Tooltip contentStyle={tooltipStyle} />
-                                    <Area type="monotone" dataKey="orders" stroke="#6366f1" fill="url(#colorRevenue)" strokeWidth={2} name="Pesanan" />
-                                </AreaChart>
-                            </ResponsiveContainer>
-                        </motion.div>
-                    </div>
-
-                    {/* Product Distribution */}
-                    <div key="product">
-                        <motion.div className="glass-card" style={{ padding: "20px", height: "100%", overflow: "hidden", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
-                                <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>🥧 Distribusi Produk</h3>
-                                <span title="Algoritma Unsupervised AI K-Means secara matematis mengelompokkan (clustering) persentase demografi produk paling dominan tanpa perlu anotasi manual." style={{ cursor: "help", fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--accent)", color: "var(--accent)", display: "flex", alignItems: "center", gap: "4px" }}>
-                                    <Brain size={12} /> K-Means
-                                </span>
-                            </div>
-                            <ResponsiveContainer width="100%" height="50%">
-                                <PieChart>
-                                    <Pie data={productPerformance} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3}>
-                                        {productPerformance.map((_, i) => (
-                                            <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip contentStyle={tooltipStyle} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                            <div style={{ marginTop: "8px", overflowY: "auto", maxHeight: "35%", paddingRight: "4px" }}>
-                                {productPerformance.map((p, i) => (
-                                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.75rem", marginBottom: "4px" }}>
-                                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: COLORS[i % COLORS.length], flexShrink: 0 }} />
-                                        <span style={{ color: "var(--text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
-                                        <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{p.percentage.toFixed(1)}%</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </motion.div>
-                    </div>
-
-                    {/* Variant Analysis */}
-                    <div key="variant">
-                        <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                                <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>📏 Distribusi Ukuran/Variasi</h3>
-                                <span title="Machine Learning Market Basket Analysis (Apriori) mencoba mengungkap aturan asosiasi tersembunyi dari korelasi belanja ukuran pakaian oleh pembeli." style={{ cursor: "help", fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--success)", color: "var(--success)", display: "flex", alignItems: "center", gap: "4px" }}>
-                                    <Brain size={12} /> Apriori Rules
-                                </span>
-                            </div>
-                            <ResponsiveContainer width="100%" height="80%">
-                                <BarChart data={variantAnalysis} layout="vertical">
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                                    <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
-                                    <YAxis type="category" dataKey="name" stroke="var(--text-muted)" fontSize={11} width={45} />
-                                    <Tooltip contentStyle={tooltipStyle} />
-                                    <Bar dataKey="count" name="Jumlah" radius={[0, 4, 4, 0]}>
-                                        {variantAnalysis.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                                    </Bar>
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </motion.div>
-                    </div>
-
-                    {/* Day of Week */}
-                    <div key="day">
-                        <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-                            <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "16px" }}>📅 Penjualan per Hari</h3>
-                            <ResponsiveContainer width="100%" height="80%">
-                                <BarChart data={timeAnalysis.dayOfWeek}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                                    <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} />
-                                    <YAxis stroke="var(--text-muted)" fontSize={11} />
-                                    <Tooltip contentStyle={tooltipStyle} />
-                                    <Bar dataKey="count" name="Pesanan" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </motion.div>
-                    </div>
-
-                    {/* Regional TOP 10 */}
-                    <div key="region">
-                        <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                                <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>🌍 Top 10 Provinsi</h3>
-                                <span title="Sistem menggunakan Natural Language Processing (NLP) Entity Extraction dari AI untuk menormalisasi dan mengenali data lokasi regional acak menjadi data geografis peta yang valid." style={{ cursor: "help", fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--warning)", color: "var(--warning)", display: "flex", alignItems: "center", gap: "4px" }}>
-                                    <Brain size={12} /> NLP Entity
-                                </span>
-                            </div>
-                            <ResponsiveContainer width="100%" height="80%">
-                                <BarChart data={regionalAnalysis.slice(0, 10)} layout="vertical">
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                                    <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
-                                    <YAxis type="category" dataKey="province" stroke="var(--text-muted)" fontSize={9} width={100} />
-                                    <Tooltip contentStyle={tooltipStyle} />
-                                    <Bar dataKey="count" name="Pesanan" fill="#10b981" radius={[0, 4, 4, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </motion.div>
-                    </div>
-
-                    {/* Payment Methods */}
-                    <div key="payment">
-                        <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-                                <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>💳 Metode Pembayaran</h3>
-                                <span title="Algoritma Anomaly Detection (Isolation Forest) mengidentifikasi dan mengisolasi transaksi anomali pada metode bayar guna mengamankan akurasi analisis tren pembayaran." style={{ cursor: "help", fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--primary-light)", color: "var(--primary-light)", display: "flex", alignItems: "center", gap: "4px" }}>
-                                    <Brain size={12} /> Isolation Forest
-                                </span>
-                            </div>
-                            <ResponsiveContainer width="100%" height="80%">
-                                <BarChart data={paymentAnalysis.slice(0, 8)} layout="vertical">
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                                    <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
-                                    <YAxis type="category" dataKey="method" stroke="var(--text-muted)" fontSize={9} width={120} />
-                                    <Tooltip contentStyle={tooltipStyle} />
-                                    <Bar dataKey="count" name="Jumlah" fill="#f59e0b" radius={[0, 4, 4, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </motion.div>
-                    </div>
-
-                    {/* Hourly Distribution */}
-                    <div key="hourly">
-                        <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
-                            <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "16px" }}>⏰ Distribusi Pesanan per Jam</h3>
-                            <ResponsiveContainer width="100%" height="75%">
-                                <LineChart data={timeAnalysis.hourly}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                                    <XAxis dataKey="hour" stroke="var(--text-muted)" fontSize={11} tickFormatter={(h) => `${h}:00`} />
-                                    <YAxis stroke="var(--text-muted)" fontSize={11} />
-                                    <Tooltip contentStyle={tooltipStyle} labelFormatter={(h) => `${h}:00`} />
-                                    <Line type="monotone" dataKey="count" stroke="#a78bfa" strokeWidth={2} dot={{ fill: "#a78bfa", r: 3 }} name="Pesanan" />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </motion.div>
-                    </div>
+                    {/* Dynamic Chart Grid */}
+                    {chartRecs.map((rec, i) => (
+                        <div key={rec.id}>
+                            <SmartChartCard rec={rec} data={rawData} delay={0.3 + (i * 0.1)} />
+                        </div>
+                    ))}
 
                     {/* AI Insight Section */}
                     <div key="ai">

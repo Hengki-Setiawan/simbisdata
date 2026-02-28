@@ -3,17 +3,27 @@ import Groq from "groq-sdk";
 
 export async function POST(req: NextRequest) {
     try {
-        const { prompt } = await req.json();
+        const { prompt, type = "general" } = await req.json();
 
         if (!prompt) {
             return NextResponse.json({ error: "Prompt is required" }, { status: 400 });
+        }
+
+        let systemPrompt = "Kamu adalah konsultan bisnis dan data analyst senior Indonesia yang ahli di bidang e-commerce dan marketplace. Berikan analisis mendalam, insight yang tidak terlihat dari angka, dan rekomendasi aksi yang spesifik dan actionable. Gunakan bahasa Indonesia yang elegan dan mudah dipahami. Format jawabanmu dengan emoji, heading, dan bullet points agar mudah dibaca.";
+
+        if (type === "executive") {
+            systemPrompt = "Kamu adalah AI Executive Analyst tingkat C-Level. Tugasmu: Berikan 'Executive Summary' performa bisnis dalam tepat 3 kalimat singkat, padat, dan berdampak tinggi. Jangan bertele-tele. Kalimat 1: Fakta utama. Kalimat 2: Insight tersembunyi. Kalimat 3: Aksi/Rekomendasi strategis.";
+        } else if (type === "chart") {
+            systemPrompt = "Kamu adalah Data Storyteller. Jelaskan visualisasi data ini dalam 3 paragraf pendek: 1) Apa yang ditunjukkan chart ini (What). 2) Apa pola/insight tersembunyi di baliknya (Why). 3) Apa rekomendasi aksinya (How). Gunakan markdown dan poin-poin.";
+        } else if (type === "anomaly") {
+            systemPrompt = "Kamu adalah Risk & Fraud Analyst. Sebuah anomali data terdeteksi! Jelaskan kemungkinan penyebab anomali ini dan berikan saran mitigasi segera.";
         }
 
         // Try to get from Upstash Redis cache first
         const { redis } = await import("@/lib/redis");
         try {
             // we hash the prompt or use it as key
-            const cacheKey = `ai-narrate:${prompt.substring(0, 100).replace(/\s+/g, '-')}`;
+            const cacheKey = `ai-narrate:${type}:${prompt.substring(0, 100).replace(/\s+/g, '-')}`;
             const cachedNarrative = await redis.get(cacheKey);
             if (cachedNarrative) {
                 console.log("Redis cache hit for AI Narrate");
@@ -32,15 +42,11 @@ export async function POST(req: NextRequest) {
                 const completion = await groq.chat.completions.create({
                     model: "llama-3.3-70b-versatile",
                     messages: [
-                        {
-                            role: "system",
-                            content:
-                                "Kamu adalah konsultan bisnis dan data analyst senior Indonesia yang ahli di bidang e-commerce dan marketplace Shopee. Berikan analisis mendalam, insight yang tidak terlihat dari angka, dan rekomendasi aksi yang spesifik dan actionable. Gunakan bahasa Indonesia yang mudah dipahami oleh pemilik UMKM. Format jawabanmu dengan emoji, heading, dan bullet points agar mudah dibaca.",
-                        },
+                        { role: "system", content: systemPrompt },
                         { role: "user", content: prompt },
                     ],
                     temperature: 0.7,
-                    max_tokens: 2000,
+                    max_tokens: type === "executive" ? 300 : 2000,
                 });
 
                 const narrative = completion.choices[0]?.message?.content || "";
@@ -69,9 +75,9 @@ export async function POST(req: NextRequest) {
                 const genAI = new GoogleGenerativeAI(geminiKey);
                 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-                const systemPrompt = "Kamu adalah konsultan bisnis dan data analyst senior Indonesia yang ahli di bidang e-commerce dan marketplace Shopee. Berikan analisis mendalam, insight yang tidak terlihat dari angka, dan rekomendasi aksi yang spesifik dan actionable. Gunakan bahasa Indonesia yang mudah dipahami oleh pemilik UMKM. Format jawabanmu dengan emoji, heading, dan bullet points agar mudah dibaca.\n\nBerikut datanya:\n";
+                const fullPrompt = systemPrompt + "\n\nBerikut datanya:\n" + prompt;
 
-                const result = await model.generateContent(systemPrompt + prompt);
+                const result = await model.generateContent(fullPrompt);
                 const narrative = result.response.text();
 
                 return NextResponse.json({ narrative, provider: "gemini" });

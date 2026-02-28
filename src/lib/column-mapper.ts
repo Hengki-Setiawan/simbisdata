@@ -11,6 +11,7 @@
 // UNIVERSAL SCHEMA — all platforms map to these standard names
 // ═══════════════════════════════════════════════════════════
 export const UNIVERSAL_FIELDS = {
+  // Sales / E-Commerce (Existing)
   order_id: "ID Pesanan",
   product_name: "Nama Produk",
   variant: "Variasi",
@@ -38,6 +39,56 @@ export const UNIVERSAL_FIELDS = {
   province: "Provinsi",
   payment_method: "Metode Bayar",
   notes: "Catatan",
+
+  // Survey / Feedback
+  question: "Pertanyaan",
+  answer: "Jawaban",
+  rating: "Rating/Skor",
+  respondent: "Responden",
+  survey_date: "Tanggal Survei",
+
+  // Inventory / Stock
+  warehouse: "Gudang",
+  stock_current: "Stok Saat Ini",
+  stock_in: "Barang Masuk",
+  stock_out: "Barang Keluar",
+  reorder_point: "Batas Restock",
+
+  // HR / Employee
+  employee_id: "ID Karyawan",
+  employee_name: "Nama Karyawan",
+  department: "Departemen",
+  position: "Jabatan",
+  salary: "Gaji",
+  join_date: "Tanggal Bergabung",
+
+  // Financial
+  account_no: "No Rekening",
+  debit: "Debit",
+  credit: "Kredit",
+  balance: "Saldo",
+  transaction_type: "Tipe Transaksi",
+
+  // Academic
+  student_id: "NIM/NISN",
+  student_name: "Nama Siswa/Mahasiswa",
+  course: "Mata Pelajaran/Kuliah",
+  grade: "Nilai",
+  semester: "Semester",
+
+  // Healthcare
+  patient_id: "ID Pasien",
+  diagnosis: "Diagnosis",
+  treatment: "Tindakan",
+  doctor: "Dokter",
+
+  // Generic Generic (Fallback)
+  category_1: "Kategori 1",
+  category_2: "Kategori 2",
+  value_1: "Nilai 1",
+  value_2: "Nilai 2",
+  generic_date: "Tanggal",
+  generic_id: "ID",
 } as const;
 
 export type UniversalField = keyof typeof UNIVERSAL_FIELDS;
@@ -50,7 +101,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   order_id: [
     "no. pesanan", "no pesanan", "order number", "order id", "nomor pesanan", "order no", "id pesanan", "no order",
     "nomor invoice", "no invoice", "invoice", "no transaksi", "nomor transaksi", "transaction id",
-    "no nota", "nomor nota", "receipt no", "reference", "id", "kode",
+    "no nota", "nomor nota", "receipt no", "reference", "kode",
   ],
 
   // === PRODUCT ===
@@ -94,23 +145,11 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "total diskon", "total discount", "diskon", "discount", "potongan", "potongan harga",
     "promo", "cashback", "sale",
   ],
-  platform_discount: [
-    "diskon dari shopee", "shopee discount", "diskon shopee", "platform discount",
-    "diskon dari tokopedia", "diskon lazada", "diskon tiktok", "marketplace discount",
-    "seller discount",
-  ],
-  seller_discount: [
-    "diskon dari penjual", "seller discount", "diskon seller", "diskon penjual", "diskon toko",
-    "voucher ditanggung penjual", "seller voucher", "voucher penjual",
-    "voucher ditanggung shopee", "shopee voucher", "voucher shopee", "platform voucher",
-  ],
+  platform_discount: ["diskon dari shopee", "shopee discount", "diskon shopee", "platform discount", "diskon dari tokopedia", "diskon lazada", "diskon tiktok", "marketplace discount"],
+  seller_discount: ["diskon dari penjual", "seller discount", "diskon seller", "diskon penjual", "diskon toko", "voucher ditanggung penjual", "seller voucher", "voucher penjual", "voucher ditanggung shopee", "shopee voucher", "voucher shopee", "platform voucher"],
 
   // === STATUS ===
-  order_status: [
-    "status pesanan", "order status", "status", "status order", "status terakhir",
-    "status pembatalan/ pengembalian", "cancel status", "return status",
-    "status transaksi", "keterangan",
-  ],
+  order_status: ["status pesanan", "order status", "status", "status order", "status terakhir", "status pembatalan/ pengembalian", "cancel status", "return status", "status transaksi", "keterangan"],
 
   // === DATES ===
   order_date: [
@@ -119,66 +158,77 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "tanggal pembayaran", "tanggal transaksi", "tgl transaksi", "transaction date",
     "waktu", "datetime", "hari", "bulan",
   ],
-  payment_date: [
-    "waktu pembayaran dilakukan", "payment date", "tanggal bayar", "paid at", "waktu bayar",
-    "tgl bayar",
-  ],
-  ship_date: [
-    "waktu pengiriman diatur", "shipping date", "tanggal kirim", "ship date",
-    "tgl kirim", "shipped at",
-  ],
-  complete_date: [
-    "waktu pesanan selesai", "completed date", "tanggal selesai", "delivered at",
-    "completion date", "tgl selesai", "selesai",
-  ],
+  payment_date: ["waktu pembayaran dilakukan", "payment date", "tanggal bayar", "paid at", "waktu bayar", "tgl bayar"],
+  ship_date: ["waktu pengiriman diatur", "shipping date", "tanggal kirim", "ship date", "tgl kirim", "shipped at"],
+  complete_date: ["waktu pesanan selesai", "completed date", "tanggal selesai", "delivered at", "completion date", "tgl selesai", "selesai"],
 
   // === SHIPPING ===
-  courier: [
-    "opsi pengiriman", "shipping option", "kurir", "courier", "jasa kirim", "logistik",
-    "shipping method", "ekspedisi", "carrier", "pengiriman",
-  ],
-  tracking_no: [
-    "no. resi", "no resi", "tracking number", "resi", "tracking", "awb", "awb number", "nomor pelacakan",
-  ],
-  shipping_cost: [
-    "ongkos kirim dibayar oleh pembeli", "shipping fee", "ongkir", "ongkos kirim",
-    "biaya kirim", "shipping cost", "ongkos kirim (idr)", "shipping fee (paid by buyer)",
-    "perkiraan ongkos kirim", "estimasi ongkir", "biaya ongkir", "pengiriman (idr)",
-  ],
+  courier: ["opsi pengiriman", "shipping option", "kurir", "courier", "jasa kirim", "logistik", "shipping method", "ekspedisi", "carrier", "pengiriman"],
+  tracking_no: ["no. resi", "no resi", "tracking number", "resi", "tracking", "awb", "awb number", "nomor pelacakan"],
+  shipping_cost: ["ongkos kirim dibayar oleh pembeli", "shipping fee", "ongkir", "ongkos kirim", "biaya kirim", "shipping cost", "ongkos kirim (idr)", "shipping fee (paid by buyer)", "perkiraan ongkos kirim", "estimasi ongkir", "biaya ongkir", "pengiriman (idr)"],
 
   // === CUSTOMER ===
   customer_name: [
     "username (pembeli)", "username", "pembeli", "buyer", "buyer name", "customer",
     "pelanggan", "nama pembeli", "customer name", "nama penerima", "recipient",
     "penerima", "recipient name", "nama customer", "nama pelanggan", "konsumen",
-    "client", "nama client", "tamu", "klien",
+    "client", "nama client", "tamu", "klien", "pengguna", "user"
   ],
-  customer_phone: [
-    "no. telepon", "no telepon", "phone", "telepon", "no hp", "handphone",
-    "phone number", "hp", "nomor hp", "kontak", "whatsapp", "wa",
-  ],
-  address: [
-    "alamat pengiriman", "address", "alamat", "shipping address", "alamat kirim",
-    "alamat lengkap", "full address", "lokasi",
-  ],
-  city: [
-    "kota/kabupaten", "kota", "kabupaten", "city", "district", "kota/kab",
-    "kecamatan", "kelurahan",
-  ],
-  province: [
-    "provinsi", "province", "propinsi", "state", "region", "wilayah", "area",
-  ],
+  customer_phone: ["no. telepon", "no telepon", "phone", "telepon", "no hp", "handphone", "phone number", "hp", "nomor hp", "kontak", "whatsapp", "wa"],
+  address: ["alamat pengiriman", "address", "alamat", "shipping address", "alamat kirim", "alamat lengkap", "full address", "lokasi"],
+  city: ["kota/kabupaten", "kota", "kabupaten", "city", "district", "kota/kab", "kecamatan", "kelurahan"],
+  province: ["provinsi", "province", "propinsi", "state", "region", "wilayah", "area"],
 
   // === PAYMENT ===
-  payment_method: [
-    "metode pembayaran", "payment method", "metode bayar", "cara bayar", "payment type",
-    "metode", "pembayaran", "tunai", "cash", "transfer", "tipe pembayaran", "qris", "edc", "kredit",
-  ],
+  payment_method: ["metode pembayaran", "payment method", "metode bayar", "cara bayar", "payment type", "metode", "pembayaran", "tunai", "cash", "transfer", "tipe pembayaran", "qris", "edc", "kredit"],
 
   // === MISC ===
-  notes: [
-    "catatan", "notes", "keterangan", "remark", "memo", "pesan", "note", "deskripsi",
-  ],
+  notes: ["catatan", "notes", "keterangan", "remark", "memo", "pesan", "note", "deskripsi"],
+
+  // === SURVEY / FEEDBACK ===
+  question: ["pertanyaan", "question", "soal", "item penilaian", "aspek", "indikator"],
+  answer: ["jawaban", "answer", "respon", "tanggapan", "komentar", "saran", "feedback", "ulasan", "review", "opini"],
+  rating: ["rating", "skor", "score", "nilai", "kepuasan", "satisfaction", "penilaian", "bintang", "stars", "nps"],
+  respondent: ["responden", "nama responden", "peserta", "participant", "pengisi", "nama", "email responden"],
+  survey_date: ["tanggal survei", "waktu pengisian", "submit time", "timestamp", "recorded date"],
+
+  // === INVENTORY / STOCK ===
+  warehouse: ["gudang", "warehouse", "lokasi", "location", "cabang", "branch", "toko", "store"],
+  stock_current: ["stok saat ini", "stok", "stock", "current stock", "sisa", "available", "on hand", "jumlah stok", "inventory"],
+  stock_in: ["barang masuk", "in", "masuk", "received", "penerimaan", "pembelian", "purchase"],
+  stock_out: ["barang keluar", "out", "keluar", "sold", "pengeluaran", "pemakaian", "used"],
+  reorder_point: ["batas restock", "reorder point", "minimum stock", "stok minimum", "batas minimum", "safety stock"],
+
+  // === HR / EMPLOYEE ===
+  employee_id: ["id karyawan", "nik", "nip", "employee id", "staff id", "id pegawai"],
+  employee_name: ["nama karyawan", "karyawan", "employee", "staff name", "nama pegawai", "nama pekerja", "nama"],
+  department: ["departemen", "department", "divisi", "division", "unit", "bagian", "team", "tim"],
+  position: ["jabatan", "position", "role", "title", "posisi", "pangkat", "job title", "level"],
+  salary: ["gaji", "salary", "upah", "wage", "pendapatan", "income", "thp", "take home pay", "bonus", "tunjangan"],
+  join_date: ["tanggal bergabung", "join date", "hire date", "tanggal masuk", "tgl masuk", "mulai kerja"],
+
+  // === FINANCIAL ===
+  account_no: ["no rekening", "rekening", "account no", "account number", "norek", "akun"],
+  debit: ["debit", "uang masuk", "pemasukan", "deposit", "inflow", "terima"],
+  credit: ["kredit", "uang keluar", "pengeluaran", "withdrawal", "outflow", "bayar", "biaya", "expense"],
+  balance: ["saldo", "balance", "sisa saldo", "sisa kas", "current balance"],
+  transaction_type: ["tipe transaksi", "jenis transaksi", "transaction type", "kategori transaksi", "mutasi"],
+
+  // === ACADEMIC ===
+  student_id: ["nim", "nis", "nisn", "student id", "id siswa", "id mahasiswa", "nomer induk"],
+  student_name: ["nama siswa", "nama mahasiswa", "siswa", "mahasiswa", "student", "murid", "peserta didik", "nama"],
+  course: ["mata pelajaran", "mapel", "mata kuliah", "matkul", "course", "subject", "kelas", "class", "pelajaran"],
+  grade: ["nilai", "grade", "skor ujian", "ipk", "gpa", "hasil", "score"],
+  semester: ["semester", "term", "tahun ajaran", "periode akademik", "tahun"],
+
+  // === HEALTHCARE ===
+  patient_id: ["id pasien", "no rm", "rekam medis", "patient id", "nomor pasien", "mrn"],
+  diagnosis: ["diagnosis", "diagnosa", "penyakit", "disease", "condition", "keluhan"],
+  treatment: ["tindakan", "perawatan", "treatment", "obat", "resep", "prosedur", "procedure", "terapi"],
+  doctor: ["dokter", "doctor", "physician", "nama dokter", "nakes", "perawat", "spesialis"],
+
+  // === GENERIC ===
+  generic_id: ["id", "no", "nomor", "index", "uid", "uuid", "key"],
 };
 
 /** Normalize text for comparison */
@@ -206,6 +256,38 @@ export interface ColumnMapping {
   confidence: number;
   dataType: "text" | "number" | "date" | "category";
   sampleValues: string[];
+}
+
+/** Generate an AI prompt to resolve low-confidence mappings */
+export function generateAIFallbackPrompt(mappings: ColumnMapping[], domain: string = "generic"): string {
+  const unmapped = mappings.filter(m => !m.mappedTo || m.confidence < 0.6);
+  if (unmapped.length === 0) return "";
+
+  const fieldsList = Object.entries(UNIVERSAL_FIELDS)
+    .map(([k, v]) => `- ${k} (${v})`)
+    .join("\n");
+
+  const unmappedContext = unmapped.map(m =>
+    `Kolom Asli: "${m.originalName}"\nSampel Data: ${JSON.stringify(m.sampleValues)}`
+  ).join("\n\n");
+
+  return `Kamu adalah AI Data Engineer. Tugasmu adalah melakukan mapping kolom yang tidak dikenali ke dalam Universal Fields kami.
+Konteks / Domain Data: ${domain}
+
+Universal Fields yang tersedia:
+${fieldsList}
+
+Berikut adalah kolom yang gagal di-mapping oleh algoritma kami:
+${unmappedContext}
+
+Tentukan "mappedTo" (pilih persis dari daftar Universal Fields di atas) untuk setiap kolom. Jika benar-benar tidak ada yang cocok, biarkan null.
+
+Format jawaban harus HANYA JSON berformat:
+{
+  "mappings": [
+    { "originalName": "...", "mappedTo": "..." }
+  ]
+}`;
 }
 
 /** Detect column data type from sample values */
