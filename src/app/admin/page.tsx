@@ -5,11 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Activity, CreditCard, Box, TrendingUp, TrendingDown } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
+interface GrowthData {
+    name: string;
+    users: number;
+    revenue: number;
+}
+
 interface PlatformStats {
     totalUsers: number;
     activeProUsers: number;
     totalTokensUsed: number;
     totalDemoTokens: number;
+    growthData?: GrowthData[];
 }
 
 export default function AdminOverview() {
@@ -34,10 +41,9 @@ export default function AdminOverview() {
         }
     };
 
-    // Placeholder growth data (will be replaced with real data when analysis_sessions table has data)
-    const growthData = [
-        { name: 'Jan', users: 1, revenue: 0 },
-        { name: 'Feb', users: stats?.totalUsers || 1, revenue: (stats?.activeProUsers || 0) * 79 },
+    const growthData = stats?.growthData || [
+        { name: 'Jan', users: 0, revenue: 0 },
+        { name: 'Feb', users: 0, revenue: 0 },
     ];
 
     const cardStyle = { background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-primary)" };
@@ -130,8 +136,8 @@ export default function AdminOverview() {
                 <CardHeader>
                     <CardTitle className="text-white">Platform Growth</CardTitle>
                 </CardHeader>
-                <CardContent className="pl-2">
-                    <div className="h-[300px] w-full">
+                <CardContent>
+                    <div style={{ height: "350px", width: "100%", paddingRight: "16px" }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={growthData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                 <defs>
