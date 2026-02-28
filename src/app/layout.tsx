@@ -4,6 +4,8 @@ import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
 import { PostHogProvider } from "@/providers/posthog-provider";
 import JsonLd from "@/components/seo/JsonLd";
+import { ToastProvider } from "@/components/ui/toast-provider";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -61,11 +63,15 @@ export default function RootLayout({
       >
         <PostHogProvider>
           <AuthProvider>
-            <JsonLd />
-            <div className="bg-grid" />
-            <div className="bg-glow bg-glow-1" />
-            <div className="bg-glow bg-glow-2" />
-            {children}
+            <ThemeProvider>
+              <ToastProvider>
+                <JsonLd />
+                <div className="bg-grid" />
+                <div className="bg-glow bg-glow-1" />
+                <div className="bg-glow bg-glow-2" />
+                {children}
+              </ToastProvider>
+            </ThemeProvider>
           </AuthProvider>
         </PostHogProvider>
       </body>

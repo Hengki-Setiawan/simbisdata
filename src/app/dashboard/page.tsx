@@ -155,9 +155,35 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
 
     if (loading) {
         return (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", gap: "12px" }}>
-                <Loader2 size={32} style={{ color: "var(--primary)", animation: "spin 1s linear infinite" }} />
-                <span style={{ fontSize: "1.1rem" }}>Memuat Dashboard...</span>
+            <div style={{ padding: "0" }}>
+                {/* Skeleton Header */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "32px" }}>
+                    <div>
+                        <div style={{ width: "260px", height: "28px", background: "var(--border-color)", borderRadius: "6px", marginBottom: "8px", animation: "pulse 1.5s infinite" }} />
+                        <div style={{ width: "180px", height: "14px", background: "var(--border-color)", borderRadius: "4px", animation: "pulse 1.5s infinite" }} />
+                    </div>
+                </div>
+                {/* Skeleton KPIs */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "20px", marginBottom: "32px" }}>
+                    {[0, 1, 2, 3].map(i => (
+                        <div key={i} className="glass-card" style={{ padding: "24px" }}>
+                            <div style={{ width: "80px", height: "12px", background: "var(--border-color)", borderRadius: "4px", marginBottom: "12px", animation: "pulse 1.5s infinite" }} />
+                            <div style={{ width: "120px", height: "24px", background: "var(--border-color)", borderRadius: "4px", marginBottom: "8px", animation: "pulse 1.5s infinite" }} />
+                            <div style={{ width: "100px", height: "10px", background: "var(--border-color)", borderRadius: "4px", animation: "pulse 1.5s infinite" }} />
+                        </div>
+                    ))}
+                </div>
+                {/* Skeleton Charts */}
+                <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "20px" }}>
+                    <div className="glass-card" style={{ padding: "24px", height: "300px" }}>
+                        <div style={{ width: "150px", height: "16px", background: "var(--border-color)", borderRadius: "4px", marginBottom: "20px", animation: "pulse 1.5s infinite" }} />
+                        <div style={{ width: "100%", height: "200px", background: "var(--border-color)", borderRadius: "8px", opacity: 0.3, animation: "pulse 1.5s infinite" }} />
+                    </div>
+                    <div className="glass-card" style={{ padding: "24px", height: "300px" }}>
+                        <div style={{ width: "120px", height: "16px", background: "var(--border-color)", borderRadius: "4px", marginBottom: "20px", animation: "pulse 1.5s infinite" }} />
+                        <div style={{ width: "100%", height: "200px", background: "var(--border-color)", borderRadius: "8px", opacity: 0.3, animation: "pulse 1.5s infinite" }} />
+                    </div>
+                </div>
             </div>
         );
     }
@@ -178,6 +204,8 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
         );
     }
 
+    const [period, setPeriod] = useState("all");
+
     const { overview, productPerformance, variantAnalysis, regionalAnalysis, paymentAnalysis, timeAnalysis } = analysis;
 
     return (
@@ -189,7 +217,23 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                         {overview.dateRange.start} — {overview.dateRange.end}
                     </p>
                 </div>
-                <div style={{ display: "flex", gap: "8px", position: "relative" }}>
+                <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    {/* Period Filter */}
+                    <div style={{ display: "flex", gap: "4px", background: "var(--bg-surface)", borderRadius: "100px", padding: "3px", border: "1px solid var(--border-color)" }}>
+                        {[
+                            { key: "7d", label: "7H" },
+                            { key: "30d", label: "30H" },
+                            { key: "90d", label: "90H" },
+                            { key: "all", label: "Semua" },
+                        ].map(p => (
+                            <button key={p.key} onClick={() => setPeriod(p.key)} style={{
+                                padding: "5px 14px", borderRadius: "100px", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer",
+                                background: period === p.key ? "var(--primary)" : "transparent",
+                                color: period === p.key ? "white" : "var(--text-muted)",
+                                border: "none", transition: "all 0.2s",
+                            }}>{p.label}</button>
+                        ))}
+                    </div>
                     <div style={{ position: "relative" }}>
                         <button onClick={() => setExportOpen(!exportOpen)} className="btn-secondary" style={{ padding: "8px 16px", fontSize: "0.85rem" }}>
                             <FileDown size={16} /> Export ▾

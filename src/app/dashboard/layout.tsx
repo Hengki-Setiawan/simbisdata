@@ -22,6 +22,7 @@ import {
     Lock,
 } from "lucide-react";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/ui/theme-provider";
 
 const menuItems = [
     { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
@@ -168,26 +169,28 @@ export default function DashboardLayout({
                         borderTop: "1px solid var(--border-color)",
                     }}
                 >
-                    <button
-                        onClick={() => signOut({ callbackUrl: '/login' })}
-                        style={{
-                            background: "none",
-                            border: "none",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "10px",
-                            color: "var(--text-muted)",
-                            fontSize: "0.85rem",
-                            cursor: "pointer",
-                            padding: 0,
-                            justifyContent: collapsed ? "center" : "flex-start",
-                            width: "100%",
-                            textAlign: "left"
-                        }}
-                    >
-                        <LogOut size={18} />
-                        {!collapsed && "Keluar"}
-                    </button>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", justifyContent: collapsed ? "center" : "space-between" }}>
+                        <button
+                            onClick={() => signOut({ callbackUrl: '/login' })}
+                            style={{
+                                background: "none",
+                                border: "none",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "10px",
+                                color: "var(--text-muted)",
+                                fontSize: "0.85rem",
+                                cursor: "pointer",
+                                padding: 0,
+                                justifyContent: collapsed ? "center" : "flex-start",
+                                textAlign: "left"
+                            }}
+                        >
+                            <LogOut size={18} />
+                            {!collapsed && "Keluar"}
+                        </button>
+                        {!collapsed && <ThemeToggle />}
+                    </div>
                 </div>
             </aside>
 
