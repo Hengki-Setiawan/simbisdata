@@ -130,7 +130,7 @@ export default function DashboardLayout({
                 )}
 
                 {/* Navigation */}
-                <nav style={{ flex: 1, padding: "16px 12px" }}>
+                <nav style={{ flex: 1, padding: "16px 12px", overflowY: "auto" }}>
                     {displayItems.map((item) => {
                         const isActive = pathname === item.href;
                         const Icon = item.icon;

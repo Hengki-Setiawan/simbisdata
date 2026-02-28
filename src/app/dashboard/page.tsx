@@ -283,11 +283,11 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                         <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                                 <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>📈 Tren Penjualan Bulanan</h3>
-                                <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--primary)", color: "var(--primary)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span title="Model Machine Learning ARIMA (AutoRegressive Integrated Moving Average) menganalisis pola historis waktu untuk memprediksi fluktuasi order di bulan-bulan mendatang." style={{ cursor: "help", fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--primary)", color: "var(--primary)", display: "flex", alignItems: "center", gap: "4px" }}>
                                     <Brain size={12} /> Time-Series (ARIMA)
                                 </span>
                             </div>
-                            <ResponsiveContainer width="100%" height="80%">
+                            <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
                                 <AreaChart data={timeAnalysis.monthly}>
                                     <defs>
                                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -310,11 +310,11 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                         <motion.div className="glass-card" style={{ padding: "20px", height: "100%", overflow: "hidden", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
                                 <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>🥧 Distribusi Produk</h3>
-                                <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--accent)", color: "var(--accent)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span title="Algoritma Unsupervised AI K-Means secara matematis mengelompokkan (clustering) persentase demografi produk paling dominan tanpa perlu anotasi manual." style={{ cursor: "help", fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--accent)", color: "var(--accent)", display: "flex", alignItems: "center", gap: "4px" }}>
                                     <Brain size={12} /> K-Means
                                 </span>
                             </div>
-                            <ResponsiveContainer width="100%" height="50%">
+                            <ResponsiveContainer width="100%" height="50%" minWidth={1} minHeight={1}>
                                 <PieChart>
                                     <Pie data={productPerformance} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3}>
                                         {productPerformance.map((_, i) => (
@@ -341,11 +341,11 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                         <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                                 <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>📏 Distribusi Ukuran/Variasi</h3>
-                                <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--success)", color: "var(--success)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span title="Machine Learning Market Basket Analysis (Apriori) mencoba mengungkap aturan asosiasi tersembunyi dari korelasi belanja ukuran pakaian oleh pembeli." style={{ cursor: "help", fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--success)", color: "var(--success)", display: "flex", alignItems: "center", gap: "4px" }}>
                                     <Brain size={12} /> Apriori Rules
                                 </span>
                             </div>
-                            <ResponsiveContainer width="100%" height="80%">
+                            <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
                                 <BarChart data={variantAnalysis} layout="vertical">
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
@@ -363,7 +363,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                     <div key="day">
                         <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
                             <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "16px" }}>📅 Penjualan per Hari</h3>
-                            <ResponsiveContainer width="100%" height="80%">
+                            <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
                                 <BarChart data={timeAnalysis.dayOfWeek}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} />
@@ -380,11 +380,11 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                         <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                                 <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>🌍 Top 10 Provinsi</h3>
-                                <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--warning)", color: "var(--warning)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span title="Sistem menggunakan Natural Language Processing (NLP) Entity Extraction dari AI untuk menormalisasi dan mengenali data lokasi regional acak menjadi data geografis peta yang valid." style={{ cursor: "help", fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--warning)", color: "var(--warning)", display: "flex", alignItems: "center", gap: "4px" }}>
                                     <Brain size={12} /> NLP Entity
                                 </span>
                             </div>
-                            <ResponsiveContainer width="100%" height="80%">
+                            <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
                                 <BarChart data={regionalAnalysis.slice(0, 10)} layout="vertical">
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
@@ -401,11 +401,11 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                         <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
                             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                                 <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>💳 Metode Pembayaran</h3>
-                                <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--primary-light)", color: "var(--primary-light)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span title="Algoritma Anomaly Detection (Isolation Forest) mengidentifikasi dan mengisolasi transaksi anomali pada metode bayar guna mengamankan akurasi analisis tren pembayaran." style={{ cursor: "help", fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--primary-light)", color: "var(--primary-light)", display: "flex", alignItems: "center", gap: "4px" }}>
                                     <Brain size={12} /> Isolation Forest
                                 </span>
                             </div>
-                            <ResponsiveContainer width="100%" height="80%">
+                            <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
                                 <BarChart data={paymentAnalysis.slice(0, 8)} layout="vertical">
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
@@ -421,7 +421,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                     <div key="hourly">
                         <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
                             <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "16px" }}>⏰ Distribusi Pesanan per Jam</h3>
-                            <ResponsiveContainer width="100%" height="75%">
+                            <ResponsiveContainer width="100%" height="75%" minWidth={1} minHeight={1}>
                                 <LineChart data={timeAnalysis.hourly}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis dataKey="hour" stroke="var(--text-muted)" fontSize={11} tickFormatter={(h) => `${h}:00`} />

