@@ -32,9 +32,9 @@ export default function PartnersSection() {
                         {[...partners, ...partners, ...partners, ...partners, ...partners, ...partners, ...partners, ...partners].map((partner, index) => (
                             <div
                                 key={index}
-                                className="flex-shrink-0 flex items-center justify-center p-4 bg-surface border border-border rounded-xl w-40 h-24 hover:border-primary transition-colors cursor-pointer group"
+                                className="flex-shrink-0 flex items-center justify-center p-4 bg-transparent border border-border/50 rounded-xl w-40 h-24 hover:border-primary/50 transition-colors cursor-pointer group"
                             >
-                                <div className="relative w-full h-full opacity-70 group-hover:opacity-100 transition-opacity grayscale group-hover:grayscale-0">
+                                <div className="relative w-full h-full opacity-50 group-hover:opacity-100 transition-opacity grayscale group-hover:grayscale-0">
                                     <Image
                                         src={partner.logo}
                                         alt={`${partner.name} logo`}

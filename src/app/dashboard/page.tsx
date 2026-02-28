@@ -29,10 +29,13 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import dynamic from "next/dynamic";
 
-const ResponsiveGridLayout: any = dynamic(
+const ResponsiveGridLayout = dynamic(
     () => import("react-grid-layout").then((mod) => {
         // @ts-ignore
-        return mod.default ? mod.default.WidthProvider(mod.default.Responsive) : mod.WidthProvider(mod.Responsive);
+        const WidthProvider = mod.WidthProvider || (mod.default as any)?.WidthProvider;
+        // @ts-ignore
+        const Responsive = mod.Responsive || (mod.default as any)?.Responsive;
+        return WidthProvider(Responsive);
     }),
     { ssr: false }
 );
@@ -130,20 +133,13 @@ export default function DashboardPage() {
         };
         load();
     }, []);
-
-    const generateAIInsight = async () => {
-        if (!analysis) return;
+    const generateAiInsights = async (data: AnalysisResult) => {
         setAiLoading(true);
-
-        const prompt = `Berdasarkan data analisis penjualan berikut:
-- Total penjualan: ${analysis.overview.totalOrders} pesanan, ${formatRupiah(analysis.overview.totalRevenue * 1000)}
-- Periode: ${analysis.overview.dateRange.start} sampai ${analysis.overview.dateRange.end}
-- Produk terlaris: ${analysis.productPerformance[0]?.name} (${analysis.productPerformance[0]?.percentage.toFixed(1)}%)
-- Size terlaris: ${analysis.variantAnalysis[0]?.name} (${analysis.variantAnalysis[0]?.percentage.toFixed(1)}%)
-- Region terbesar: ${analysis.regionalAnalysis[0]?.province} (${analysis.regionalAnalysis[0]?.percentage.toFixed(1)}%)
-- Metode bayar terbanyak: ${analysis.paymentAnalysis[0]?.method} (${analysis.paymentAnalysis[0]?.percentage.toFixed(1)}%)
-- Return rate: ${analysis.overview.returnRate.toFixed(1)}%
-- Growth rate: ${analysis.overview.growthRate.toFixed(1)}%
+        const prompt = `Analisis data penjualan ini:
+1. Total Penjualan: Rp${data.overview.totalRevenue}
+2. Total Pesanan: ${data.overview.totalOrders}
+3. Produk Terlaris: ${data.productPerformance[0]?.name || "N/A"} (${data.productPerformance[0]?.count || 0} terjual)
+4. Tren Pertumbuhan: ${data.overview.growthRate < 0 ? "Turun" : "Naik"} ${Math.abs(data.overview.growthRate).toFixed(1)}%
 
 Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight tersembunyi, dan 5 rekomendasi aksi prioritas untuk meningkatkan penjualan. Format dengan emoji dan poin-poin jelas.`;
 
@@ -161,15 +157,26 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
         setAiLoading(false);
     };
 
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return <div style={{ minHeight: "100vh", padding: "32px", display: "flex", justifyContent: "center" }}><Loader2 className="animate-spin text-primary" size={32} /></div>;
+    }
+
     if (loading) {
         return (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh" }}>
-                <Loader2 size={40} style={{ color: "var(--primary)", animation: "spin 1s linear infinite" }} />
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh", gap: "12px" }}>
+                <Loader2 size={32} style={{ color: "var(--primary)", animation: "spin 1s linear infinite" }} />
+                <span style={{ fontSize: "1.1rem" }}>Memuat Dashboard...</span>
             </div>
         );
     }
 
-    if (!analysis) {
+    if (!analysis) { // Changed from `loading || !analysis` because loading is handled above
         return (
             <div style={{ textAlign: "center", padding: "80px 24px" }}>
                 <Upload size={64} style={{ color: "var(--text-muted)", marginBottom: "24px" }} />
@@ -273,6 +280,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
             </div>
 
             {/* Draggable Dashboard Layout */}
+            {/* @ts-ignore */}
             <ResponsiveGridLayout
                 className="layout"
                 layouts={layouts}
@@ -447,7 +455,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                                 <Brain size={24} style={{ color: "var(--primary)" }} />
                                 <h3 style={{ fontSize: "1.1rem", fontWeight: 700 }}>AI Insight & Rekomendasi</h3>
                             </div>
-                            <button onClick={generateAIInsight} onMouseDown={(e) => e.stopPropagation()} className="btn-primary" disabled={aiLoading}
+                            <button onClick={() => generateAiInsights(analysis)} onMouseDown={(e) => e.stopPropagation()} className="btn-primary" disabled={aiLoading}
                                 style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
                                 {aiLoading ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <Brain size={16} />}
                                 {aiLoading ? "Menganalisis..." : "Generate Insight AI"}
