@@ -90,7 +90,7 @@ export default function DashboardLayout({
                             gap: "10px",
                         }}
                     >
-                        <BarChart3 size={24} style={{ color: "var(--primary)", flexShrink: 0 }} />
+                        <img src="/logo.png" alt="SimbisData Logo" width={24} height={24} style={{ borderRadius: "4px", flexShrink: 0 }} />
                         {!collapsed && (
                             <span className="gradient-text" style={{ fontSize: "1.2rem", fontWeight: 800, whiteSpace: "nowrap" }}>
                                 SimbisData

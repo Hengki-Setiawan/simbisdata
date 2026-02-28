@@ -7,7 +7,7 @@ export default function Footer() {
                 <div className="footer-grid">
                     <div>
                         <div className="footer-brand" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <BarChart3 size={22} style={{ color: "var(--primary)" }} />
+                            <img src="/logo.png" alt="SimbisData Logo" width={24} height={24} style={{ borderRadius: "4px" }} />
                             <span className="gradient-text">SimbisData</span>
                         </div>
                         <p className="footer-desc">
