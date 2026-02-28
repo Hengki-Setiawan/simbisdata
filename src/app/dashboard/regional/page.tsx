@@ -27,12 +27,18 @@ interface RegionData { province: string; orders: number; revenue: number; }
 
 function analyzeRegions(rows: Record<string, unknown>[]): RegionData[] {
     const map = new Map<string, { orders: number; revenue: number }>();
+    if (rows.length === 0) return [];
+
+    const keys = Object.keys(rows[0]);
+    const provKey = keys.find(k => /provinsi|kota|region|wilayah|state|city/i.test(k)) || keys[0];
+    const revenueKey = keys.find(k => /total|pembayaran|revenue|harga|amount/i.test(k));
+
     rows.forEach((r) => {
-        const prov = (r["Provinsi"] as string) || "";
+        const prov = (r[provKey] as string) || "";
         if (!prov) return;
         const existing = map.get(prov) || { orders: 0, revenue: 0 };
         existing.orders += 1;
-        existing.revenue += parseFloat(r["Total Pembayaran"] as string) || 0;
+        existing.revenue += revenueKey ? (parseFloat(String(r[revenueKey]).replace(/[^\d.-]/g, '')) || 0) : 0;
         map.set(prov, existing);
     });
     return Array.from(map.entries())

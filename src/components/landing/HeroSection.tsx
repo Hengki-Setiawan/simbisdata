@@ -3,8 +3,25 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, Upload } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function HeroSection() {
+    const [stats, setStats] = useState({ totalRows: 0, totalUsers: 0 });
+
+    useEffect(() => {
+        fetch("/api/public/stats").then(r => r.json()).then(data => {
+            if (data.success) {
+                setStats({ totalRows: data.totalRows || 0, totalUsers: data.totalUsers || 0 });
+            }
+        }).catch(() => { });
+    }, []);
+
+    const formatNumber = (num: number) => {
+        if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M+';
+        if (num >= 1000) return (num / 1000).toFixed(1) + 'K+';
+        return num.toString();
+    };
+
     return (
         <section className="hero">
             <div className="container">
@@ -46,16 +63,16 @@ export default function HeroSection() {
                             <div className="hero-stat-label">Algoritma ML</div>
                         </div>
                         <div className="hero-stat">
-                            <div className="hero-stat-value gradient-text">48</div>
-                            <div className="hero-stat-label">Kolom Data Diolah</div>
+                            <div className="hero-stat-value gradient-text">{stats.totalRows > 0 ? formatNumber(stats.totalRows) : "1M+"}</div>
+                            <div className="hero-stat-label">Baris Data Diolah</div>
                         </div>
                         <div className="hero-stat">
                             <div className="hero-stat-value gradient-text">AI</div>
-                            <div className="hero-stat-label">Narasi Bahasa Indonesia</div>
+                            <div className="hero-stat-label">Natural Language</div>
                         </div>
                         <div className="hero-stat">
-                            <div className="hero-stat-value gradient-text">Rp 0</div>
-                            <div className="hero-stat-label">Mulai Gratis</div>
+                            <div className="hero-stat-value gradient-text">{stats.totalUsers > 0 ? formatNumber(stats.totalUsers * 1) : "100+"}</div>
+                            <div className="hero-stat-label">Pengguna Aktif</div>
                         </div>
                     </motion.div>
                 </motion.div>
