@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import {
     BarChart3,
     LayoutDashboard,
@@ -168,21 +168,26 @@ export default function DashboardLayout({
                         borderTop: "1px solid var(--border-color)",
                     }}
                 >
-                    <Link
-                        href="/"
+                    <button
+                        onClick={() => signOut({ callbackUrl: '/login' })}
                         style={{
+                            background: "none",
+                            border: "none",
                             display: "flex",
                             alignItems: "center",
                             gap: "10px",
-                            textDecoration: "none",
                             color: "var(--text-muted)",
                             fontSize: "0.85rem",
+                            cursor: "pointer",
+                            padding: 0,
                             justifyContent: collapsed ? "center" : "flex-start",
+                            width: "100%",
+                            textAlign: "left"
                         }}
                     >
                         <LogOut size={18} />
                         {!collapsed && "Keluar"}
-                    </Link>
+                    </button>
                 </div>
             </aside>
 
