@@ -24,7 +24,7 @@ import { exportToExcel, exportToCSV } from "@/lib/excel-export";
 import { generatePremiumPDFHTML } from "@/lib/premium-pdf-template";
 import { generatePPTX } from "@/lib/ppt-export";
 import { db } from "@/lib/local-db";
-import { Responsive } from "react-grid-layout";
+import { Responsive, Layout } from "react-grid-layout";
 
 const COLORS = ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#a78bfa", "#f472b6", "#34d399"];
 
@@ -80,7 +80,7 @@ export default function DashboardPage() {
 
     // Dashboard Customizer
     const [isEditingLayout, setIsEditingLayout] = useState(false);
-    const [layouts, setLayouts] = useState<{ [key: string]: any[] }>({
+    const [layouts, setLayouts] = useState<Partial<Record<string, Layout>>>({
         lg: [
             { i: "trend", x: 0, y: 0, w: 8, h: 3, minW: 4, minH: 2 },
             { i: "product", x: 8, y: 0, w: 4, h: 3, minW: 3, minH: 2 },
@@ -101,7 +101,7 @@ export default function DashboardPage() {
         }
     }, []);
 
-    const onLayoutChange = (_: any[], allLayouts: { [key: string]: any[] }) => {
+    const onLayoutChange = (_: Layout, allLayouts: Partial<Record<string, Layout>>) => {
         setLayouts(allLayouts);
         localStorage.setItem("simbis_dashboard_layout", JSON.stringify(allLayouts));
     };
@@ -275,8 +275,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                     cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                     rowHeight={100}
                     onLayoutChange={onLayoutChange}
-                    isDraggable={isEditingLayout}
-                    isResizable={isEditingLayout}
+                    {...{ isDraggable: isEditingLayout, isResizable: isEditingLayout } as any}
                     margin={[16, 16]}
                 >
                     {/* Trend Chart */}
@@ -466,5 +465,6 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                     </div>
                 </Responsive>
             </div>
-            );
+        </div>
+    );
 }
