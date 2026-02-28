@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { users } from "@/lib/schema";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
@@ -45,7 +45,8 @@ export async function POST(req: NextRequest) {
                 name,
                 email,
                 password: hashedPassword, // Hash with bcrypt
-                tier: "free",
+                planId: "free",
+                createdAt: Math.floor(Date.now() / 1000), // Unix timestamp
             })
             .returning();
 
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest) {
                 id: newUser[0].id,
                 name: newUser[0].name,
                 email: newUser[0].email,
-                tier: newUser[0].tier,
+                planId: newUser[0].planId,
             },
             { status: 201 }
         );

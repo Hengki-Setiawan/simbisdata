@@ -13,12 +13,15 @@ export class SimbisDatabase extends Dexie {
         super("SimbisDatabase");
 
         // Define schema
-        this.version(1).stores({
+        this.version(3).stores({
             salesData: "++id", // Auto-incremented primary key
+        }).upgrade(tx => {
+            // Note: Schema version upgraded to v3 to drop the SaaS mock tables 
+            // since Authentication has now been migrated to the cloud (Turso/Drizzle)
         });
     }
 
-    // Clear and bulk add new data
+    // Clear and bulk add new raw data
     async saveNewData(rows: Record<string, any>[]) {
         await this.transaction("rw", this.salesData, async () => {
             await this.salesData.clear();
@@ -37,6 +40,11 @@ export class SimbisDatabase extends Dexie {
     async hasData(): Promise<boolean> {
         const count = await this.salesData.count();
         return count > 0;
+    }
+
+    // Get current data (alias for getAllData, used by Data Studio)
+    async getCurrentData(): Promise<Record<string, any>[]> {
+        return this.getAllData();
     }
 }
 

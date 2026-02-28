@@ -11,6 +11,7 @@ import {
     Brain,
     Loader2,
     FileDown,
+    Settings,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -21,7 +22,20 @@ import { analyzeData, type AnalysisResult } from "@/lib/analysis";
 import { generatePDFReport } from "@/lib/pdf-export";
 import { exportToExcel, exportToCSV } from "@/lib/excel-export";
 import { generatePremiumPDFHTML } from "@/lib/premium-pdf-template";
+import { generatePPTX } from "@/lib/ppt-export";
 import { db } from "@/lib/local-db";
+import RGL from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
+import dynamic from "next/dynamic";
+
+const ResponsiveGridLayout: any = dynamic(
+    () => import("react-grid-layout").then((mod) => {
+        // @ts-ignore
+        return mod.default ? mod.default.WidthProvider(mod.default.Responsive) : mod.WidthProvider(mod.Responsive);
+    }),
+    { ssr: false }
+);
 
 const COLORS = ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#a78bfa", "#f472b6", "#34d399"];
 
@@ -74,6 +88,34 @@ export default function DashboardPage() {
     const [aiLoading, setAiLoading] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
     const [exportingPremium, setExportingPremium] = useState(false);
+
+    // Dashboard Customizer
+    const [isEditingLayout, setIsEditingLayout] = useState(false);
+    const [layouts, setLayouts] = useState<{ [key: string]: any[] }>({
+        lg: [
+            { i: "trend", x: 0, y: 0, w: 8, h: 3, minW: 4, minH: 2 },
+            { i: "product", x: 8, y: 0, w: 4, h: 3, minW: 3, minH: 2 },
+            { i: "variant", x: 0, y: 3, w: 6, h: 3, minW: 3, minH: 2 },
+            { i: "day", x: 6, y: 3, w: 6, h: 3, minW: 3, minH: 2 },
+            { i: "region", x: 0, y: 6, w: 6, h: 3, minW: 3, minH: 2 },
+            { i: "payment", x: 6, y: 6, w: 6, h: 3, minW: 3, minH: 2 },
+            { i: "hourly", x: 0, y: 9, w: 12, h: 2, minW: 4, minH: 2 },
+            { i: "ai", x: 0, y: 11, w: 12, h: 2, minW: 4, minH: 2 }
+        ]
+    });
+
+    // Load saved layout from localStorage
+    useEffect(() => {
+        const saved = localStorage.getItem("simbis_dashboard_layout");
+        if (saved) {
+            try { setLayouts(JSON.parse(saved)); } catch (e) { console.error(e); }
+        }
+    }, []);
+
+    const onLayoutChange = (_: any[], allLayouts: { [key: string]: any[] }) => {
+        setLayouts(allLayouts);
+        localStorage.setItem("simbis_dashboard_layout", JSON.stringify(allLayouts));
+    };
 
     useEffect(() => {
         const load = async () => {
@@ -181,6 +223,11 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                                     onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
                                     📋 CSV
                                 </button>
+                                <button onClick={() => { analysis && generatePPTX(analysis, aiInsight); setExportOpen(false); }}
+                                    style={{ width: "100%", textAlign: "left", padding: "10px 12px", background: "none", border: "none", color: "var(--warning)", cursor: "pointer", borderRadius: "6px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}
+                                    onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                                    📊 PowerPoint (.pptx)
+                                </button>
                                 <div style={{ height: "1px", background: "var(--border-color)", margin: "6px 0" }} />
                                 <button onClick={async () => {
                                     if (!analysis) return;
@@ -208,6 +255,9 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                             </div>
                         )}
                     </div>
+                    <button onClick={() => setIsEditingLayout(!isEditingLayout)} className={isEditingLayout ? "btn-primary" : "btn-secondary"} style={{ padding: "8px 16px", fontSize: "0.85rem", gap: "6px" }}>
+                        <Settings size={16} /> {isEditingLayout ? "Simpan Layout" : "Edit Layout"}
+                    </button>
                     <Link href="/dashboard/upload" className="btn-secondary" style={{ padding: "8px 16px", fontSize: "0.85rem" }}>
                         <Upload size={16} /> Upload Baru
                     </Link>
@@ -222,174 +272,204 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                 <KPICard icon={RotateCcw} label="Return Rate" value={`${overview.returnRate.toFixed(1)}%`} sub={overview.returnRate < 2 ? "✅ Sangat baik" : "⚠️ Perlu perhatian"} color={overview.returnRate < 2 ? "var(--success)" : "var(--warning)"} delay={0.3} />
             </div>
 
-            {/* Charts Row 1 */}
-            <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "16px", marginBottom: "16px" }}>
+            {/* Draggable Dashboard Layout */}
+            <ResponsiveGridLayout
+                className="layout"
+                layouts={layouts}
+                breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                rowHeight={100}
+                onLayoutChange={onLayoutChange}
+                isDraggable={isEditingLayout}
+                isResizable={isEditingLayout}
+                margin={[16, 16]}
+            >
                 {/* Trend Chart */}
-                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>📈 Tren Penjualan Bulanan</h3>
-                    <ResponsiveContainer width="100%" height={280}>
-                        <AreaChart data={timeAnalysis.monthly}>
-                            <defs>
-                                <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                            <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
-                            <YAxis stroke="var(--text-muted)" fontSize={12} />
-                            <Tooltip contentStyle={tooltipStyle} />
-                            <Area type="monotone" dataKey="orders" stroke="#6366f1" fill="url(#colorRevenue)" strokeWidth={2} name="Pesanan" />
-                        </AreaChart>
-                    </ResponsiveContainer>
-                </motion.div>
-
-                {/* Product Distribution */}
-                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>🥧 Distribusi Produk</h3>
-                    <ResponsiveContainer width="100%" height={200}>
-                        <PieChart>
-                            <Pie data={productPerformance} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3}>
-                                {productPerformance.map((_, i) => (
-                                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip contentStyle={tooltipStyle} />
-                        </PieChart>
-                    </ResponsiveContainer>
-                    <div style={{ marginTop: "8px" }}>
-                        {productPerformance.map((p, i) => (
-                            <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.8rem", marginBottom: "6px" }}>
-                                <div style={{ width: 10, height: 10, borderRadius: "50%", background: COLORS[i % COLORS.length], flexShrink: 0 }} />
-                                <span style={{ color: "var(--text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
-                                <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{p.percentage.toFixed(1)}%</span>
-                            </div>
-                        ))}
-                    </div>
-                </motion.div>
-            </div>
-
-            {/* Charts Row 2 */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
-                {/* Variant Analysis */}
-                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>📏 Distribusi Ukuran/Variasi</h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={variantAnalysis} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                            <XAxis type="number" stroke="var(--text-muted)" fontSize={12} />
-                            <YAxis type="category" dataKey="name" stroke="var(--text-muted)" fontSize={12} width={50} />
-                            <Tooltip contentStyle={tooltipStyle} />
-                            <Bar dataKey="count" name="Jumlah" radius={[0, 6, 6, 0]}>
-                                {variantAnalysis.map((_, i) => (
-                                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
-                </motion.div>
-
-                {/* Day of Week */}
-                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>📅 Penjualan per Hari</h3>
-                    <ResponsiveContainer width="100%" height={250}>
-                        <BarChart data={timeAnalysis.dayOfWeek}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                            <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} />
-                            <YAxis stroke="var(--text-muted)" fontSize={12} />
-                            <Tooltip contentStyle={tooltipStyle} />
-                            <Bar dataKey="count" name="Pesanan" fill="#06b6d4" radius={[6, 6, 0, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </motion.div>
-            </div>
-
-            {/* Charts Row 3 */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
-                {/* Regional TOP 10 */}
-                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>🌍 Top 10 Provinsi</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={regionalAnalysis.slice(0, 10)} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                            <XAxis type="number" stroke="var(--text-muted)" fontSize={12} />
-                            <YAxis type="category" dataKey="province" stroke="var(--text-muted)" fontSize={10} width={120} />
-                            <Tooltip contentStyle={tooltipStyle} />
-                            <Bar dataKey="count" name="Pesanan" fill="#10b981" radius={[0, 6, 6, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </motion.div>
-
-                {/* Payment Methods */}
-                <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
-                    <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>💳 Metode Pembayaran</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={paymentAnalysis.slice(0, 8)} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                            <XAxis type="number" stroke="var(--text-muted)" fontSize={12} />
-                            <YAxis type="category" dataKey="method" stroke="var(--text-muted)" fontSize={9} width={140} />
-                            <Tooltip contentStyle={tooltipStyle} />
-                            <Bar dataKey="count" name="Jumlah" fill="#f59e0b" radius={[0, 6, 6, 0]} />
-                        </BarChart>
-                    </ResponsiveContainer>
-                </motion.div>
-            </div>
-
-            {/* Hourly Distribution */}
-            <motion.div className="glass-card" style={{ padding: "24px", marginBottom: "16px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
-                <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "20px" }}>⏰ Distribusi Pesanan per Jam</h3>
-                <ResponsiveContainer width="100%" height={200}>
-                    <LineChart data={timeAnalysis.hourly}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                        <XAxis dataKey="hour" stroke="var(--text-muted)" fontSize={11} tickFormatter={(h) => `${h}:00`} />
-                        <YAxis stroke="var(--text-muted)" fontSize={12} />
-                        <Tooltip contentStyle={tooltipStyle} labelFormatter={(h) => `${h}:00`} />
-                        <Line type="monotone" dataKey="count" stroke="#a78bfa" strokeWidth={2} dot={{ fill: "#a78bfa", r: 3 }} name="Pesanan" />
-                    </LineChart>
-                </ResponsiveContainer>
-            </motion.div>
-
-            {/* AI Insight Section */}
-            <motion.div className="glass-card" style={{ padding: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        <Brain size={24} style={{ color: "var(--primary)" }} />
-                        <h3 style={{ fontSize: "1.1rem", fontWeight: 700 }}>AI Insight & Rekomendasi</h3>
-                    </div>
-                    <button onClick={generateAIInsight} className="btn-primary" disabled={aiLoading}
-                        style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
-                        {aiLoading ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <Brain size={16} />}
-                        {aiLoading ? "Menganalisis..." : "Generate Insight AI"}
-                    </button>
+                <div key="trend">
+                    <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                            <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>📈 Tren Penjualan Bulanan</h3>
+                            <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--primary)", color: "var(--primary)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <Brain size={12} /> Time-Series (ARIMA)
+                            </span>
+                        </div>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <AreaChart data={timeAnalysis.monthly}>
+                                <defs>
+                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                                <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} />
+                                <YAxis stroke="var(--text-muted)" fontSize={12} />
+                                <Tooltip contentStyle={tooltipStyle} />
+                                <Area type="monotone" dataKey="orders" stroke="#6366f1" fill="url(#colorRevenue)" strokeWidth={2} name="Pesanan" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </motion.div>
                 </div>
 
-                {aiInsight ? (
-                    <div style={{
-                        padding: "20px",
-                        borderRadius: "var(--radius)",
-                        background: "var(--bg-surface)",
-                        border: "1px solid var(--border-color)",
-                        whiteSpace: "pre-wrap",
-                        lineHeight: 1.8,
-                        fontSize: "0.9rem",
-                        color: "var(--text-secondary)",
-                    }}>
-                        {aiInsight}
-                    </div>
-                ) : (
-                    <div style={{
-                        padding: "40px",
-                        textAlign: "center",
-                        color: "var(--text-muted)",
-                        borderRadius: "var(--radius)",
-                        background: "var(--bg-surface)",
-                        border: "1px dashed var(--border-color)",
-                    }}>
-                        <Brain size={32} style={{ marginBottom: "12px", opacity: 0.5 }} />
-                        <p>Klik tombol &quot;Generate Insight AI&quot; untuk mendapatkan analisis mendalam dan rekomendasi bisnis.</p>
-                    </div>
-                )}
-            </motion.div>
+                {/* Product Distribution */}
+                <div key="product">
+                    <motion.div className="glass-card" style={{ padding: "20px", height: "100%", overflow: "hidden", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                            <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>🥧 Distribusi Produk</h3>
+                            <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--accent)", color: "var(--accent)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <Brain size={12} /> K-Means
+                            </span>
+                        </div>
+                        <ResponsiveContainer width="100%" height="50%">
+                            <PieChart>
+                                <Pie data={productPerformance} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3}>
+                                    {productPerformance.map((_, i) => (
+                                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip contentStyle={tooltipStyle} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                        <div style={{ marginTop: "8px", overflowY: "auto", maxHeight: "35%", paddingRight: "4px" }}>
+                            {productPerformance.map((p, i) => (
+                                <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "0.75rem", marginBottom: "4px" }}>
+                                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: COLORS[i % COLORS.length], flexShrink: 0 }} />
+                                    <span style={{ color: "var(--text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
+                                    <span style={{ fontWeight: 600, color: "var(--text-primary)" }}>{p.percentage.toFixed(1)}%</span>
+                                </div>
+                            ))}
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* Variant Analysis */}
+                <div key="variant">
+                    <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                            <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>📏 Distribusi Ukuran/Variasi</h3>
+                            <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--success)", color: "var(--success)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <Brain size={12} /> Apriori Rules
+                            </span>
+                        </div>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <BarChart data={variantAnalysis} layout="vertical">
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                                <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
+                                <YAxis type="category" dataKey="name" stroke="var(--text-muted)" fontSize={11} width={45} />
+                                <Tooltip contentStyle={tooltipStyle} />
+                                <Bar dataKey="count" name="Jumlah" radius={[0, 4, 4, 0]}>
+                                    {variantAnalysis.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </motion.div>
+                </div>
+
+                {/* Day of Week */}
+                <div key="day">
+                    <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
+                        <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "16px" }}>📅 Penjualan per Hari</h3>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <BarChart data={timeAnalysis.dayOfWeek}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                                <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} />
+                                <YAxis stroke="var(--text-muted)" fontSize={11} />
+                                <Tooltip contentStyle={tooltipStyle} />
+                                <Bar dataKey="count" name="Pesanan" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </motion.div>
+                </div>
+
+                {/* Regional TOP 10 */}
+                <div key="region">
+                    <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                            <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>🌍 Top 10 Provinsi</h3>
+                            <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--warning)", color: "var(--warning)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <Brain size={12} /> NLP Entity
+                            </span>
+                        </div>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <BarChart data={regionalAnalysis.slice(0, 10)} layout="vertical">
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                                <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
+                                <YAxis type="category" dataKey="province" stroke="var(--text-muted)" fontSize={9} width={100} />
+                                <Tooltip contentStyle={tooltipStyle} />
+                                <Bar dataKey="count" name="Pesanan" fill="#10b981" radius={[0, 4, 4, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </motion.div>
+                </div>
+
+                {/* Payment Methods */}
+                <div key="payment">
+                    <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+                            <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>💳 Metode Pembayaran</h3>
+                            <span style={{ fontSize: "0.7rem", padding: "2px 8px", borderRadius: "12px", border: "1px solid var(--primary-light)", color: "var(--primary-light)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <Brain size={12} /> Isolation Forest
+                            </span>
+                        </div>
+                        <ResponsiveContainer width="100%" height="80%">
+                            <BarChart data={paymentAnalysis.slice(0, 8)} layout="vertical">
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                                <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
+                                <YAxis type="category" dataKey="method" stroke="var(--text-muted)" fontSize={9} width={120} />
+                                <Tooltip contentStyle={tooltipStyle} />
+                                <Bar dataKey="count" name="Jumlah" fill="#f59e0b" radius={[0, 4, 4, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </motion.div>
+                </div>
+
+                {/* Hourly Distribution */}
+                <div key="hourly">
+                    <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
+                        <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "16px" }}>⏰ Distribusi Pesanan per Jam</h3>
+                        <ResponsiveContainer width="100%" height="75%">
+                            <LineChart data={timeAnalysis.hourly}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                                <XAxis dataKey="hour" stroke="var(--text-muted)" fontSize={11} tickFormatter={(h) => `${h}:00`} />
+                                <YAxis stroke="var(--text-muted)" fontSize={11} />
+                                <Tooltip contentStyle={tooltipStyle} labelFormatter={(h) => `${h}:00`} />
+                                <Line type="monotone" dataKey="count" stroke="#a78bfa" strokeWidth={2} dot={{ fill: "#a78bfa", r: 3 }} name="Pesanan" />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </motion.div>
+                </div>
+
+                {/* AI Insight Section */}
+                <div key="ai">
+                    <motion.div className="glass-card" style={{ padding: "24px", height: "100%", overflowY: "auto", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1 }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                <Brain size={24} style={{ color: "var(--primary)" }} />
+                                <h3 style={{ fontSize: "1.1rem", fontWeight: 700 }}>AI Insight & Rekomendasi</h3>
+                            </div>
+                            <button onClick={generateAIInsight} onMouseDown={(e) => e.stopPropagation()} className="btn-primary" disabled={aiLoading}
+                                style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
+                                {aiLoading ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <Brain size={16} />}
+                                {aiLoading ? "Menganalisis..." : "Generate Insight AI"}
+                            </button>
+                        </div>
+
+                        {aiInsight ? (
+                            <div style={{
+                                padding: "20px", borderRadius: "var(--radius)", background: "var(--bg-surface)",
+                                border: "1px solid var(--border-color)", whiteSpace: "pre-wrap", lineHeight: 1.8, fontSize: "0.9rem", color: "var(--text-secondary)"
+                            }} onMouseDown={(e) => e.stopPropagation()}>
+                                {aiInsight}
+                            </div>
+                        ) : (
+                            <div style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)", borderRadius: "var(--radius)", background: "var(--bg-surface)", border: "1px dashed var(--border-color)" }}>
+                                <Brain size={32} style={{ marginBottom: "12px", opacity: 0.5 }} />
+                                <p>Klik tombol "Generate Insight AI" untuk mendapatkan rekomendasi bisnis.</p>
+                            </div>
+                        )}
+                    </motion.div>
+                </div>
+            </ResponsiveGridLayout>
         </div>
     );
 }

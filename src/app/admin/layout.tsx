@@ -1,95 +1,64 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import {
-    BarChart3, LayoutDashboard, Users, DollarSign,
-    Activity, Settings, ChevronLeft, ChevronRight, ArrowLeft,
-    Ticket, ScrollText, CreditCard, Megaphone, Headphones,
-} from "lucide-react";
-import { useState } from "react";
-
-const menuItems = [
-    { label: "Overview", href: "/admin", icon: LayoutDashboard },
-    { label: "Users", href: "/admin/users", icon: Users },
-    { label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
-    { label: "Revenue", href: "/admin/revenue", icon: DollarSign },
-    { label: "API Usage", href: "/admin/api-usage", icon: Activity },
-    { label: "Demo Tokens", href: "/admin/demo", icon: Ticket },
-    { label: "Announcements", href: "/admin/announcements", icon: Megaphone },
-    { label: "Support", href: "/admin/support", icon: Headphones },
-    { label: "Logs", href: "/admin/logs", icon: ScrollText },
-    { label: "Settings", href: "/admin/settings", icon: Settings },
-];
+import Link from 'next/link';
+import { Home, Users, Key, LineChart, Settings } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-    const pathname = usePathname();
-    const [collapsed, setCollapsed] = useState(false);
-
     return (
-        <div style={{ display: "flex", minHeight: "100vh" }}>
-            <aside style={{
-                width: collapsed ? "72px" : "260px",
-                background: "var(--bg-card)", borderRight: "1px solid var(--border-color)",
-                display: "flex", flexDirection: "column", transition: "width 0.3s ease",
-                position: "fixed", top: 0, left: 0, bottom: 0, zIndex: 50, overflow: "hidden",
-            }}>
-                <div style={{
-                    padding: collapsed ? "20px 16px" : "20px 24px",
-                    borderBottom: "1px solid var(--border-color)",
-                    display: "flex", alignItems: "center", justifyContent: collapsed ? "center" : "space-between",
-                }}>
-                    <Link href="/admin" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: "10px" }}>
-                        <BarChart3 size={24} style={{ color: "var(--danger)", flexShrink: 0 }} />
-                        {!collapsed && <span style={{ fontSize: "1.1rem", fontWeight: 800, color: "var(--danger)" }}>Admin</span>}
-                    </Link>
-                    {!collapsed && (
-                        <button onClick={() => setCollapsed(true)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px" }}>
-                            <ChevronLeft size={18} />
-                        </button>
-                    )}
+        <div className="flex min-h-screen bg-gray-50/50 dark:bg-gray-900/50">
+            {/* Sidebar Admin */}
+            <aside className="w-64 border-r bg-white dark:bg-gray-950 px-4 py-6 flex flex-col hidden md:flex">
+                <div className="mb-8 px-2">
+                    <h2 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-blue-600 pointer-events-none">
+                        SimbisData Admin
+                    </h2>
+                    <p className="text-xs text-muted-foreground mt-1 pointer-events-none">Platform Management</p>
                 </div>
 
-                {collapsed && (
-                    <button onClick={() => setCollapsed(false)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "12px", display: "flex", justifyContent: "center" }}>
-                        <ChevronRight size={18} />
-                    </button>
-                )}
-
-                <nav style={{ flex: 1, padding: "16px 12px" }}>
-                    {menuItems.map((item) => {
-                        const isActive = pathname === item.href;
-                        const Icon = item.icon;
-                        return (
-                            <Link key={item.href} href={item.href} style={{
-                                display: "flex", alignItems: "center", gap: "12px",
-                                padding: collapsed ? "12px" : "12px 16px", borderRadius: "var(--radius)",
-                                textDecoration: "none", color: isActive ? "var(--text-primary)" : "var(--text-muted)",
-                                background: isActive ? "rgba(239, 68, 68, 0.12)" : "transparent",
-                                marginBottom: "4px", transition: "all 0.2s ease",
-                                justifyContent: collapsed ? "center" : "flex-start",
-                                fontSize: "0.9rem", fontWeight: isActive ? 600 : 400,
-                            }}>
-                                <Icon size={20} style={{ flexShrink: 0, color: isActive ? "var(--danger)" : undefined }} />
-                                {!collapsed && item.label}
-                            </Link>
-                        );
-                    })}
+                <nav className="space-y-1 flex-1">
+                    <Link href="/admin">
+                        <Button variant="ghost" className="w-full justify-start">
+                            <Home className="mr-2 h-4 w-4" />
+                            Overview
+                        </Button>
+                    </Link>
+                    <Link href="/admin/users">
+                        <Button variant="ghost" className="w-full justify-start">
+                            <Users className="mr-2 h-4 w-4" />
+                            Users & Plans
+                        </Button>
+                    </Link>
+                    <Link href="/admin/demo">
+                        <Button variant="ghost" className="w-full justify-start">
+                            <Key className="mr-2 h-4 w-4" />
+                            Demo Tokens
+                        </Button>
+                    </Link>
+                    <Link href="/admin/logs">
+                        <Button variant="ghost" className="w-full justify-start">
+                            <LineChart className="mr-2 h-4 w-4" />
+                            API Usage
+                        </Button>
+                    </Link>
                 </nav>
 
-                <div style={{ padding: collapsed ? "16px 12px" : "16px 20px", borderTop: "1px solid var(--border-color)" }}>
-                    <Link href="/dashboard" style={{
-                        display: "flex", alignItems: "center", gap: "10px", textDecoration: "none",
-                        color: "var(--text-muted)", fontSize: "0.85rem", justifyContent: collapsed ? "center" : "flex-start",
-                    }}>
-                        <ArrowLeft size={18} />
-                        {!collapsed && "User Dashboard"}
+                <div className="mt-auto border-t pt-4">
+                    <Link href="/dashboard">
+                        <Button variant="outline" className="w-full justify-start text-muted-foreground">
+                            <Settings className="mr-2 h-4 w-4" />
+                            Exit to App
+                        </Button>
                     </Link>
                 </div>
             </aside>
 
-            <main style={{ flex: 1, marginLeft: collapsed ? "72px" : "260px", transition: "margin-left 0.3s ease", padding: "32px", minHeight: "100vh" }}>
-                {children}
+            {/* Main Content Area */}
+            <main className="flex-1 overflow-auto">
+                <header className="h-16 border-b bg-white dark:bg-gray-950 flex items-center px-6 sticky top-0 z-10">
+                    <h1 className="text-lg font-semibold pointer-events-none">Administration Console</h1>
+                </header>
+                <div className="p-6">
+                    {children}
+                </div>
             </main>
         </div>
     );

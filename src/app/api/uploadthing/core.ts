@@ -11,9 +11,12 @@ export const ourFileRouter = {
     })
         // Set permissions and file types for this FileRoute
         .middleware(async ({ req }) => {
-            // This code runs on your server before upload
-            // Here you would verify the user is logged in
-            const userId = "user-123"; // TODO: get from session
+            // Import and run server-side auth check
+            const { auth } = await import("@/lib/auth");
+            const session = await auth();
+
+            // Get actual user ID from the session, throwing error if not logged in
+            const userId = session?.user?.id;
 
             // If you throw, the user will not be able to upload
             if (!userId) throw new Error("Unauthorized");

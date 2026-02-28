@@ -8,7 +8,7 @@ import { kmeans as mlKmeans } from "ml-kmeans";
 const FIELD_MAP: Record<string, string[]> = {
     product: ["product_name", "Nama Produk", "Item Name", "Nama Barang", "Product", "Item"],
     customer: ["customer_name", "Username (Pembeli)", "Nama Penerima", "Buyer Name", "Customer", "Pelanggan", "Nama Pembeli"],
-    total: ["total_payment", "Total Pembayaran", "Total Penjualan (IDR)", "Grand Total", "Total", "total"],
+    total: ["total_payment", "Total Pembayaran", "Total Penjualan (IDR)", "Grand Total", "Total", "total", "subtotal", "Total Harga Produk", "Subtotal"],
     qty: ["quantity", "Jumlah", "Qty", "Quantity", "Jumlah Barang"],
     price: ["sale_price", "original_price", "Harga Setelah Diskon", "Harga Awal", "Harga", "Price", "Unit Price", "Harga Jual (IDR)"],
     date: ["order_date", "Waktu Pesanan Dibuat", "Tanggal", "Date", "Created at", "Tanggal Transaksi", "Created Time"],
@@ -22,13 +22,34 @@ const FIELD_MAP: Record<string, string[]> = {
     status: ["order_status", "Status Pesanan", "Status", "Order Status"],
     orderId: ["order_id", "No. Pesanan", "Order Number", "No Transaksi", "Invoice"],
 };
+import { UNIVERSAL_FIELDS, type UniversalField } from "./column-mapper";
+
 function F(r: any, key: string): any {
-    const fields = FIELD_MAP[key];
-    if (!fields) return r[key];
+    const fields = FIELD_MAP[key] || [];
+
+    // 1. Try match on mapped Universal Label (e.g. "Total Pembayaran")
+    // Note: The 'key' passed to F() corresponds somewhat to UniversalField, but they don't map perfectly 1:1.
+    // However, the fields array already contains the Universal Label.
+
+    // 2. Try exact casing match
     for (const f of fields) { if (r[f] !== undefined && r[f] !== null && r[f] !== "") return r[f]; }
+
+    // 3. Try case-insensitive fallback across all keys
+    const rowKeys = Object.keys(r);
+    const searchKeys = fields.filter(Boolean).map(k => String(k).toLowerCase());
+    for (const rk of rowKeys) {
+        if (searchKeys.includes(rk.toLowerCase()) && r[rk] !== undefined && r[rk] !== null && r[rk] !== "") {
+            return r[rk];
+        }
+    }
+
     return undefined;
 }
-function Fn(r: any, key: string): number { return parseFloat(F(r, key)) || 0; }
+function Fn(r: any, key: string): number {
+    const val = F(r, key);
+    if (val == null || val === "" || val === "-") return 0;
+    return parseFloat(String(val).replace(/[^\d.,\-]/g, "").replace(/,/g, ".")) || 0;
+}
 function Fs(r: any, key: string): string { return String(F(r, key) || ""); }
 
 /**

@@ -50,26 +50,26 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   order_id: [
     "no. pesanan", "no pesanan", "order number", "order id", "nomor pesanan", "order no", "id pesanan", "no order",
     "nomor invoice", "no invoice", "invoice", "no transaksi", "nomor transaksi", "transaction id",
-    "no nota", "nomor nota", "receipt no", "reference",
+    "no nota", "nomor nota", "receipt no", "reference", "id", "kode",
   ],
 
   // === PRODUCT ===
   product_name: [
     "nama produk", "product name", "product", "produk", "nama_produk", "item name", "nama barang", "nama item",
-    "judul produk", "item", "barang", "description", "deskripsi", "menu", "layanan", "service",
+    "judul produk", "item", "barang", "description", "deskripsi", "menu", "layanan", "service", "jasa",
   ],
   variant: [
     "nama variasi", "variant", "variasi", "variation", "size", "ukuran", "warna", "color", "varian",
     "sku name", "opsi", "option", "tipe", "type", "model",
   ],
   sku: ["sku", "sku induk", "nomor referensi sku", "sku number", "product sku", "kode produk", "kode sku",
-    "kode barang", "barcode", "product code",
+    "kode barang", "barcode", "product code", "item code",
   ],
 
   // === PRICING ===
   original_price: [
     "harga awal", "harga asli", "original price", "price", "harga", "unit price", "harga satuan",
-    "harga jual (idr)", "harga jual", "selling price", "harga per item",
+    "harga jual (idr)", "harga jual", "selling price", "harga per item", "modal", "hpp", "harga pokok",
   ],
   sale_price: [
     "harga setelah diskon", "harga diskon", "discounted price", "deal price", "sale price", "harga promo",
@@ -77,22 +77,22 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   ],
   quantity: [
     "jumlah", "quantity", "qty", "kuantitas", "jumlah produk", "jumlah item", "amount",
-    "jumlah barang", "pcs", "unit",
+    "jumlah barang", "pcs", "unit", "terjual", "sold",
   ],
   subtotal: [
     "total harga produk", "subtotal", "total harga", "total product price", "sub total",
-    "subtotal after discount", "jumlah harga",
+    "subtotal after discount", "jumlah harga", "omset", "revenue", "pendapatan",
   ],
   total_payment: [
     "total pembayaran", "total payment", "total bayar", "grand total", "total order", "total",
     "amount paid", "total price", "total penjualan (idr)", "total penjualan", "total belanja",
-    "total transaksi", "total (idr)",
+    "total transaksi", "total (idr)", "bersih", "netto",
   ],
 
   // === DISCOUNTS ===
   discount: [
     "total diskon", "total discount", "diskon", "discount", "potongan", "potongan harga",
-    "promo", "cashback",
+    "promo", "cashback", "sale",
   ],
   platform_discount: [
     "diskon dari shopee", "shopee discount", "diskon shopee", "platform discount",
@@ -109,7 +109,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   order_status: [
     "status pesanan", "order status", "status", "status order", "status terakhir",
     "status pembatalan/ pengembalian", "cancel status", "return status",
-    "status transaksi",
+    "status transaksi", "keterangan",
   ],
 
   // === DATES ===
@@ -117,7 +117,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "waktu pesanan dibuat", "order date", "tanggal pesanan", "tanggal order", "created at",
     "date", "tanggal", "order time", "waktu order", "tgl pesanan", "created time",
     "tanggal pembayaran", "tanggal transaksi", "tgl transaksi", "transaction date",
-    "waktu", "datetime",
+    "waktu", "datetime", "hari", "bulan",
   ],
   payment_date: [
     "waktu pembayaran dilakukan", "payment date", "tanggal bayar", "paid at", "waktu bayar",
@@ -129,21 +129,21 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   ],
   complete_date: [
     "waktu pesanan selesai", "completed date", "tanggal selesai", "delivered at",
-    "completion date", "tgl selesai",
+    "completion date", "tgl selesai", "selesai",
   ],
 
   // === SHIPPING ===
   courier: [
     "opsi pengiriman", "shipping option", "kurir", "courier", "jasa kirim", "logistik",
-    "shipping method", "ekspedisi", "carrier",
+    "shipping method", "ekspedisi", "carrier", "pengiriman",
   ],
   tracking_no: [
-    "no. resi", "no resi", "tracking number", "resi", "tracking", "awb", "awb number",
+    "no. resi", "no resi", "tracking number", "resi", "tracking", "awb", "awb number", "nomor pelacakan",
   ],
   shipping_cost: [
     "ongkos kirim dibayar oleh pembeli", "shipping fee", "ongkir", "ongkos kirim",
     "biaya kirim", "shipping cost", "ongkos kirim (idr)", "shipping fee (paid by buyer)",
-    "perkiraan ongkos kirim", "estimasi ongkir", "biaya ongkir",
+    "perkiraan ongkos kirim", "estimasi ongkir", "biaya ongkir", "pengiriman (idr)",
   ],
 
   // === CUSTOMER ===
@@ -151,15 +151,15 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "username (pembeli)", "username", "pembeli", "buyer", "buyer name", "customer",
     "pelanggan", "nama pembeli", "customer name", "nama penerima", "recipient",
     "penerima", "recipient name", "nama customer", "nama pelanggan", "konsumen",
-    "client", "nama client",
+    "client", "nama client", "tamu", "klien",
   ],
   customer_phone: [
     "no. telepon", "no telepon", "phone", "telepon", "no hp", "handphone",
-    "phone number", "hp", "nomor hp", "kontak",
+    "phone number", "hp", "nomor hp", "kontak", "whatsapp", "wa",
   ],
   address: [
     "alamat pengiriman", "address", "alamat", "shipping address", "alamat kirim",
-    "alamat lengkap", "full address",
+    "alamat lengkap", "full address", "lokasi",
   ],
   city: [
     "kota/kabupaten", "kota", "kabupaten", "city", "district", "kota/kab",
@@ -172,12 +172,12 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   // === PAYMENT ===
   payment_method: [
     "metode pembayaran", "payment method", "metode bayar", "cara bayar", "payment type",
-    "metode", "pembayaran", "tunai", "cash", "transfer", "tipe pembayaran",
+    "metode", "pembayaran", "tunai", "cash", "transfer", "tipe pembayaran", "qris", "edc", "kredit",
   ],
 
   // === MISC ===
   notes: [
-    "catatan", "notes", "keterangan", "remark", "memo", "pesan", "note",
+    "catatan", "notes", "keterangan", "remark", "memo", "pesan", "note", "deskripsi",
   ],
 };
 
@@ -282,10 +282,19 @@ export function applyMapping(rows: Record<string, any>[], mappings: ColumnMappin
   mappings.forEach((m) => {
     if (m.mappedTo) map.set(m.originalName, m.mappedTo);
   });
+
   return rows.map((row) => {
     const newRow: Record<string, any> = {};
     for (const [key, value] of Object.entries(row)) {
-      newRow[map.get(key) || key] = value;
+      const mappedKey = map.get(key) || key;
+      // Also inject the mappedLabel (e.g. "Total Pembayaran") so the universal analysis system
+      // can gracefully fall back to it based on UNIVERSAL_FIELDS definitions if needed.
+      newRow[mappedKey] = value;
+
+      const uFieldLabel = UNIVERSAL_FIELDS[mappedKey as UniversalField];
+      if (uFieldLabel) {
+        newRow[uFieldLabel] = value;
+      }
     }
     return newRow;
   });

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { users } from "@/lib/schema";
+import { db } from "@/db";
+import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
@@ -18,6 +18,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "User not found" }, { status: 401 });
         }
 
+        if (!user.password) {
+            return NextResponse.json({ error: "Password not set for user" }, { status: 401 });
+        }
+
         // Verify password using bcryptjs
         const bcrypt = await import("bcryptjs");
         const isMatch = await bcrypt.compare(password, user.password);
@@ -30,7 +34,7 @@ export async function POST(req: NextRequest) {
             id: user.id,
             name: user.name,
             email: user.email,
-            tier: user.tier,
+            planId: user.planId,
         });
     } catch (error) {
         console.error("Auth verify error:", error);

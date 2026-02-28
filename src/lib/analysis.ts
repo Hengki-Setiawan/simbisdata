@@ -62,12 +62,29 @@ export interface AnalysisResult {
     };
 }
 
+import { UNIVERSAL_FIELDS, type UniversalField } from "./column-mapper";
+
 // Smart field getter — tries universal key first, then common Shopee names, then generic
 function getField(row: any, universalKey: string, fallbacks: string[] = []): any {
+    // 1. Try exact match on raw column name
     if (row[universalKey] !== undefined) return row[universalKey];
+
+    // 2. Try match on mapped Universal Label (e.g. "Total Pembayaran")
+    const universalLabel = UNIVERSAL_FIELDS[universalKey as UniversalField];
+    if (universalLabel && row[universalLabel] !== undefined) return row[universalLabel];
+
+    // 3. Try custom fallbacks
     for (const fb of fallbacks) {
         if (row[fb] !== undefined) return row[fb];
     }
+
+    // 4. Try case-insensitive fallback across all keys
+    const rowKeys = Object.keys(row);
+    const searchKeys = [universalKey, universalLabel, ...fallbacks].filter(Boolean).map(k => String(k).toLowerCase());
+    for (const key of rowKeys) {
+        if (searchKeys.includes(key.toLowerCase())) return row[key];
+    }
+
     return undefined;
 }
 
@@ -94,8 +111,8 @@ export function analyzeData(rows: any[]): AnalysisResult {
 
     // Revenue — try multiple possible fields
     const totalRevenue = rows.reduce((sum: number, r: any) =>
-        sum + getNum(r, "total_payment", ["Total Pembayaran", "Total Penjualan (IDR)", "Grand Total", "Total", "total"]) ||
-        getNum(r, "subtotal", ["Total Harga Produk", "Subtotal", "subtotal"]), 0);
+        sum + (getNum(r, "total_payment", ["Total Pembayaran", "Total Penjualan (IDR)", "Grand Total", "Total", "total"]) ||
+            getNum(r, "subtotal", ["Total Harga Produk", "Subtotal", "subtotal"])), 0);
 
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
@@ -120,23 +137,29 @@ export function analyzeData(rows: any[]): AnalysisResult {
 
     // Growth rate
     const midIndex = Math.floor(rows.length / 2);
-    const firstHalfRevenue = rows.slice(0, midIndex).reduce((s: number, r: any) => s + getNum(r, "total_payment", ["Total Pembayaran", "Total", "total"]), 0);
-    const secondHalfRevenue = rows.slice(midIndex).reduce((s: number, r: any) => s + getNum(r, "total_payment", ["Total Pembayaran", "Total", "total"]), 0);
+    const firstHalfRevenue = rows.slice(0, midIndex).reduce((s: number, r: any) =>
+        s + (getNum(r, "total_payment", ["Total Pembayaran", "Total", "total"]) || getNum(r, "subtotal", ["Total Harga Produk", "Subtotal", "subtotal"])), 0);
+    const secondHalfRevenue = rows.slice(midIndex).reduce((s: number, r: any) =>
+        s + (getNum(r, "total_payment", ["Total Pembayaran", "Total", "total"]) || getNum(r, "subtotal", ["Total Harga Produk", "Subtotal", "subtotal"])), 0);
     const growthRate = firstHalfRevenue > 0 ? ((secondHalfRevenue - firstHalfRevenue) / firstHalfRevenue) * 100 : 0;
 
     // Product performance
     const productMap = new Map<string, { count: number; revenue: number }>();
+    let totalProducts = 0;
     rows.forEach((r: any) => {
         const name = getStr(r, "product_name", ["Nama Produk", "Item Name", "Nama Barang", "Product", "Item"]) || "Unknown";
         const qty = getNum(r, "quantity", ["Jumlah", "Qty", "Quantity", "Jumlah Barang"]) || 1;
-        const rev = getNum(r, "total_payment", ["Total Pembayaran", "Total", "total"]);
+        const rev = getNum(r, "total_payment", ["Total Pembayaran", "Total", "total"]) || getNum(r, "subtotal", ["Total Harga Produk", "Subtotal", "subtotal"]);
+
+        totalProducts += qty;
+
         const existing = productMap.get(name) || { count: 0, revenue: 0 };
         existing.count += qty;
         existing.revenue += rev;
         productMap.set(name, existing);
     });
     const productPerformance = Array.from(productMap.entries())
-        .map(([name, data]) => ({ name, count: data.count, revenue: data.revenue, percentage: (data.count / totalOrders) * 100 }))
+        .map(([name, data]) => ({ name, count: data.count, revenue: data.revenue, percentage: totalProducts > 0 ? (data.count / totalProducts) * 100 : 0 }))
         .sort((a, b) => b.count - a.count);
 
     // Variant analysis

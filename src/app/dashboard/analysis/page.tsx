@@ -223,9 +223,9 @@ export default function AnalysisPage() {
                                 <div style={{ flex: 1 }}>
                                     <p style={{ fontWeight: 600, fontSize: "0.9rem", marginBottom: "6px" }}>{p.name}</p>
                                     <div style={{ display: "flex", gap: "4px", height: "6px" }}>
-                                        <div style={{ flex: p.volumeScore, background: "#6366f1", borderRadius: "3px" }} title={`Volume: ${p.volumeScore.toFixed(0)}`} />
-                                        <div style={{ flex: p.revenueScore, background: "#10b981", borderRadius: "3px" }} title={`Revenue: ${p.revenueScore.toFixed(0)}`} />
-                                        <div style={{ flex: p.consistencyScore, background: "#f59e0b", borderRadius: "3px" }} title={`Consistency: ${p.consistencyScore.toFixed(0)}`} />
+                                        <div style={{ flex: p.volumeScore || 0, background: "#6366f1", borderRadius: "3px" }} title={`Volume: ${(p.volumeScore || 0).toFixed(0)}`} />
+                                        <div style={{ flex: p.revenueScore || 0, background: "#10b981", borderRadius: "3px" }} title={`Revenue: ${(p.revenueScore || 0).toFixed(0)}`} />
+                                        <div style={{ flex: p.consistencyScore || 0, background: "#f59e0b", borderRadius: "3px" }} title={`Consistency: ${(p.consistencyScore || 0).toFixed(0)}`} />
                                     </div>
                                 </div>
                                 <span style={{ fontWeight: 800, fontSize: "1.1rem" }}>{p.score.toFixed(0)}</span>

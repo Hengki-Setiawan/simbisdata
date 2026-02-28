@@ -1,78 +1,92 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ScrollText, Filter, Clock } from "lucide-react";
-import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { AlertCircle, Zap, ShieldAlert } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Progress } from "@/components/ui/progress";
 
-const mockLogs = [
-    { id: "1", time: "2026-02-26 22:45:12", user: "ahmad@email.com", action: "LOGIN", details: "Login berhasil via credentials", level: "info" },
-    { id: "2", time: "2026-02-26 22:40:05", user: "siti@email.com", action: "UPGRADE", details: "Upgrade dari Starter ke Pro", level: "info" },
-    { id: "3", time: "2026-02-26 22:35:18", user: "budi@email.com", action: "UPLOAD", details: "Upload file: data_penjualan.xlsx (2.3MB, 1200 rows)", level: "info" },
-    { id: "4", time: "2026-02-26 22:30:22", user: "dewi@email.com", action: "AI_NARRATE", details: "Generate AI narasi (Groq, 1.2s)", level: "info" },
-    { id: "5", time: "2026-02-26 22:25:44", user: "eko@email.com", action: "EXPORT", details: "Premium PDF export via Browserless.io", level: "info" },
-    { id: "6", time: "2026-02-26 22:20:11", user: "system", action: "ERROR", details: "Groq API rate limit exceeded, fallback to Gemini", level: "warning" },
-    { id: "7", time: "2026-02-26 22:15:33", user: "fiona@email.com", action: "REGISTER", details: "New user registration (Free tier)", level: "info" },
-    { id: "8", time: "2026-02-26 22:10:08", user: "system", action: "ERROR", details: "Browserless.io timeout (15s), fallback to jsPDF", level: "error" },
-    { id: "9", time: "2026-02-26 22:05:55", user: "gerry@email.com", action: "ANALYSIS", details: "ML analysis complete: K-Means, RFM, Anomaly (3.4s)", level: "info" },
-    { id: "10", time: "2026-02-26 22:00:19", user: "admin@simbisdata.com", action: "CONFIG", details: "Updated feature flags: enable cohort analysis", level: "info" },
-    { id: "11", time: "2026-02-26 21:55:02", user: "hana@email.com", action: "PAYMENT", details: "Midtrans payment confirmed (Pro, Rp79.000)", level: "info" },
-    { id: "12", time: "2026-02-26 21:50:41", user: "system", action: "CRON", details: "Daily backup completed (DB: 45MB)", level: "info" },
+// Dummy data for API Token Usage representing Groq limits
+const usageData = [
+    { time: "00:00", tokens: 12000 },
+    { time: "04:00", tokens: 8000 },
+    { time: "08:00", tokens: 45000 },
+    { time: "12:00", tokens: 89000 },
+    { time: "16:00", tokens: 112000 },
+    { time: "20:00", tokens: 76000 },
 ];
 
-const levelColors: Record<string, { bg: string; color: string }> = {
-    info: { bg: "rgba(99,102,241,0.12)", color: "#6366f1" },
-    warning: { bg: "rgba(245,158,11,0.12)", color: "#f59e0b" },
-    error: { bg: "rgba(239,68,68,0.12)", color: "#ef4444" },
-};
-
-export default function AdminLogsPage() {
-    const [filter, setFilter] = useState("all");
-    const filtered = filter === "all" ? mockLogs : mockLogs.filter((l) => l.level === filter);
+export default function ApiLogsPage() {
+    const currentTokenUsage = 342000;
+    const maxTokenLimit = 500000; // Free tier mock limit
+    const usagePercentage = (currentTokenUsage / maxTokenLimit) * 100;
 
     return (
-        <div>
-            <h1 style={{ fontSize: "1.8rem", fontWeight: 800, marginBottom: "24px" }}>
-                <ScrollText size={28} style={{ display: "inline", verticalAlign: "middle", marginRight: "8px", color: "var(--primary)" }} />
-                Activity Logs
-            </h1>
-
-            <div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
-                <Filter size={16} style={{ color: "var(--text-muted)", marginTop: "10px" }} />
-                {["all", "info", "warning", "error"].map((f) => (
-                    <button key={f} onClick={() => setFilter(f)} style={{
-                        padding: "8px 16px", borderRadius: "var(--radius)", border: "1px solid var(--border-color)",
-                        background: filter === f ? "rgba(99,102,241,0.15)" : "var(--bg-card)",
-                        color: filter === f ? "var(--primary-light)" : "var(--text-muted)",
-                        cursor: "pointer", fontSize: "0.82rem", fontWeight: 600, textTransform: "capitalize",
-                    }}>{f}</button>
-                ))}
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h2 className="text-2xl font-bold tracking-tight">API Usage Logs</h2>
+                    <p className="text-muted-foreground text-sm">Monitor Groq AI generated tokens across all users.</p>
+                </div>
             </div>
 
-            <motion.div className="glass-card" style={{ padding: "0", overflow: "hidden" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                {filtered.map((log, i) => {
-                    const lc = levelColors[log.level] || levelColors.info;
-                    return (
-                        <div key={log.id} style={{
-                            padding: "14px 20px", borderBottom: "1px solid var(--border-color)",
-                            display: "flex", gap: "16px", alignItems: "flex-start",
-                            opacity: 1 - i * 0.03,
-                        }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "6px", color: "var(--text-muted)", fontSize: "0.78rem", minWidth: "150px", flexShrink: 0 }}>
-                                <Clock size={12} /> {log.time.split(" ")[1]}
-                            </div>
-                            <span style={{
-                                padding: "2px 10px", borderRadius: "4px", fontSize: "0.72rem", fontWeight: 700,
-                                background: lc.bg, color: lc.color, minWidth: "60px", textAlign: "center", flexShrink: 0,
-                            }}>{log.level.toUpperCase()}</span>
-                            <span style={{ fontWeight: 600, fontSize: "0.82rem", minWidth: "100px", color: "var(--text-secondary)", flexShrink: 0 }}>{log.action}</span>
-                            <div style={{ flex: 1 }}>
-                                <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>{log.details}</span>
-                                <span style={{ marginLeft: "8px", fontSize: "0.75rem", color: "var(--text-muted)" }}>— {log.user}</span>
-                            </div>
-                        </div>
-                    );
-                })}
-            </motion.div>
+            {usagePercentage > 80 && (
+                <Alert variant="destructive">
+                    <ShieldAlert className="h-4 w-4" />
+                    <AlertTitle>Warning: Approaching API Limits</AlertTitle>
+                    <AlertDescription>
+                        You have used {usagePercentage.toFixed(1)}% of your free tier Groq token limit for today. Consider upgrading your Groq plan or enabling the Gemini fallback.
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            <div className="grid gap-4 md:grid-cols-2">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Daily Tokens Processed</CardTitle>
+                        <Zap className="h-4 w-4 text-amber-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold">{currentTokenUsage.toLocaleString()}</div>
+                        <p className="text-xs text-muted-foreground mb-4">/ {maxTokenLimit.toLocaleString()} Daily Limit</p>
+                        <Progress value={usagePercentage} className="h-2" />
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between pb-2">
+                        <CardTitle className="text-sm font-medium">Rate Limit Status (Groq)</CardTitle>
+                        <AlertCircle className="h-4 w-4 text-green-500" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-2xl font-bold text-green-600">Healthy</div>
+                        <p className="text-xs text-muted-foreground mt-1">Average response time: 0.8s</p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Token Usage (Last 24 Hours)</CardTitle>
+                    <CardDescription>Estimated tokens used for data narration across all active users.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="h-[350px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={usageData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="time" />
+                                <YAxis />
+                                <Tooltip
+                                    formatter={(value: any) => [`${Number(value).toLocaleString()} tokens`, 'Usage']}
+                                    cursor={{ fill: 'rgba(0,0,0,0.1)' }}
+                                />
+                                <Bar dataKey="tokens" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
     );
 }

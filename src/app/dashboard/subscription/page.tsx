@@ -74,7 +74,10 @@ const plans = [
     },
 ];
 
+import { useSession } from "next-auth/react";
+
 export default function SubscriptionPage() {
+    const { data: session } = useSession();
     const [loadingPlan, setLoadingPlan] = useState<string | null>(null);
 
     const handleSubscribe = async (plan: any) => {
@@ -99,9 +102,9 @@ export default function SubscriptionPage() {
                 body: JSON.stringify({
                     planName: plan.name,
                     price: numericPrice,
-                    userId: "user-123", // TODO: Replace with actual session user ID
-                    userName: "SimbisData User",
-                    userEmail: "user@simbisdata.com",
+                    userId: session?.user?.id || "unknown-user",
+                    userName: session?.user?.name || "SimbisData User",
+                    userEmail: session?.user?.email || "user@simbisdata.com",
                 }),
             });
 

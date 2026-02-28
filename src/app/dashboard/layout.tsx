@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
     BarChart3,
     LayoutDashboard,
@@ -17,12 +18,15 @@ import {
     ChevronLeft,
     ChevronRight,
     MapPin,
+    Database,
+    Lock,
 } from "lucide-react";
 import { useState } from "react";
 
 const menuItems = [
     { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
     { label: "Upload Data", href: "/dashboard/upload", icon: Upload },
+    { label: "Data Studio", href: "/dashboard/data-studio", icon: Database },
     { label: "ML Analysis", href: "/dashboard/analysis", icon: Brain },
     { label: "Peta Regional", href: "/dashboard/regional", icon: MapPin },
     { label: "Compare", href: "/dashboard/compare", icon: GitCompareArrows },
@@ -39,7 +43,13 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
+    const { data: session } = useSession();
     const [collapsed, setCollapsed] = useState(false);
+
+    const isAdmin = (session?.user as any)?.role === "admin";
+    const displayItems = isAdmin
+        ? [...menuItems, { label: "Admin Panel", href: "/admin", icon: Lock }]
+        : menuItems;
 
     return (
         <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -121,7 +131,7 @@ export default function DashboardLayout({
 
                 {/* Navigation */}
                 <nav style={{ flex: 1, padding: "16px 12px" }}>
-                    {menuItems.map((item) => {
+                    {displayItems.map((item) => {
                         const isActive = pathname === item.href;
                         const Icon = item.icon;
                         return (
@@ -180,6 +190,8 @@ export default function DashboardLayout({
             <main
                 style={{
                     flex: 1,
+                    minWidth: 0,
+                    overflowX: "hidden",
                     marginLeft: collapsed ? "72px" : "260px",
                     transition: "margin-left 0.3s ease",
                     padding: "32px",

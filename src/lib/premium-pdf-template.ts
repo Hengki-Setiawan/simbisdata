@@ -38,6 +38,13 @@ export function generatePremiumPDFHTML(analysis: AnalysisResult, aiNarration?: s
     <p>Dibuat: ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
   </div>
 
+  ${aiNarration ? `
+  <div class="ai-section" style="margin-top: 0; margin-bottom: 32px; background: #1e1e4a; border-left: 4px solid #818cf8;">
+    <h2>🤖 AI Executive Summary & Action Plan</h2>
+    ${aiNarration.replace(/\n*\*\*ANALISIS PENJUALAN SHOPEE\*\*\n*/, '').replace(/\n/g, '<br>')}
+  </div>
+  ` : ''}
+
   <div class="kpi-grid">
     <div class="kpi-card">
       <div class="kpi-label">💰 Total Revenue</div>
@@ -117,13 +124,6 @@ export function generatePremiumPDFHTML(analysis: AnalysisResult, aiNarration?: s
       </tbody>
     </table>
   </div>
-
-  ${aiNarration ? `
-  <div class="ai-section">
-    <h2>🤖 AI Insight & Rekomendasi</h2>
-    ${aiNarration.replace(/\n/g, '<br>')}
-  </div>
-  ` : ''}
 
   <div class="footer">
     SimbisData — Platform Analisis Data Penjualan UMKM dengan AI & ML<br>

@@ -51,6 +51,24 @@ export function generatePDFReport(analysis: AnalysisResult, aiNarration?: string
 
     y = 62;
 
+    // AI Executive Summary
+    if (aiNarration) {
+        addText("AI EXECUTIVE SUMMARY & ACTION PLAN", 14, true, [99, 102, 241]);
+        addLine();
+
+        const cleanNarration = aiNarration
+            .replace(/\*\*/g, "")
+            .replace(/#{1,3}\s/g, "")
+            .replace(/```[^`]*```/g, "");
+
+        addText(cleanNarration, 10, false, [60, 60, 60]);
+        y += 10;
+
+        // Add a line separator before the regular stats
+        doc.setDrawColor(200, 200, 200);
+        doc.line(20, y - 5, pageWidth - 20, y - 5);
+    }
+
     // Overview KPIs
     addText("RINGKASAN PERFORMA", 14, true, [99, 102, 241]);
     addLine();
@@ -146,23 +164,6 @@ export function generatePDFReport(analysis: AnalysisResult, aiNarration?: string
     addText(`Diskon Platform: ${formatRp(fin.platformDiscount / 1000)}`, 10);
     addText(`Rata-rata Ongkos Kirim: ${formatRp(fin.avgShippingCost / 1000)}`, 10);
     addText(`Total Shipping Revenue: ${formatRp(fin.totalShippingRevenue / 1000)}`, 10);
-
-    // AI Narration
-    if (aiNarration) {
-        doc.addPage();
-        y = 20;
-
-        addText("INSIGHT & REKOMENDASI AI", 16, true, [99, 102, 241]);
-        addLine();
-
-        // Clean up markdown formatting for PDF
-        const cleanNarration = aiNarration
-            .replace(/\*\*/g, "")
-            .replace(/#{1,3}\s/g, "")
-            .replace(/```[^`]*```/g, "");
-
-        addText(cleanNarration, 10, false, [60, 60, 60]);
-    }
 
     // Footer on last page
     const totalPages = doc.getNumberOfPages();
