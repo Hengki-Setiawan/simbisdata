@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Activity, CreditCard, Box, TrendingUp, TrendingDown } from "lucide-react";
+import { Users, Activity, CreditCard, Box, TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 interface GrowthData {
@@ -49,16 +48,14 @@ export default function AdminOverview() {
     const cardStyle = { background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-primary)" };
 
     const SkeletonCard = () => (
-        <Card style={cardStyle}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <div className="glass-card" style={{ padding: "20px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
                 <div style={{ width: "80px", height: "14px", background: "var(--border-color)", borderRadius: "4px", animation: "pulse 1.5s infinite" }} />
                 <div style={{ width: "16px", height: "16px", background: "var(--border-color)", borderRadius: "4px", animation: "pulse 1.5s infinite" }} />
-            </CardHeader>
-            <CardContent>
-                <div style={{ width: "100px", height: "28px", background: "var(--border-color)", borderRadius: "4px", animation: "pulse 1.5s infinite", marginBottom: "8px" }} />
-                <div style={{ width: "140px", height: "12px", background: "var(--border-color)", borderRadius: "4px", animation: "pulse 1.5s infinite" }} />
-            </CardContent>
-        </Card>
+            </div>
+            <div style={{ width: "100px", height: "28px", background: "var(--border-color)", borderRadius: "4px", animation: "pulse 1.5s infinite", marginBottom: "8px" }} />
+            <div style={{ width: "140px", height: "12px", background: "var(--border-color)", borderRadius: "4px", animation: "pulse 1.5s infinite" }} />
+        </div>
     );
 
     return (
@@ -80,63 +77,67 @@ export default function AdminOverview() {
                     </>
                 ) : (
                     <>
-                        <Card style={cardStyle}>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-300">Total Users</CardTitle>
-                                <Users className="h-4 w-4 text-indigo-400" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-white">{stats?.totalUsers?.toLocaleString() || 0}</div>
-                                <p className="text-xs text-emerald-400 flex items-center gap-1"><TrendingUp size={12} /> Registered users</p>
-                            </CardContent>
-                        </Card>
+                        <div className="glass-card" style={{ padding: "20px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                                <p style={{ fontSize: "0.85rem", fontWeight: 500, color: "var(--text-muted)" }}>Total Users</p>
+                                <Users size={16} style={{ color: "var(--primary-light)" }} />
+                            </div>
+                            <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "white", marginBottom: "4px" }}>
+                                {stats?.totalUsers?.toLocaleString() || 0}
+                            </div>
+                            <p style={{ fontSize: "0.75rem", color: "var(--success)", display: "flex", alignItems: "center", gap: "4px" }}>
+                                <TrendingUp size={12} /> Registered users
+                            </p>
+                        </div>
 
-                        <Card style={cardStyle}>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-300">Active PRO Users</CardTitle>
-                                <CreditCard className="h-4 w-4 text-cyan-400" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-white">{stats?.activeProUsers?.toLocaleString() || 0}</div>
-                                <p className="text-xs text-gray-400">Starter + Pro + Enterprise</p>
-                            </CardContent>
-                        </Card>
+                        <div className="glass-card" style={{ padding: "20px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                                <p style={{ fontSize: "0.85rem", fontWeight: 500, color: "var(--text-muted)" }}>Active PRO Users</p>
+                                <CreditCard size={16} style={{ color: "#22d3ee" }} />
+                            </div>
+                            <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "white", marginBottom: "4px" }}>
+                                {stats?.activeProUsers?.toLocaleString() || 0}
+                            </div>
+                            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                                Starter + Pro + Enterprise
+                            </p>
+                        </div>
 
-                        <Card style={cardStyle}>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-300">Estimated MRR</CardTitle>
-                                <Activity className="h-4 w-4 text-emerald-400" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-white">
-                                    Rp {((stats?.activeProUsers || 0) * 79000).toLocaleString('id-ID')}
-                                </div>
-                                <p className="text-xs text-gray-400">Based on active paid users</p>
-                            </CardContent>
-                        </Card>
+                        <div className="glass-card" style={{ padding: "20px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                                <p style={{ fontSize: "0.85rem", fontWeight: 500, color: "var(--text-muted)" }}>Estimated MRR</p>
+                                <Activity size={16} style={{ color: "var(--success)" }} />
+                            </div>
+                            <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "white", marginBottom: "4px" }}>
+                                Rp {((stats?.activeProUsers || 0) * 79000).toLocaleString('id-ID')}
+                            </div>
+                            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                                Based on active paid users
+                            </p>
+                        </div>
 
-                        <Card style={cardStyle}>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-gray-300">AI Tokens Used</CardTitle>
-                                <Box className="h-4 w-4 text-amber-400" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold text-white">
-                                    {stats?.totalTokensUsed ? (stats.totalTokensUsed > 1000000 ? `${(stats.totalTokensUsed / 1000000).toFixed(1)}M` : stats.totalTokensUsed.toLocaleString()) : "0"}
-                                </div>
-                                <p className="text-xs text-gray-400">From apiLogs table</p>
-                            </CardContent>
-                        </Card>
+                        <div className="glass-card" style={{ padding: "20px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                                <p style={{ fontSize: "0.85rem", fontWeight: 500, color: "var(--text-muted)" }}>AI Tokens Used</p>
+                                <Box size={16} style={{ color: "#f59e0b" }} />
+                            </div>
+                            <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "white", marginBottom: "4px" }}>
+                                {stats?.totalTokensUsed ? (stats.totalTokensUsed > 1000000 ? `${(stats.totalTokensUsed / 1000000).toFixed(1)}M` : stats.totalTokensUsed.toLocaleString()) : "0"}
+                            </div>
+                            <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                                From apiLogs table
+                            </p>
+                        </div>
                     </>
                 )}
             </div>
 
             {/* Analytics Chart */}
-            <Card className="col-span-4" style={cardStyle}>
-                <CardHeader>
-                    <CardTitle className="text-white">Platform Growth</CardTitle>
-                </CardHeader>
-                <CardContent>
+            <div className="glass-card" style={{ padding: "24px", marginTop: "24px" }}>
+                <div style={{ marginBottom: "16px" }}>
+                    <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "white" }}>Platform Growth</h3>
+                </div>
+                <div>
                     <div style={{ height: "350px", width: "100%", paddingRight: "16px" }}>
                         <ResponsiveContainer width="100%" height="100%">
                             <AreaChart data={growthData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
@@ -160,8 +161,8 @@ export default function AdminOverview() {
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
-                </CardContent>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 }
