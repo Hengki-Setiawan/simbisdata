@@ -18,63 +18,63 @@ export default function AdminOverview() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold tracking-tight">Platform Overview</h2>
+                <h2 className="text-2xl font-bold tracking-tight text-white pointer-events-none">Platform Overview</h2>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {/* Total Users */}
-                <Card>
+                <Card style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-gray-300">Total Users</CardTitle>
+                        <Users className="h-4 w-4 text-gray-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">2,100</div>
-                        <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+                        <div className="text-2xl font-bold text-white">2,100</div>
+                        <p className="text-xs text-gray-400">+20.1% from last month</p>
                     </CardContent>
                 </Card>
 
                 {/* Active Subscriptions */}
-                <Card>
+                <Card style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Active PRO Users</CardTitle>
-                        <CreditCard className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-gray-300">Active PRO Users</CardTitle>
+                        <CreditCard className="h-4 w-4 text-gray-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">482</div>
-                        <p className="text-xs text-muted-foreground">+12% from last month</p>
+                        <div className="text-2xl font-bold text-white">482</div>
+                        <p className="text-xs text-gray-400">+12% from last month</p>
                     </CardContent>
                 </Card>
 
                 {/* Estimated MRR */}
-                <Card>
+                <Card style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Estimated MRR</CardTitle>
-                        <Activity className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-gray-300">Estimated MRR</CardTitle>
+                        <Activity className="h-4 w-4 text-gray-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">Rp 38.078.000</div>
-                        <p className="text-xs text-muted-foreground">+18% from last month</p>
+                        <div className="text-2xl font-bold text-white">Rp 38.078.000</div>
+                        <p className="text-xs text-gray-400">+18% from last month</p>
                     </CardContent>
                 </Card>
 
                 {/* Total API Tokens Processed */}
-                <Card>
+                <Card style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Groq Tokens Used</CardTitle>
-                        <Box className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-gray-300">Groq Tokens Used</CardTitle>
+                        <Box className="h-4 w-4 text-gray-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">1.2M</div>
-                        <p className="text-xs text-muted-foreground">Within free tier limits</p>
+                        <div className="text-2xl font-bold text-white">1.2M</div>
+                        <p className="text-xs text-gray-400">Within free tier limits</p>
                     </CardContent>
                 </Card>
             </div>
 
             {/* Analytics Chart */}
-            <Card className="col-span-4">
+            <Card className="col-span-4" style={{ background: "var(--bg-card)", borderColor: "var(--border-color)", color: "var(--text-primary)" }}>
                 <CardHeader>
-                    <CardTitle>Platform Growth</CardTitle>
+                    <CardTitle className="text-white">Platform Growth</CardTitle>
                 </CardHeader>
                 <CardContent className="pl-2">
                     <div className="h-[300px] w-full">
@@ -88,13 +88,23 @@ export default function AdminOverview() {
                                     bottom: 0,
                                 }}
                             >
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                <XAxis dataKey="name" />
-                                <YAxis yAxisId="left" />
-                                <YAxis yAxisId="right" orientation="right" />
-                                <Tooltip />
-                                <Area yAxisId="left" type="monotone" dataKey="users" stroke="#8884d8" fill="#8884d8" fillOpacity={0.3} name="Total Users" />
-                                <Area yAxisId="right" type="monotone" dataKey="revenue" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.3} name="Revenue (Rp x1000)" />
+                                <defs>
+                                    <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                    </linearGradient>
+                                    <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                        <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                                <XAxis dataKey="name" stroke="var(--text-muted)" />
+                                <YAxis yAxisId="left" stroke="var(--text-muted)" />
+                                <YAxis yAxisId="right" orientation="right" stroke="var(--text-muted)" />
+                                <Tooltip contentStyle={{ background: "var(--bg-surface)", borderColor: "var(--border-color)", color: "var(--text-primary)", borderRadius: "8px" }} />
+                                <Area yAxisId="left" type="monotone" dataKey="users" stroke="#6366f1" fill="url(#colorUsers)" strokeWidth={2} name="Total Users" />
+                                <Area yAxisId="right" type="monotone" dataKey="revenue" stroke="#10b981" fill="url(#colorRevenue)" strokeWidth={2} name="Revenue (Rp x1000)" />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
