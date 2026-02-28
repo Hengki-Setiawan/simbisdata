@@ -218,6 +218,16 @@ export default function UploadPage() {
                 platform: "auto-detected",
             });
 
+            // Save to DB history
+            const { saveDocumentHistory } = await import("@/actions/dashboard");
+            await saveDocumentHistory({
+                filename: acceptedFiles.length === 1 ? acceptedFiles[0].name : "Multiple Files",
+                fileSize: acceptedFiles.reduce((s, f) => s + f.size, 0),
+                rowCount: finalData.length,
+                platform: platform.label,
+                qualityScore: quality.score
+            });
+
             addToast(`${finalData.length} baris data berhasil diproses!`, "success");
             setProcessing(false);
         } catch (err) {

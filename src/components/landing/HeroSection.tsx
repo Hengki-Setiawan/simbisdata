@@ -5,13 +5,13 @@ import { ArrowRight, Sparkles, Upload } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-export default function HeroSection() {
+export default function HeroSection({ data }: { data?: any }) {
     const [stats, setStats] = useState({ totalRows: 0, totalUsers: 0 });
 
     useEffect(() => {
-        fetch("/api/public/stats").then(r => r.json()).then(data => {
-            if (data.success) {
-                setStats({ totalRows: data.totalRows || 0, totalUsers: data.totalUsers || 0 });
+        fetch("/api/public/stats").then(r => r.json()).then(res => {
+            if (res.success) {
+                setStats({ totalRows: res.totalRows || 0, totalUsers: res.totalUsers || 0 });
             }
         }).catch(() => { });
     }, []);
@@ -21,6 +21,12 @@ export default function HeroSection() {
         if (num >= 1000) return (num / 1000).toFixed(1) + 'K+';
         return num.toString();
     };
+
+    const title = data?.title || "Ubah Data Penjualan Jadi";
+    const gradientText = data?.gradientText || "Insight Bisnis";
+    const description = data?.description || "Upload file Excel penjualan dari marketplace manapun atau data UMKM sendiri. 15+ algoritma ML dan narasi AI — tanpa perlu keahlian data science.";
+    const primaryCta = data?.primaryCtaText || "Mulai Gratis";
+    const secondaryCta = data?.secondaryCtaText || "Lihat Fitur";
 
     return (
         <section className="hero">
@@ -32,23 +38,22 @@ export default function HeroSection() {
                     transition={{ duration: 0.8, ease: "easeOut" }}
                 >
                     <h1 className="hero-title">
-                        Ubah Data Penjualan Jadi{" "}
-                        <span className="gradient-text">Insight Bisnis</span>
+                        {title}{" "}
+                        <span className="gradient-text">{gradientText}</span>
                     </h1>
 
                     <p className="hero-description">
-                        Upload file Excel penjualan dari marketplace manapun atau data UMKM sendiri.
-                        15+ algoritma ML dan narasi AI — tanpa perlu keahlian data science.
+                        {description}
                     </p>
 
                     <div className="hero-actions">
                         <Link href="/register" className="btn-primary">
                             <Upload size={20} />
-                            Mulai Gratis
+                            {primaryCta}
                             <ArrowRight size={18} />
                         </Link>
                         <Link href="#features" className="btn-secondary">
-                            Lihat Fitur
+                            {secondaryCta}
                         </Link>
                     </div>
 

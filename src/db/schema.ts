@@ -115,3 +115,50 @@ export const paymentTransactions = sqliteTable("payment_transactions", {
     paidAt: integer("paid_at"),
     createdAt: integer("created_at").notNull(),
 });
+
+// === PLATFORM CMS & LANDING PAGE TABLES ===
+
+export const platformSettings = sqliteTable("platform_settings", {
+    key: text("key").primaryKey(),
+    value: text("value").notNull(),
+    description: text("description"),
+    updatedAt: integer("updated_at").notNull(),
+});
+
+export const landingHero = sqliteTable("landing_hero", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    title: text("title").notNull(),
+    gradientText: text("gradient_text").notNull(),
+    description: text("description").notNull(),
+    primaryCtaText: text("primary_cta_text").notNull(),
+    secondaryCtaText: text("secondary_cta_text").notNull(),
+    updatedAt: integer("updated_at").notNull(),
+});
+
+export const landingFeatures = sqliteTable("landing_features", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    icon: text("icon").notNull(),
+    title: text("title").notNull(),
+    description: text("description").notNull(),
+    displayOrder: integer("display_order").notNull().default(0),
+    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+});
+
+export const landingTestimonials = sqliteTable("landing_testimonials", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    name: text("name").notNull(),
+    role: text("role").notNull(),
+    company: text("company").notNull(),
+    content: text("content").notNull(),
+    rating: integer("rating").notNull().default(5),
+    displayOrder: integer("display_order").notNull().default(0),
+    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+});
+
+export const landingFaqs = sqliteTable("landing_faqs", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    question: text("question").notNull(),
+    answer: text("answer").notNull(),
+    displayOrder: integer("display_order").notNull().default(0),
+    isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+});

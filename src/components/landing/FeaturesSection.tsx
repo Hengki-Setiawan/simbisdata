@@ -8,57 +8,34 @@ import {
     TrendingUp,
     ShieldCheck,
     Zap,
+    Upload,
+    Cpu,
+    FileText,
+    Sparkles
 } from "lucide-react";
 
-const features = [
-    {
-        icon: <TrendingUp size={28} />,
-        title: "Prediksi Penjualan",
-        description:
-            "Forecast penjualan 30-180 hari ke depan dengan ARIMA, Prophet, dan Exponential Smoothing.",
-        color: "var(--primary)",
-        bg: "rgba(99, 102, 241, 0.15)",
-    },
-    {
-        icon: <Brain size={28} />,
-        title: "AI Narasi Cerdas",
-        description:
-            "Groq + Gemini AI menghasilkan penjelasan dan rekomendasi dalam bahasa Indonesia yang mudah dipahami.",
-        color: "var(--accent)",
-        bg: "rgba(6, 182, 212, 0.15)",
-    },
-    {
-        icon: <BarChart3 size={28} />,
-        title: "15+ Algoritma ML",
-        description:
-            "K-Means Clustering, RFM Analysis, Cohort Analysis, Anomaly Detection, dan banyak lagi.",
-        color: "var(--success)",
-        bg: "rgba(16, 185, 129, 0.15)",
-    },
-    {
-        icon: <Map size={28} />,
-        title: "Peta Distribusi",
-        description:
-            "Peta interaktif Indonesia menunjukkan distribusi penjualan per provinsi dan kota.",
-        color: "var(--warning)",
-        bg: "rgba(245, 158, 11, 0.15)",
-    },
-    {
-        icon: <Zap size={28} />,
-        title: "Upload & Analisis Instan",
-        description:
-            "Drag & drop file Excel penjualan, hasil analisis lengkap dalam hitungan detik.",
-        color: "var(--danger)",
-        bg: "rgba(239, 68, 68, 0.15)",
-    },
-    {
-        icon: <ShieldCheck size={28} />,
-        title: "Data Aman & Privat",
-        description:
-            "Data penjualan kamu terenkripsi dan hanya bisa diakses oleh kamu sendiri.",
-        color: "#a78bfa",
-        bg: "rgba(167, 139, 250, 0.15)",
-    },
+const getIcon = (name: string) => {
+    switch (name) {
+        case "upload": return <Upload size={28} />;
+        case "cpu": return <Cpu size={28} />;
+        case "file-text": return <FileText size={28} />;
+        case "trending-up": return <TrendingUp size={28} />;
+        case "brain": return <Brain size={28} />;
+        case "bar-chart-3": return <BarChart3 size={28} />;
+        case "map": return <Map size={28} />;
+        case "zap": return <Zap size={28} />;
+        case "shield-check": return <ShieldCheck size={28} />;
+        default: return <Sparkles size={28} />;
+    }
+};
+
+const colors = [
+    { color: "var(--primary)", bg: "rgba(99, 102, 241, 0.15)" },
+    { color: "var(--accent)", bg: "rgba(6, 182, 212, 0.15)" },
+    { color: "var(--success)", bg: "rgba(16, 185, 129, 0.15)" },
+    { color: "var(--warning)", bg: "rgba(245, 158, 11, 0.15)" },
+    { color: "var(--danger)", bg: "rgba(239, 68, 68, 0.15)" },
+    { color: "#a78bfa", bg: "rgba(167, 139, 250, 0.15)" },
 ];
 
 const containerVariants = {
@@ -74,7 +51,9 @@ const itemVariants = {
     show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
-export default function FeaturesSection() {
+export default function FeaturesSection({ data }: { data?: any[] }) {
+    const featuresList = data && data.length > 0 ? data : [];
+
     return (
         <section id="features" className="section">
             <div className="container">
@@ -100,32 +79,35 @@ export default function FeaturesSection() {
                     whileInView="show"
                     viewport={{ once: true }}
                 >
-                    {features.map((feature, index) => (
-                        <motion.div
-                            key={index}
-                            className="glass-card feature-card"
-                            variants={itemVariants}
-                        >
-                            <div
-                                className="feature-icon"
-                                style={{ background: feature.bg, color: feature.color }}
+                    {featuresList.map((feature, index) => {
+                        const theme = colors[index % colors.length];
+                        return (
+                            <motion.div
+                                key={index}
+                                className="glass-card feature-card"
+                                variants={itemVariants}
                             >
-                                {feature.icon}
-                            </div>
-                            <h3
-                                style={{
-                                    fontSize: "1.2rem",
-                                    fontWeight: 700,
-                                    marginBottom: "12px",
-                                }}
-                            >
-                                {feature.title}
-                            </h3>
-                            <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-                                {feature.description}
-                            </p>
-                        </motion.div>
-                    ))}
+                                <div
+                                    className="feature-icon"
+                                    style={{ background: theme.bg, color: theme.color }}
+                                >
+                                    {getIcon(feature.icon)}
+                                </div>
+                                <h3
+                                    style={{
+                                        fontSize: "1.2rem",
+                                        fontWeight: 700,
+                                        marginBottom: "12px",
+                                    }}
+                                >
+                                    {feature.title}
+                                </h3>
+                                <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+                                    {feature.description}
+                                </p>
+                            </motion.div>
+                        );
+                    })}
                 </motion.div>
             </div>
         </section>

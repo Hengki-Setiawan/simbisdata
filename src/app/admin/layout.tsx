@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
     LayoutDashboard, Users, Key, LineChart, DollarSign,
-    Headphones, Megaphone, Settings, CreditCard, ArrowLeft
+    Headphones, Megaphone, Settings, CreditCard, ArrowLeft, Globe
 } from "lucide-react";
 
 const menuItems = [
@@ -16,6 +16,7 @@ const menuItems = [
     { label: "Announcements", href: "/admin/announcements", icon: Megaphone },
     { label: "Demo Tokens", href: "/admin/demo", icon: Key },
     { label: "API Usage", href: "/admin/logs", icon: LineChart },
+    { label: "Landing CMS", href: "/admin/landing", icon: Globe },
     { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

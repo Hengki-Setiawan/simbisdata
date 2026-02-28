@@ -72,6 +72,7 @@ const tooltipStyle = {
 
 export default function DashboardPage() {
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+    const [rawData, setRawData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [aiInsight, setAiInsight] = useState<string>("");
     const [aiLoading, setAiLoading] = useState(false);
@@ -111,6 +112,7 @@ export default function DashboardPage() {
             try {
                 const data = await db.getAllData();
                 if (data && data.length > 0) {
+                    setRawData(data);
                     const result = analyzeData(data);
                     setAnalysis(result);
                 }
@@ -250,12 +252,12 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                                     onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
                                     📄 PDF Report
                                 </button>
-                                <button onClick={() => { analysis && exportToExcel(analysis, aiInsight); setExportOpen(false); }}
+                                <button onClick={() => { analysis && exportToExcel(rawData, analysis, aiInsight); setExportOpen(false); }}
                                     style={{ width: "100%", textAlign: "left", padding: "10px 12px", background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", borderRadius: "6px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}
                                     onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
                                     📊 Excel (.xlsx)
                                 </button>
-                                <button onClick={() => { analysis && exportToCSV(analysis); setExportOpen(false); }}
+                                <button onClick={() => { exportToCSV(rawData); setExportOpen(false); }}
                                     style={{ width: "100%", textAlign: "left", padding: "10px 12px", background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", borderRadius: "6px", fontSize: "0.85rem", display: "flex", alignItems: "center", gap: "8px" }}
                                     onMouseEnter={e => e.currentTarget.style.background = "var(--bg-surface)"} onMouseLeave={e => e.currentTarget.style.background = "none"}>
                                     📋 CSV
