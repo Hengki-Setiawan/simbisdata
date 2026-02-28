@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { uploadedFiles } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/lib/auth";
 
@@ -45,5 +45,20 @@ export async function getUserHistory(userId: number) {
     } catch (err) {
         console.error("Failed to fetch user history:", err);
         return [];
+    }
+}
+
+export async function deleteUserHistory(docId: number, userId: number) {
+    try {
+        await db.delete(uploadedFiles)
+            .where(and(
+                eq(uploadedFiles.id, docId),
+                eq(uploadedFiles.userId, userId)
+            ));
+        revalidatePath("/dashboard/history");
+        return { success: true };
+    } catch (err) {
+        console.error("Failed to delete user history:", err);
+        return { success: false };
     }
 }

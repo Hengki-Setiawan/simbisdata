@@ -1,5 +1,5 @@
 import { History, FileSpreadsheet, Trash2, Eye, Clock } from "lucide-react";
-import { getUserHistory } from "@/actions/dashboard";
+import { getUserHistory, deleteUserHistory } from "@/actions/dashboard";
 import { auth } from "@/lib/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -71,6 +71,21 @@ export default async function HistoryPage() {
                                 >
                                     <Eye size={14} /> Lihat
                                 </Link>
+                                <form action={async () => {
+                                    "use server";
+                                    await deleteUserHistory(item.id, userId);
+                                }}>
+                                    <button
+                                        type="submit"
+                                        style={{
+                                            padding: "8px 12px", borderRadius: "var(--radius)", border: "1px solid rgba(239, 68, 68, 0.4)",
+                                            background: "rgba(239, 68, 68, 0.1)", color: "var(--error)", cursor: "pointer",
+                                            display: "flex", alignItems: "center", gap: "6px", fontSize: "0.8rem"
+                                        }}
+                                    >
+                                        <Trash2 size={14} /> Hapus
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     ))}

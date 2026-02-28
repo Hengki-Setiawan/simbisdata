@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { GitCompareArrows, Upload, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { GitCompareArrows, Upload, TrendingUp, TrendingDown, Minus, Brain, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { db } from "@/lib/local-db";
@@ -31,6 +31,8 @@ export default function ComparePage() {
     const [rawData, setRawData] = useState<Record<string, unknown>[] | null>(null);
     const [splitMonth, setSplitMonth] = useState("");
     const [months, setMonths] = useState<string[]>([]);
+    const [aiInsight, setAiInsight] = useState<string | null>(null);
+    const [loadingInsight, setLoadingInsight] = useState(false);
 
     useEffect(() => {
         const load = async () => {
@@ -71,6 +73,22 @@ export default function ComparePage() {
         { metric: "Orders", A: a.orders, B: b.orders },
         { metric: "Avg Order", A: Math.round(a.avgOrder / 1000), B: Math.round(b.avgOrder / 1000) },
     ];
+
+    const generateCompareInsight = async () => {
+        setLoadingInsight(true);
+        try {
+            const prompt = `Analisis perbandingan performa. Periode A (${a.label}): Revenue ${a.revenue}, Orders ${a.orders}. Periode B (${b.label}): Revenue ${b.revenue}, Orders ${b.orders}. Berikan penjelasan eksekutif singkat apa penyebab utamanya dan rekomendasinya.`;
+            const res = await fetch("/api/ai/narrate", {
+                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt, type: "executive" })
+            });
+            const data = await res.json();
+            setAiInsight(data.narrative);
+        } catch (err) {
+            setAiInsight("Gagal memuat insight AI.");
+        } finally {
+            setLoadingInsight(false);
+        }
+    };
 
     return (
         <div>
@@ -128,6 +146,30 @@ export default function ComparePage() {
                         <Bar dataKey="B" name={b.label} fill="#10b981" radius={[6, 6, 0, 0]} />
                     </BarChart>
                 </ResponsiveContainer>
+            </motion.div>
+
+            {/* AI Insight Section */}
+            <motion.div className="glass-card" style={{ padding: "24px", marginTop: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <Brain size={24} style={{ color: "var(--primary)" }} />
+                        <h3 style={{ fontSize: "1.1rem", fontWeight: 700 }}>AI Compare Insight</h3>
+                    </div>
+                    <button onClick={generateCompareInsight} className="btn-primary" disabled={loadingInsight} style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
+                        {loadingInsight ? <Loader2 size={16} className="spin" /> : <Brain size={16} />}
+                        {loadingInsight ? "Menganalisis..." : "Generate Insight"}
+                    </button>
+                </div>
+
+                {aiInsight ? (
+                    <div style={{ padding: "20px", borderRadius: "12px", background: "var(--bg-surface)", border: "1px solid var(--border-color)", whiteSpace: "pre-wrap", lineHeight: 1.8, fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+                        {aiInsight}
+                    </div>
+                ) : (
+                    <div style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)", borderRadius: "12px", background: "var(--bg-card)", border: "1px dashed var(--border-color)" }}>
+                        <p>Klik tombol untuk membiarkan AI menganalisis alasan di balik perbedaan kedua periode ini.</p>
+                    </div>
+                )}
             </motion.div>
         </div>
     );

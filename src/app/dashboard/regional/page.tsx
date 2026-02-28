@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { MapPin, Upload, TrendingUp } from "lucide-react";
+import { MapPin, Upload, TrendingUp, Brain, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { db } from "@/lib/local-db";
@@ -59,6 +59,8 @@ function getHeatColor(value: number, max: number): string {
 export default function RegionalPage() {
     const [regions, setRegions] = useState<RegionData[]>([]);
     const [hovered, setHovered] = useState<string | null>(null);
+    const [aiInsight, setAiInsight] = useState<string | null>(null);
+    const [loadingInsight, setLoadingInsight] = useState(false);
 
     useEffect(() => {
         const load = async () => {
@@ -72,6 +74,23 @@ export default function RegionalPage() {
 
     const maxOrders = regions.length > 0 ? regions[0].orders : 1;
     const top10 = regions.slice(0, 10);
+
+    const generateRegionalInsight = async () => {
+        setLoadingInsight(true);
+        try {
+            const sumData = top10.map(r => `${r.province}: ${r.orders} pesanan, Rev Rp${r.revenue}`).join(" | ");
+            const prompt = `Analisis performa regional berikut: ${sumData}. Berikan penjelasan eksekutif singkat mengenai distribusi penjualan ini, potensi perluasan logistik, dan rekomendasinya.`;
+            const res = await fetch("/api/ai/narrate", {
+                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt, type: "executive" })
+            });
+            const data = await res.json();
+            setAiInsight(data.narrative);
+        } catch (err) {
+            setAiInsight("Gagal memuat insight AI.");
+        } finally {
+            setLoadingInsight(false);
+        }
+    };
 
     if (regions.length === 0) return (
         <div style={{ textAlign: "center", padding: "80px 24px" }}>
@@ -195,6 +214,30 @@ export default function RegionalPage() {
                     </div>
                 </motion.div>
             </div>
+
+            {/* AI Insight Section */}
+            <motion.div className="glass-card" style={{ padding: "24px", marginTop: "24px" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <Brain size={24} style={{ color: "var(--primary)" }} />
+                        <h3 style={{ fontSize: "1.1rem", fontWeight: 700 }}>AI Logistics Insight</h3>
+                    </div>
+                    <button onClick={generateRegionalInsight} className="btn-primary" disabled={loadingInsight} style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
+                        {loadingInsight ? <Loader2 size={16} className="spin" /> : <Brain size={16} />}
+                        {loadingInsight ? "Menganalisis Peta..." : "Generate AI Insight"}
+                    </button>
+                </div>
+
+                {aiInsight ? (
+                    <div style={{ padding: "20px", borderRadius: "12px", background: "var(--bg-surface)", border: "1px solid var(--border-color)", whiteSpace: "pre-wrap", lineHeight: 1.8, fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+                        {aiInsight}
+                    </div>
+                ) : (
+                    <div style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)", borderRadius: "12px", background: "var(--bg-card)", border: "1px dashed var(--border-color)" }}>
+                        <p>Klik tombol untuk membiarkan AI menganalisis distribusi peta regional dan potensi logistik bisnis Anda.</p>
+                    </div>
+                )}
+            </motion.div>
         </div>
     );
 }

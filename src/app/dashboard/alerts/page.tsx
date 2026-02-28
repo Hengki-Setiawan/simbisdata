@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Bell, BellRing, TrendingDown, AlertTriangle, Package, Check, X, Loader2 } from "lucide-react";
+import { Bell, BellRing, TrendingDown, AlertTriangle, Package, Check, X, Loader2, Brain } from "lucide-react";
+import { db } from "@/lib/local-db";
 
 interface Alert {
     id: string;
@@ -27,18 +28,59 @@ export default function AlertsPage() {
     const [settings, setSettings] = useState({ salesDrop: true, anomaly: true, lowStock: true, peakSeason: true, returnRate: true });
 
     useEffect(() => {
-        fetch("/api/user/alerts")
-            .then(res => res.json())
-            .then(data => {
-                if (data.alerts && Array.isArray(data.alerts)) {
-                    setAlerts(data.alerts);
+        const loadAlerts = async () => {
+            try {
+                const data = await db.getAllData();
+                if (!data || data.length === 0) {
+                    setAlerts([]);
+                    return;
                 }
-                setLoading(false);
-            })
-            .catch(err => {
+
+                const newAlerts: Alert[] = [];
+                const now = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+                // Local Heuristics
+                if (data.length > 500) {
+                    newAlerts.push({
+                        id: "local-vol", type: "info", title: "Volume Data Besar Terdeteksi",
+                        desc: `Dataset yang diunggah berisi ${data.length} baris. AI siap memproses pola kompleks dalam volume ini.`,
+                        severity: "info", time: now, read: false
+                    });
+                }
+
+                // AI Generated Alerts
+                const sample = data.map(d => { const { id, _id, ...rest } = d; return rest; }).slice(0, 10);
+                const prompt = `Analisis 10 baris data sampel ini:\n${JSON.stringify(sample)}.\nIdentifikasi 2 potensi anomali/peringatan bisnis (seperti potensi penurunan, harga janggal, konsentrasi pelanggan). Format array of objects JSON: [{ "title": "...", "desc": "...", "severity": "warning" | "success" | "danger" }]`;
+
+                try {
+                    const res = await fetch("/api/ai/narrate", {
+                        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt, type: "anomaly" })
+                    });
+                    const narrativeRes = await res.json();
+
+                    // The narrator might return code blocks, extract array
+                    const text = narrativeRes.narrative || "";
+                    const match = text.match(/\[([\s\S]*)\]/);
+                    if (match) {
+                        const parsed = JSON.parse(`[${match[1]}]`);
+                        parsed.forEach((a: any, i: number) => {
+                            newAlerts.push({
+                                id: `ai-${i}`, type: "anomaly", title: a.title || "AI Insight", desc: a.desc || "...",
+                                severity: ["warning", "success", "danger", "info"].includes(a.severity) ? a.severity : "warning",
+                                time: now, read: false
+                            });
+                        });
+                    }
+                } catch (e) { console.error("AI Alert Error", e); }
+
+                setAlerts(newAlerts);
+            } catch (err) {
                 console.error("Failed to load alerts:", err);
+            } finally {
                 setLoading(false);
-            });
+            }
+        };
+        loadAlerts();
     }, []);
 
     const markRead = (id: string) => setAlerts(alerts.map((a) => a.id === id ? { ...a, read: true } : a));

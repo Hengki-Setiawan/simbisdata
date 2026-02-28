@@ -140,11 +140,11 @@ export default function DashboardPage() {
                     const newLgLayout = charts.map((c, i) => ({
                         i: c.id,
                         x: (i % 2) * 6, // 2 columns (6 width each on 12-col grid)
-                        y: Math.floor(i / 2) * 3,
+                        y: Math.floor(i / 2) * 4,
                         w: 6,
-                        h: 3,
+                        h: 4,
                         minW: 3,
-                        minH: 2
+                        minH: 3
                     }));
                     // Add AI section at bottom
                     newLgLayout.push({
