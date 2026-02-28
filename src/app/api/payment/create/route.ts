@@ -8,14 +8,25 @@ import crypto from "crypto";
  */
 export async function POST(request: Request) {
     try {
-        const { planName, price, userId, userEmail, userName } = await request.json();
+        console.log("--- START DUITKU PAYMENT CREATION ---");
+        const body = await request.json();
+        console.log("Incoming request body:", body);
+        const { planName, price, userId, userEmail, userName } = body;
 
         const merchantCode = process.env.DUITKU_MERCHANT_CODE;
         const apiKey = process.env.DUITKU_API_KEY;
         const baseUrl = process.env.DUITKU_PASSPORT_URL || "https://passport.duitku.com/api/merchant/v2/inquiry";
         const appUrl = (process.env.NEXTAUTH_URL || "https://simbisdata.vercel.app").replace(/\/+$/, "");
 
+        console.log("Environment variables:", {
+            hasMerchantCode: !!merchantCode,
+            hasApiKey: !!apiKey,
+            baseUrl,
+            appUrl
+        });
+
         if (!merchantCode || !apiKey) {
+            console.error("Missing Duitku credentials in environment variables.");
             return NextResponse.json({ error: "Duitku gateway not configured" }, { status: 503 });
         }
 
@@ -47,6 +58,8 @@ export async function POST(request: Request) {
             expiryPeriod: 1440 // 24 hours in minutes
         };
 
+        console.log("Generated Duitku payload:", JSON.stringify(payload, null, 2));
+
         const response = await fetch(baseUrl, {
             method: "POST",
             headers: {
@@ -56,19 +69,30 @@ export async function POST(request: Request) {
         });
 
         const data = await response.json();
+        console.log("Duitku API response status:", response.status);
+        console.log("Duitku API response data:", JSON.stringify(data, null, 2));
 
         if (data.statusCode !== "00") {
             console.error("Duitku error API:", data);
-            return NextResponse.json({ error: data.statusMessage || "Failed to create payment" }, { status: 500 });
+            return NextResponse.json({
+                error: "Duitku API Error",
+                details: data.statusMessage || JSON.stringify(data),
+                code: data.statusCode
+            }, { status: 500 });
         }
 
+        console.log("--- SUCCESS DUITKU PAYMENT CREATION ---");
         return NextResponse.json({
             checkoutUrl: data.paymentUrl,
             reference: data.reference,
             merchantRef: merchantOrderId,
         });
     } catch (error: any) {
-        console.error("Payment error:", error);
-        return NextResponse.json({ error: error.message || "Payment failed" }, { status: 500 });
+        console.error("Payment error exception:", error);
+        return NextResponse.json({
+            error: "Internal Server Error during Payment",
+            message: error.message,
+            stack: error.stack
+        }, { status: 500 });
     }
 }
