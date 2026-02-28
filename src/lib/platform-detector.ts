@@ -21,9 +21,12 @@ export interface DetectionResult {
 const PLATFORM_FINGERPRINTS: Record<Platform, { label: string; icon: string; columns: string[] }> = {
     shopee: {
         label: "Shopee", icon: "🛒",
-        columns: ["No. Pesanan", "Status Pesanan", "Nama Produk", "Nama Variasi", "SKU Induk",
-            "Harga Setelah Diskon", "Diskon Dari Shopee", "Voucher Ditanggung Shopee",
-            "Ongkos Kirim Dibayar oleh Pembeli", "Username (Pembeli)", "Waktu Pesanan Dibuat"],
+        columns: [
+            "No. Pesanan", "Status Pesanan", "Nama Produk", "Nama Variasi",
+            "Waktu Pesanan Dibuat", "Waktu Pembayaran Dilakukan", "Waktu Pengiriman Diatur",
+            "Total Pembayaran", "Ongkos Kirim Dibayar oleh Pembeli", "Username (Pembeli)",
+            "Paket Diskon (Diskon dari Shopee)"
+        ],
     },
     tokopedia: {
         label: "Tokopedia", icon: "🟢",

@@ -39,6 +39,30 @@ export const UNIVERSAL_FIELDS = {
   province: "Provinsi",
   payment_method: "Metode Bayar",
   notes: "Catatan",
+  customer_username: "Username Pelanggan", // new
+
+  // Marketplace Logistics & Fees (Shopee/Tokped)
+  product_weight: "Berat Produk (Gram)",
+  pickup_instruction: "Instruksi Pengiriman",
+  shipping_deadline: "Batas Waktu Kirim",
+  estimated_shipping_fee: "Estimasi Ongkir",
+  coin_cashback: "Cashback Koin",
+  service_fee: "Biaya Layanan",
+  admin_fee: "Biaya Admin",
+  payment_fee: "Biaya Transaksi",
+  bundle_discount: "Paket Diskon",
+  voucher_code: "Kode Voucher",
+  return_status: "Status Pengembalian",
+  estimated_income: "Estimasi Pendapatan",
+  total_weight: "Total Berat", // new
+  seller_voucher: "Voucher Penjual", // new
+  platform_voucher: "Voucher Platform", // new
+  bundle_discount_seller: "Paket Diskon Penjual", // new
+  bundle_discount_platform: "Paket Diskon Platform", // new
+  return_shipping_cost: "Ongkir Pengembalian", // new
+  total_quantity: "Total Jumlah Produk", // new
+  credit_card_discount: "Diskon Kartu Kredit", // new
+  shopee_coin_discount: "Potongan Koin Shopee", // new
 
   // Survey / Feedback
   question: "Pertanyaan",
@@ -124,10 +148,10 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   ],
   sale_price: [
     "harga setelah diskon", "harga diskon", "discounted price", "deal price", "sale price", "harga promo",
-    "harga final", "final price", "net price",
+    "harga final", "final price", "net price", "total harga produk"
   ],
   quantity: [
-    "jumlah", "quantity", "qty", "kuantitas", "jumlah produk", "jumlah item", "amount",
+    "jumlah", "quantity", "qty", "kuantitas", "jumlah item", "amount",
     "jumlah barang", "pcs", "unit", "terjual", "sold",
   ],
   subtotal: [
@@ -135,7 +159,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "subtotal after discount", "jumlah harga", "omset", "revenue", "pendapatan",
   ],
   total_payment: [
-    "total pembayaran", "total payment", "total bayar", "grand total", "total order", "total", "total pesanan",
+    "total pembayaran", "total payment", "total bayar", "grand total", "total order", "total pesanan",
     "amount paid", "total price", "total penjualan (idr)", "total penjualan", "total belanja",
     "total transaksi", "total (idr)", "bersih", "netto",
   ],
@@ -146,7 +170,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "promo", "cashback", "sale",
   ],
   platform_discount: ["diskon dari shopee", "shopee discount", "diskon shopee", "platform discount", "diskon dari tokopedia", "diskon lazada", "diskon tiktok", "marketplace discount"],
-  seller_discount: ["diskon dari penjual", "seller discount", "diskon seller", "diskon penjual", "diskon toko", "voucher ditanggung penjual", "seller voucher", "voucher penjual", "voucher ditanggung shopee", "shopee voucher", "voucher shopee", "platform voucher"],
+  seller_discount: ["diskon dari penjual", "seller discount", "diskon seller", "diskon penjual", "diskon toko", "seller voucher", "voucher penjual", "platform voucher"],
 
   // === STATUS & LOGISTIK ===
   order_status: [
@@ -157,23 +181,48 @@ const COLUMN_ALIASES: Record<string, string[]> = {
     "waktu pesanan dibuat", "tanggal pesanan dibuat", "order date", "tanggal", "tanggal order", "tanggal transaksi",
     "waktu pesanan", "date", "created at", "waktu", "waktu transaksi", "tgl", "hari",
   ],
-  payment_date: ["waktu pembayaran", "tanggal pembayaran", "payment date", "tanggal bayar", "paid at", "waktu bayar", "tgl bayar"],
-  ship_date: ["waktu pengiriman", "tanggal pengiriman", "ship date", "tanggal kirim", "shipped at"],
+  payment_date: ["waktu pembayaran dilakukan", "waktu pembayaran", "tanggal pembayaran", "payment date", "tanggal bayar", "paid at", "waktu bayar", "tgl bayar"],
+  ship_date: ["waktu pengiriman diatur", "waktu pengiriman", "tanggal pengiriman", "ship date", "tanggal kirim", "shipped at"],
   complete_date: ["waktu pesanan selesai", "tanggal selesai", "waktu selesai", "completed at", "complete date", "tgl selesai"],
 
   courier: ["opsi pengiriman", "kurir", "courier", "jasa kirim", "ekspedisi", "pengiriman", "shipping method", "logistic"],
   tracking_no: ["no. resi", "no resi", "nomor resi", "tracking number", "tracking no", "resi", "awb", "waybill"],
   shipping_cost: [
-    "perkiraan ongkos kirim", "ongkos kirim", "ongkir", "shipping cost", "shipping fee", "biaya pengiriman",
-    "biaya kirim", "ongkos kirim dibayar pembeli", "ongkir ditanggung penjual",
+    "ongkos kirim dibayar oleh pembeli", "ongkos kirim", "ongkir", "shipping cost", "shipping fee", "biaya pengiriman",
+    "biaya kirim", "ongkir ditanggung penjual",
   ],
+
+  // === MARKETPLACE LOGISTICS & FEES ===
+  product_weight: ["berat produk", "berat", "weight"],
+  pickup_instruction: ["antar ke counter/ pick-up", "pickup", "metode pengiriman", "jenis pengiriman"],
+  shipping_deadline: ["pesanan harus dikirimkan sebelum", "pesanan harus dikirimkan sebelum menghindari keterlambatan", "batas pengiriman", "batas waktu kirim", "shipping deadline"],
+  estimated_shipping_fee: ["estimasi potongan biaya pengiriman", "potongan ongkir", "diskon ongkir"],
+  coin_cashback: ["cashback koin shopee", "koin shopee", "koin", "cashback koin"],
+  service_fee: ["biaya layanan", "service fee", "biaya penganan"],
+  admin_fee: ["biaya admin", "admin fee", "biaya administrasi"],
+  payment_fee: ["biaya transaksi", "biaya penanganan", "transaction fee"],
+  bundle_discount: ["paket diskon", "bundle", "combo"],
+  voucher_code: ["kode voucher", "voucher code"],
+  return_status: ["status pembatalan/ pengembalian", "status retur", "return status", "pembatalan"],
+  estimated_income: ["perkiraan penghasilan", "estimasi pendapatan", "income"],
+  total_weight: ["total berat"],
+  seller_voucher: ["voucher ditanggung penjual"],
+  platform_voucher: ["voucher ditanggung shopee"],
+  bundle_discount_seller: ["paket diskon diskon dari penjual"],
+  bundle_discount_platform: ["paket diskon diskon dari shopee"],
+  return_shipping_cost: ["ongkos kirim pengembalian barang", "ongkos kirim pengembalian"],
+  estimated_shipping_cost: ["perkiraan ongkos kirim"],
+  total_quantity: ["jumlah produk di pesan", "total quantity"],
+  credit_card_discount: ["diskon kartu kredit"],
+  shopee_coin_discount: ["potongan koin shopee"],
 
   // === CUSTOMER ===
   customer_name: [
-    "username (pembeli)", "nama pembeli", "nama pelanggan", "customer name", "customer", "pelanggan",
-    "pembeli", "client", "klien", "nama", "name", "buyer", "buyer name", "user", "username",
+    "nama penerima", "nama pembeli", "nama pelanggan", "customer name", "customer", "pelanggan",
+    "pembeli", "client", "klien", "buyer", "buyer name", "user"
   ],
-  customer_phone: ["no handphone", "telepon", "phone", "no hp", "nomor hp", "phone number", "whatsapp", "wa"],
+  customer_username: ["username pembeli", "username"],
+  customer_phone: ["no telepon", "no handphone", "telepon", "phone", "no hp", "nomor hp", "phone number", "whatsapp", "wa"],
   address: ["alamat pengiriman", "alamat", "address", "shipping address", "delivery address", "jalan", "street"],
   city: ["kota/kabupaten", "kota", "kabupaten", "city", "regency", "region", "kab"],
   province: ["provinsi", "province", "state", "wilayah", "daerah"],
@@ -186,7 +235,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
   question: ["pertanyaan", "question", "soal", "item penilaian", "aspek", "indikator"],
   answer: ["jawaban", "answer", "respon", "tanggapan", "komentar", "saran", "feedback", "ulasan", "review", "opini"],
   rating: ["rating", "skor", "score", "nilai", "kepuasan", "satisfaction", "penilaian", "bintang", "stars", "nps"],
-  respondent: ["responden", "nama responden", "peserta", "participant", "pengisi", "nama", "email responden"],
+  respondent: ["responden", "nama responden", "peserta", "participant", "pengisi", "email responden"],
   survey_date: ["tanggal survei", "waktu pengisian", "submit time", "timestamp", "recorded date"],
 
   // === INVENTORY / STOCK ===
@@ -198,7 +247,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
 
   // === HR / EMPLOYEE ===
   employee_id: ["id karyawan", "nik", "nip", "employee id", "staff id", "id pegawai"],
-  employee_name: ["nama karyawan", "karyawan", "employee", "staff name", "nama pegawai", "nama pekerja", "nama"],
+  employee_name: ["nama karyawan", "karyawan", "employee", "staff name", "nama pegawai", "nama pekerja"],
   department: ["departemen", "department", "divisi", "division", "unit", "bagian", "team", "tim"],
   position: ["jabatan", "position", "role", "title", "posisi", "pangkat", "job title", "level"],
   salary: ["gaji", "salary", "upah", "wage", "pendapatan", "income", "thp", "take home pay", "bonus", "tunjangan"],
@@ -213,7 +262,7 @@ const COLUMN_ALIASES: Record<string, string[]> = {
 
   // === ACADEMIC ===
   student_id: ["nim", "nis", "nisn", "student id", "id siswa", "id mahasiswa", "nomer induk"],
-  student_name: ["nama siswa", "nama mahasiswa", "siswa", "mahasiswa", "student", "murid", "peserta didik", "nama"],
+  student_name: ["nama siswa", "nama mahasiswa", "siswa", "mahasiswa", "student", "murid", "peserta didik"],
   course: ["mata pelajaran", "mapel", "mata kuliah", "matkul", "course", "subject", "kelas", "class", "pelajaran"],
   grade: ["nilai", "grade", "skor ujian", "ipk", "gpa", "hasil", "score"],
   semester: ["semester", "term", "tahun ajaran", "periode akademik", "tahun"],
@@ -230,7 +279,8 @@ const COLUMN_ALIASES: Record<string, string[]> = {
 
 /** Normalize text for comparison */
 function normalize(text: string): string {
-  return text.toLowerCase().trim().replace(/[_\-\.\/\\()]/g, " ").replace(/\s+/g, " ");
+  // Be careful not to destroy exact letters, just lowercase and standardize spacing
+  return text.toLowerCase().replace(/[_\-\.\/\\()]/g, " ").replace(/\s+/g, " ").trim();
 }
 
 /** Calculate similarity between two strings */
@@ -238,7 +288,6 @@ function similarity(a: string, b: string): number {
   const na = normalize(a);
   const nb = normalize(b);
   if (na === nb) return 1.0;
-  if (na.includes(nb) || nb.includes(na)) return 0.85;
   const wordsA = new Set(na.split(" "));
   const wordsB = new Set(nb.split(" "));
   const intersection = [...wordsA].filter((w) => wordsB.has(w)).length;
@@ -323,27 +372,29 @@ export function autoMapColumns(rows: Record<string, any>[]): ColumnMapping[] {
       // Exact alias match
       for (const alias of aliases) {
         if (normalCol === normalize(alias)) {
+          // If exact match found, we MUST accept it immediately to avoid fuzzy overwrites
           bestMatch = universalKey;
-          bestScore = 0.95;
+          bestScore = 1.0;
           break;
         }
       }
-      if (bestScore >= 0.95) break;
+      if (bestScore === 1.0) break; // Break outer loop if perfect match found
 
       // Fuzzy match
       const score = Math.max(...aliases.map((a) => similarity(col, a)));
-      if (score > bestScore && score > 0.4) {
+      // Increase strictness to avoid misclassifications for non-exact aliases
+      if (score > bestScore && score > 0.7) {
         bestMatch = universalKey;
         bestScore = score;
       }
     }
 
-    if (bestMatch && bestScore >= 0.4) usedMappings.add(bestMatch);
+    if (bestMatch && bestScore >= 0.7) usedMappings.add(bestMatch);
 
     mappings.push({
       originalName: col,
-      mappedTo: bestScore >= 0.4 ? bestMatch : null,
-      mappedLabel: bestScore >= 0.4 && bestMatch ? (UNIVERSAL_FIELDS as any)[bestMatch] || bestMatch : null,
+      mappedTo: bestScore >= 0.7 ? bestMatch : null,
+      mappedLabel: bestScore >= 0.7 && bestMatch ? (UNIVERSAL_FIELDS as any)[bestMatch] || bestMatch : null,
       confidence: Math.round(bestScore * 100) / 100,
       dataType,
       sampleValues: sampleValues.slice(0, 5).map(String),
