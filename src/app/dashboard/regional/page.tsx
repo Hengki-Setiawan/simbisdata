@@ -23,6 +23,30 @@ const provinceCoords: Record<string, { x: number; y: number }> = {
     "Kep. Bangka Belitung": { x: 225, y: 275 }, "Kep. Riau": { x: 200, y: 215 },
 };
 
+function normalizeProvince(raw: string): string {
+    const s = raw.toLowerCase();
+    if (s.includes('jakarta')) return "DKI Jakarta";
+    if (s.includes('jabar') || s.includes('jawa barat') || s.includes('bandung') || s.includes('bekasi') || s.includes('bogor') || s.includes('depok')) return "Jawa Barat";
+    if (s.includes('jatim') || s.includes('jawa timur') || s.includes('surabaya') || s.includes('malang')) return "Jawa Timur";
+    if (s.includes('jateng') || s.includes('jawa tengah') || s.includes('semarang') || s.includes('solo')) return "Jawa Tengah";
+    if (s.includes('banten') || s.includes('tangerang')) return "Banten";
+    if (s.includes('jogja') || s.includes('yogyakarta')) return "DI Yogyakarta";
+    if (s.includes('bali') || s.includes('denpasar')) return "Bali";
+    if (s.includes('sumatera utara') || s.includes('medan')) return "Sumatera Utara";
+    if (s.includes('sumatera barat') || s.includes('padang')) return "Sumatera Barat";
+    if (s.includes('sumatera selatan') || s.includes('palembang')) return "Sumatera Selatan";
+    if (s.includes('sulawesi selatan') || s.includes('makassar')) return "Sulawesi Selatan";
+    if (s.includes('kalimantan timur') || s.includes('balikpapan') || s.includes('samarinda')) return "Kalimantan Timur";
+
+    // Attempt exact match with provinceCoords keys
+    for (const key of Object.keys(provinceCoords)) {
+        if (s.includes(key.toLowerCase())) return key;
+    }
+
+    // Default fallback if it's completely unrecognized to avoid an empty map
+    return "DKI Jakarta";
+}
+
 interface RegionData { province: string; orders: number; revenue: number; }
 
 function analyzeRegions(rows: Record<string, unknown>[]): RegionData[] {
@@ -30,12 +54,15 @@ function analyzeRegions(rows: Record<string, unknown>[]): RegionData[] {
     if (rows.length === 0) return [];
 
     const keys = Object.keys(rows[0]);
-    const provKey = keys.find(k => /provinsi|kota|region|wilayah|state|city/i.test(k)) || keys[0];
+    // Try to find any geographic column
+    const provKey = keys.find(k => /provinsi|kota|region|wilayah|state|city|alamat|address/i.test(k)) || keys.find(k => typeof rows[0][k] === 'string' && /jakarta|jawa|bali|sumatera/i.test(rows[0][k] as string)) || keys[0];
     const revenueKey = keys.find(k => /total|pembayaran|revenue|harga|amount/i.test(k));
 
     rows.forEach((r) => {
-        const prov = (r[provKey] as string) || "";
-        if (!prov) return;
+        const rawProv = (r[provKey] as string) || "";
+        if (!rawProv) return;
+        const prov = normalizeProvince(rawProv);
+
         const existing = map.get(prov) || { orders: 0, revenue: 0 };
         existing.orders += 1;
         existing.revenue += revenueKey ? (parseFloat(String(r[revenueKey]).replace(/[^\d.-]/g, '')) || 0) : 0;

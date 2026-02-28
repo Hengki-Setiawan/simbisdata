@@ -412,16 +412,32 @@ export default function AnalysisPage() {
 
             {/* Generic Tab */}
             {activeTab !== "kmeans_clustering" && activeTab !== "autoencoder_anomaly" && activeTab !== "abc_analysis" && activeTab !== "rfm_analysis" && activeTab !== "cohort_analysis" && genericResults[activeTab] && (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ padding: "24px" }}>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
                         <Sparkles size={24} style={{ color: "var(--primary)" }} />
                         <h3 style={{ fontSize: "1.2rem", fontWeight: 700 }}>✨ Hasil Analisis AI: {recommendations.find(r => r.id === activeTab)?.name.replace(/[^a-zA-Z \-]/g, '') || activeTab}</h3>
                     </div>
-                    <div style={{ padding: "30px", background: "var(--bg-surface)", borderRadius: "var(--radius)", border: "1px dashed var(--border-color)", textAlign: "center" }}>
+                    <div className="glass-card" style={{ padding: "24px", marginBottom: "24px", textAlign: "center" }}>
                         <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>Tugas pemrosesan ini telah berhasil diselesaikan oleh engine AI di background.</p>
-                        <pre style={{ textAlign: "left", fontSize: "0.8rem", marginTop: "24px", background: "rgba(0,0,0,0.2)", padding: "16px", borderRadius: "8px", overflowX: "auto", color: "var(--primary-light)", border: "1px solid rgba(99,102,241,0.2)" }}>
-                            {JSON.stringify(genericResults[activeTab], null, 2)}
-                        </pre>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "16px" }}>
+                        {Object.entries(genericResults[activeTab]).map(([key, value]) => (
+                            <div key={key} className="glass-card" style={{ padding: "20px", borderTop: "3px solid var(--primary-light)" }}>
+                                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textTransform: "capitalize", marginBottom: "8px" }}>
+                                    {key.replace(/_/g, ' ')}
+                                </p>
+                                <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "white", wordBreak: "break-word" }}>
+                                    {typeof value === 'object' ? (
+                                        <pre style={{ fontSize: "0.75rem", background: "rgba(0,0,0,0.2)", padding: "8px", borderRadius: "6px", color: "var(--text-secondary)" }}>
+                                            {JSON.stringify(value, null, 2)}
+                                        </pre>
+                                    ) : (
+                                        String(value)
+                                    )}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 </motion.div>
             )}
