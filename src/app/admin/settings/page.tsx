@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Settings, Save, CheckCircle2, Database, Zap, Shield, Bell } from "lucide-react";
+import { useToast } from "@/components/ui/toast-provider";
 
 export default function AdminSettingsPage() {
     const [saved, setSaved] = useState(false);
     const [loading, setLoading] = useState(true);
+    const { addToast } = useToast();
     const [config, setConfig] = useState({
         siteName: "SimbisData",
         maintenanceMode: false,
@@ -35,6 +37,7 @@ export default function AdminSettingsPage() {
             });
             setSaved(true);
             setTimeout(() => setSaved(false), 2000);
+            addToast("Settings berhasil disimpan", "success");
         } catch (e) {
             console.error("Failed to save settings:", e);
         }

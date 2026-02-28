@@ -20,6 +20,8 @@ import { detectFormat } from "@/lib/format-detector";
 import { lookupColumnCorrection, saveColumnCorrection } from "@/lib/corrections-store";
 import { db } from "@/lib/local-db";
 import { uploadFiles } from "@/utils/uploadthing";
+import { trackUpload } from "@/lib/tracking";
+import { useToast } from "@/components/ui/toast-provider";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -46,6 +48,7 @@ const INITIAL_STEPS: ProcessingStep[] = [
 
 export default function UploadPage() {
     const router = useRouter();
+    const { addToast } = useToast();
     const [files, setFiles] = useState<File[]>([]);
     const [rawRows, setRawRows] = useState<Record<string, any>[]>([]);
     const [preview, setPreview] = useState<{ columns: string[]; rows: Record<string, unknown>[]; total: number } | null>(null);
@@ -206,10 +209,21 @@ export default function UploadPage() {
                 console.error("Cloud upload failed:", uploadError);
             }
 
+            // Track the upload
+            trackUpload({
+                fileName: acceptedFiles.map(f => f.name).join(", "),
+                fileSize: acceptedFiles.reduce((s, f) => s + f.size, 0),
+                rowCount: finalData.length,
+                columnCount: columns.length,
+                platform: "auto-detected",
+            });
+
+            addToast(`${finalData.length} baris data berhasil diproses!`, "success");
             setProcessing(false);
         } catch (err) {
             console.error(err);
             setError("Gagal membaca file. Pastikan format valid dan tidak korup.");
+            addToast("Gagal memproses file", "error");
             setProcessing(false);
         }
     }, []);

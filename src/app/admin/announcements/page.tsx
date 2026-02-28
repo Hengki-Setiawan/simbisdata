@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Megaphone, Plus, Send, Calendar, Users, Trash2, Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface Announcement {
     id: number;
@@ -20,6 +21,7 @@ export default function AdminAnnouncementsPage() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [form, setForm] = useState({ title: "", content: "", type: "info" });
+    const { addToast } = useToast();
 
     useEffect(() => { fetchData(); }, []);
 
@@ -41,6 +43,7 @@ export default function AdminAnnouncementsPage() {
             if (res.ok) {
                 const newItem = await res.json();
                 setAnnouncements([newItem, ...announcements]);
+                addToast("Pengumuman berhasil dibuat", "success");
             }
         } catch (e) { console.error(e); }
         setForm({ title: "", content: "", type: "info" });
@@ -54,6 +57,7 @@ export default function AdminAnnouncementsPage() {
             body: JSON.stringify({ id, isActive: !isActive }),
         });
         setAnnouncements(announcements.map(a => a.id === id ? { ...a, isActive: !isActive } : a));
+        addToast(isActive ? "Pengumuman di-unpublish" : "Pengumuman di-publish", "info");
     };
 
     const handleDelete = async (id: number) => {
@@ -63,6 +67,7 @@ export default function AdminAnnouncementsPage() {
             body: JSON.stringify({ id }),
         });
         setAnnouncements(announcements.filter(a => a.id !== id));
+        addToast("Pengumuman dihapus", "success");
     };
 
     if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-gray-400" /></div>;

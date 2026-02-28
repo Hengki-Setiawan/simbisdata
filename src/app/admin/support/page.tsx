@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Headphones, MessageSquare, Clock, CheckCircle2, AlertCircle, User, Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface Ticket {
     id: number;
@@ -27,6 +28,7 @@ export default function AdminSupportPage() {
     const [filter, setFilter] = useState("all");
     const [selected, setSelected] = useState<number | null>(null);
     const [replyText, setReplyText] = useState("");
+    const { addToast } = useToast();
 
     useEffect(() => { fetchTickets(); }, []);
 
@@ -45,6 +47,7 @@ export default function AdminSupportPage() {
             body: JSON.stringify({ id, status }),
         });
         setTickets(tickets.map(t => t.id === id ? { ...t, status } : t));
+        addToast(`Status diubah ke ${status.replace("_", " ")}`, "success");
     };
 
     const sendReply = async (id: number) => {
@@ -56,6 +59,7 @@ export default function AdminSupportPage() {
         });
         setTickets(tickets.map(t => t.id === id ? { ...t, adminReply: replyText, status: "in_progress" } : t));
         setReplyText("");
+        addToast("Balasan terkirim", "success");
     };
 
     const filtered = filter === "all" ? tickets : tickets.filter(t => t.status === filter);
