@@ -45,6 +45,7 @@ export async function POST(request: Request) {
             email: userEmail || "user@simbisdata.com",
             customerVaName: userName || "SimbisUser",
             phoneNumber: "081234567890",
+            paymentMethod: "", // Empty string to let user choose on Duitku page
             itemDetails: [
                 {
                     name: `SimbisData ${planName} Plan`,
