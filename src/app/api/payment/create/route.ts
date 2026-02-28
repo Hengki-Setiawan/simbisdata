@@ -13,6 +13,7 @@ export async function POST(request: Request) {
         const merchantCode = process.env.DUITKU_MERCHANT_CODE;
         const apiKey = process.env.DUITKU_API_KEY;
         const baseUrl = process.env.DUITKU_PASSPORT_URL || "https://passport.duitku.com/api/merchant/v2/inquiry";
+        const appUrl = (process.env.NEXTAUTH_URL || "https://simbisdata.vercel.app").replace(/\/+$/, "");
 
         if (!merchantCode || !apiKey) {
             return NextResponse.json({ error: "Duitku gateway not configured" }, { status: 503 });
@@ -40,8 +41,8 @@ export async function POST(request: Request) {
                     quantity: 1
                 }
             ],
-            callbackUrl: `${process.env.NEXTAUTH_URL}/api/payment/webhook`,
-            returnUrl: `${process.env.NEXTAUTH_URL}/dashboard/subscription?payment=success`,
+            callbackUrl: `${appUrl}/api/payment/webhook`,
+            returnUrl: `${appUrl}/dashboard/subscription?payment=success`,
             signature: signature,
             expiryPeriod: 1440 // 24 hours in minutes
         };
