@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { BarChart3, Mail, Lock, ArrowRight, AlertCircle } from "lucide-react";
+import { BarChart3, Mail, Lock, ArrowRight, AlertCircle, Eye, EyeOff, ArrowLeft } from "lucide-react";
 
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,10 +47,15 @@ export default function LoginPage() {
         <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
             <div className="glass-card" style={{ width: "100%", maxWidth: "440px", padding: "48px 40px" }}>
                 <div style={{ textAlign: "center", marginBottom: "36px" }}>
-                    <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px", marginBottom: "24px" }}>
-                        <BarChart3 size={32} style={{ color: "var(--primary)" }} />
-                        <span className="gradient-text" style={{ fontSize: "1.5rem", fontWeight: 800 }}>SimbisData</span>
-                    </Link>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+                        <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                            <BarChart3 size={32} style={{ color: "var(--primary)" }} />
+                            <span className="gradient-text" style={{ fontSize: "1.5rem", fontWeight: 800 }}>SimbisData</span>
+                        </Link>
+                        <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "20px", background: "var(--bg-card)", border: "1px solid var(--border-color)" }}>
+                            <ArrowLeft size={14} /> Kembali
+                        </Link>
+                    </div>
                     <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "8px" }}>Selamat Datang Kembali</h1>
                     <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Masuk ke akun kamu untuk mulai analisis</p>
                 </div>
@@ -78,8 +84,11 @@ export default function LoginPage() {
                         <label style={{ display: "block", fontSize: "0.85rem", fontWeight: 600, marginBottom: "8px", color: "var(--text-secondary)" }}>Password</label>
                         <div style={{ position: "relative" }}>
                             <Lock size={18} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)" }} />
-                            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={inputStyle}
+                            <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required style={inputStyle}
                                 onFocus={(e) => e.target.style.borderColor = "var(--primary)"} onBlur={(e) => e.target.style.borderColor = "var(--border-color)"} />
+                            <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ position: "absolute", right: "14px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: "4px" }}>
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                     </div>
 
