@@ -45,6 +45,11 @@ class CorrectionsDB extends Dexie {
     constructor() {
         super("simbis-corrections");
         this.version(1).stores({
+            columnCorrections: "++id, normalizedName, mappedTo, platform",
+            categoryCorrections: "++id, column, originalValue, correctedValue",
+            formatCorrections: "++id, column, originalFormat",
+        });
+        this.version(2).stores({
             columnCorrections: "++id, normalizedName, mappedTo, platform, usageCount",
             categoryCorrections: "++id, column, originalValue, correctedValue",
             formatCorrections: "++id, column, originalFormat",

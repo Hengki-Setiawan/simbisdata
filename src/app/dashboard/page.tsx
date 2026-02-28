@@ -287,7 +287,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                                     <Brain size={12} /> Time-Series (ARIMA)
                                 </span>
                             </div>
-                            <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
+                            <ResponsiveContainer width="100%" height="80%">
                                 <AreaChart data={timeAnalysis.monthly}>
                                     <defs>
                                         <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
@@ -314,7 +314,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                                     <Brain size={12} /> K-Means
                                 </span>
                             </div>
-                            <ResponsiveContainer width="100%" height="50%" minWidth={1} minHeight={1}>
+                            <ResponsiveContainer width="100%" height="50%">
                                 <PieChart>
                                     <Pie data={productPerformance} dataKey="count" nameKey="name" cx="50%" cy="50%" innerRadius={35} outerRadius={60} paddingAngle={3}>
                                         {productPerformance.map((_, i) => (
@@ -345,7 +345,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                                     <Brain size={12} /> Apriori Rules
                                 </span>
                             </div>
-                            <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
+                            <ResponsiveContainer width="100%" height="80%">
                                 <BarChart data={variantAnalysis} layout="vertical">
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
@@ -363,7 +363,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                     <div key="day">
                         <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }}>
                             <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "16px" }}>📅 Penjualan per Hari</h3>
-                            <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
+                            <ResponsiveContainer width="100%" height="80%">
                                 <BarChart data={timeAnalysis.dayOfWeek}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={11} />
@@ -384,7 +384,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                                     <Brain size={12} /> NLP Entity
                                 </span>
                             </div>
-                            <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
+                            <ResponsiveContainer width="100%" height="80%">
                                 <BarChart data={regionalAnalysis.slice(0, 10)} layout="vertical">
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
@@ -405,7 +405,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                                     <Brain size={12} /> Isolation Forest
                                 </span>
                             </div>
-                            <ResponsiveContainer width="100%" height="80%" minWidth={1} minHeight={1}>
+                            <ResponsiveContainer width="100%" height="80%">
                                 <BarChart data={paymentAnalysis.slice(0, 8)} layout="vertical">
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
@@ -421,7 +421,7 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                     <div key="hourly">
                         <motion.div className="glass-card" style={{ padding: "20px", height: "100%", border: isEditingLayout ? "2px dashed var(--primary)" : "none" }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.9 }}>
                             <h3 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "16px" }}>⏰ Distribusi Pesanan per Jam</h3>
-                            <ResponsiveContainer width="100%" height="75%" minWidth={1} minHeight={1}>
+                            <ResponsiveContainer width="100%" height="75%">
                                 <LineChart data={timeAnalysis.hourly}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                     <XAxis dataKey="hour" stroke="var(--text-muted)" fontSize={11} tickFormatter={(h) => `${h}:00`} />
