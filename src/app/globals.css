@@ -635,6 +635,15 @@ body {
     display: none;
   }
 
+  .navbar-actions .btn-primary,
+  .navbar-actions .btn-secondary {
+    display: none;
+  }
+
+  .mobile-menu-btn {
+    display: block !important;
+  }
+
   .navbar-logo {
     font-size: 1.1rem;
   }
