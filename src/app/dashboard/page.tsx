@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
     DollarSign,
@@ -12,11 +12,17 @@ import {
     Loader2,
     FileDown,
     Settings,
+    Sparkles,
+    Zap,
+    AlertTriangle,
+    Info,
+    ChevronRight,
+    BarChart3,
 } from "lucide-react";
 import Link from "next/link";
 import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
+    BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area, ScatterChart, Scatter, Treemap,
 } from "recharts";
 import { analyzeData, type AnalysisResult } from "@/lib/analysis";
 import { generatePDFReport } from "@/lib/pdf-export";
@@ -25,6 +31,10 @@ import { generatePremiumPDFHTML } from "@/lib/premium-pdf-template";
 import { generatePPTX } from "@/lib/ppt-export";
 import { db } from "@/lib/local-db";
 import { Responsive, Layout } from "react-grid-layout";
+import { detectDomain, type DomainDetectionResult } from "@/lib/data-domain-detector";
+import { analyzeColumns, recommendCharts, type ChartRecommendation, type ColumnMeta } from "@/lib/ai-viz-recommender";
+import { recommendAlgorithms, type MLRecommendation } from "@/lib/ai-ml-selector";
+import { generateExecutiveBriefing, type ExecutiveBriefing } from "@/lib/ai-executive-briefing";
 
 const COLORS = ["#6366f1", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#a78bfa", "#f472b6", "#34d399"];
 
@@ -80,6 +90,13 @@ export default function DashboardPage() {
     const [exportingPremium, setExportingPremium] = useState(false);
     const [period, setPeriod] = useState("all");
 
+    // AI Module State
+    const [domainResult, setDomainResult] = useState<DomainDetectionResult | null>(null);
+    const [chartRecs, setChartRecs] = useState<ChartRecommendation[]>([]);
+    const [mlRecs, setMlRecs] = useState<MLRecommendation[]>([]);
+    const [briefing, setBriefing] = useState<ExecutiveBriefing | null>(null);
+    const [columnMeta, setColumnMeta] = useState<ColumnMeta[]>([]);
+
     // Dashboard Customizer
     const [isEditingLayout, setIsEditingLayout] = useState(false);
     const [layouts, setLayouts] = useState<Partial<Record<string, Layout>>>({
@@ -116,6 +133,23 @@ export default function DashboardPage() {
                     setRawData(data);
                     const result = analyzeData(data);
                     setAnalysis(result);
+
+                    // AI Pipeline: Domain Detection → Column Analysis → Chart & ML Recommendations → Briefing
+                    const columns = Object.keys(data[0] || {});
+                    const domain = detectDomain(columns, data);
+                    setDomainResult(domain);
+
+                    const meta = analyzeColumns(data);
+                    setColumnMeta(meta);
+
+                    const charts = recommendCharts(meta, domain.domain, data);
+                    setChartRecs(charts);
+
+                    const ml = recommendAlgorithms(meta, domain.domain, data.length);
+                    setMlRecs(ml);
+
+                    const brief = generateExecutiveBriefing(result, domain.domain, meta, data.length);
+                    setBriefing(brief);
                 }
             } catch { /* ignore */ }
             setLoading(false);
@@ -302,13 +336,130 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
                 </div>
             </div>
 
+            {/* AI Executive Briefing Banner */}
+            {briefing && (
+                <motion.div
+                    initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
+                    style={{
+                        marginBottom: "24px", padding: "20px 24px", borderRadius: "var(--radius)",
+                        background: "linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(6,182,212,0.08) 100%)",
+                        border: "1px solid rgba(99,102,241,0.25)",
+                    }}
+                >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "16px" }}>
+                        <div style={{ width: 40, height: 40, borderRadius: "12px", background: "rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <Sparkles size={20} style={{ color: "var(--primary)" }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                                <h3 style={{ fontSize: "0.95rem", fontWeight: 700 }}>🧠 AI Executive Briefing</h3>
+                                {domainResult && (
+                                    <span style={{ fontSize: "0.7rem", padding: "2px 10px", borderRadius: "100px", background: "rgba(99,102,241,0.15)", color: "var(--primary)", fontWeight: 600 }}>
+                                        {domainResult.icon} {domainResult.label}
+                                    </span>
+                                )}
+                            </div>
+                            <p style={{ fontSize: "0.88rem", color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: "12px" }}>
+                                {briefing.headline}
+                            </p>
+                            {briefing.insights.length > 0 && (
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "10px" }}>
+                                    {briefing.insights.slice(0, 3).map((insight, i) => (
+                                        <span key={i} style={{ fontSize: "0.78rem", color: "var(--text-muted)", lineHeight: 1.5 }}>{insight}</span>
+                                    ))}
+                                </div>
+                            )}
+                            {briefing.alerts.length > 0 && (
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                                    {briefing.alerts.map((alert, i) => (
+                                        <span key={i} style={{
+                                            fontSize: "0.73rem", padding: "3px 10px", borderRadius: "6px",
+                                            background: alert.severity === "critical" ? "rgba(239,68,68,0.12)" : alert.severity === "warning" ? "rgba(245,158,11,0.12)" : "rgba(99,102,241,0.08)",
+                                            color: alert.severity === "critical" ? "var(--error)" : alert.severity === "warning" ? "var(--warning)" : "var(--text-muted)",
+                                            display: "flex", alignItems: "center", gap: "4px"
+                                        }}>
+                                            {alert.severity === "critical" ? <AlertTriangle size={11} /> : alert.severity === "warning" ? <AlertTriangle size={11} /> : <Info size={11} />}
+                                            {alert.message}
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </motion.div>
+            )}
+
             {/* KPI Cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "32px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "24px" }}>
                 <KPICard icon={DollarSign} label="Total Revenue" value={formatRupiah(overview.totalRevenue * 1000)} sub={`${overview.growthRate >= 0 ? "↑" : "↓"} ${Math.abs(overview.growthRate).toFixed(1)}%`} color="var(--success)" delay={0} />
                 <KPICard icon={Package} label="Total Pesanan" value={overview.totalOrders.toLocaleString()} sub={`${productPerformance.length} produk`} color="var(--primary)" delay={0.1} />
                 <KPICard icon={TrendingUp} label="Rata-rata Order" value={formatRupiah(overview.avgOrderValue * 1000)} sub="per pesanan" color="var(--accent)" delay={0.2} />
                 <KPICard icon={RotateCcw} label="Return Rate" value={`${overview.returnRate.toFixed(1)}%`} sub={overview.returnRate < 2 ? "✅ Sangat baik" : "⚠️ Perlu perhatian"} color={overview.returnRate < 2 ? "var(--success)" : "var(--warning)"} delay={0.3} />
             </div>
+
+            {/* AI Dynamic Recommendations Panel */}
+            {(chartRecs.length > 0 || mlRecs.length > 0) && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+                    style={{ marginBottom: "24px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}
+                >
+                    {/* Chart Recommendations */}
+                    {chartRecs.length > 0 && (
+                        <div className="glass-card" style={{ padding: "18px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
+                                <BarChart3 size={16} style={{ color: "var(--primary)" }} />
+                                <h4 style={{ fontSize: "0.88rem", fontWeight: 700 }}>🎯 AI Chart Recommendations</h4>
+                                <span style={{ fontSize: "0.68rem", padding: "2px 8px", borderRadius: "100px", background: "rgba(99,102,241,0.12)", color: "var(--primary)", fontWeight: 600 }}>
+                                    {chartRecs.length} charts
+                                </span>
+                            </div>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                {chartRecs.slice(0, 6).map((rec) => (
+                                    <span key={rec.id} title={rec.reason} style={{
+                                        fontSize: "0.72rem", padding: "5px 10px", borderRadius: "8px",
+                                        background: "var(--bg-surface)", border: "1px solid var(--border-color)",
+                                        color: "var(--text-secondary)", cursor: "help",
+                                        display: "flex", alignItems: "center", gap: "4px"
+                                    }}>
+                                        {rec.title.split(" ")[0]} {rec.type}
+                                        <span style={{ fontSize: "0.65rem", color: "var(--success)", fontWeight: 600 }}>
+                                            {Math.round(rec.confidence * 100)}%
+                                        </span>
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ML Recommendations */}
+                    {mlRecs.length > 0 && (
+                        <div className="glass-card" style={{ padding: "18px" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
+                                <Zap size={16} style={{ color: "var(--accent)" }} />
+                                <h4 style={{ fontSize: "0.88rem", fontWeight: 700 }}>🤖 AI ML Recommendations</h4>
+                                <span style={{ fontSize: "0.68rem", padding: "2px 8px", borderRadius: "100px", background: "rgba(6,182,212,0.12)", color: "var(--accent)", fontWeight: 600 }}>
+                                    {mlRecs.length} algorithms
+                                </span>
+                            </div>
+                            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                                {mlRecs.slice(0, 6).map((rec) => (
+                                    <Link key={rec.id} href="/dashboard/analysis" title={rec.reason} style={{
+                                        fontSize: "0.72rem", padding: "5px 10px", borderRadius: "8px",
+                                        background: rec.useTensorFlow ? "rgba(99,102,241,0.08)" : "var(--bg-surface)",
+                                        border: `1px solid ${rec.useTensorFlow ? "rgba(99,102,241,0.25)" : "var(--border-color)"}`,
+                                        color: "var(--text-secondary)", textDecoration: "none",
+                                        display: "flex", alignItems: "center", gap: "4px"
+                                    }}>
+                                        {rec.icon} {rec.name.replace(/🧠|🔍|🎯|💎|📊|🔥|💬|💲|⏰|🔮|🗺️|👥|🔗/g, "").trim()}
+                                        {rec.useTensorFlow && <span style={{ fontSize: "0.6rem", color: "var(--primary)", fontWeight: 700 }}>TF.js</span>}
+                                        <ChevronRight size={10} />
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </motion.div>
+            )}
 
             {/* Draggable Dashboard Layout */}
             <div style={{ width: "100%", overflowX: "hidden" }} id="dashboard-grid-container">
