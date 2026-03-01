@@ -7,7 +7,7 @@ export default function Footer() {
                 <div className="footer-grid">
                     <div>
                         <div className="footer-brand">
-                            <img src="/logo-icon.png" alt="SimbisData Logo" width={24} height={24} style={{ display: "inline-block", verticalAlign: "middle", marginRight: "10px" }} />
+                            <img src="/logo-icon.svg" alt="SimbisData Logo" width={24} height={24} style={{ display: "inline-block", verticalAlign: "middle", marginRight: "10px" }} />
                             SimbisData
                         </div>
                         <p className="footer-desc">

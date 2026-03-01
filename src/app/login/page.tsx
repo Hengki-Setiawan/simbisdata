@@ -49,7 +49,7 @@ export default function LoginPage() {
                 <div style={{ textAlign: "center", marginBottom: "32px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
                         <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "10px" }}>
-                            <img src="/logo-icon.png" alt="SimbisData Logo" width={32} height={32} />
+                            <img src="/logo-icon.svg" alt="SimbisData Logo" width={32} height={32} />
                             <span className="gradient-text" style={{ fontSize: "1.5rem", fontWeight: 800 }}>SimbisData</span>
                         </Link>
                         <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "20px", background: "var(--bg-card)", border: "1px solid var(--border-color)" }}>

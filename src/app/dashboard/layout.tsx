@@ -83,7 +83,7 @@ export default function DashboardLayout({
                             gap: "10px",
                         }}
                     >
-                        <img src="/logo-icon.png" alt="SimbisData Logo" width={24} height={24} style={{ borderRadius: "4px", flexShrink: 0 }} />
+                        <img src="/logo-icon.svg" alt="SimbisData Logo" width={24} height={24} style={{ flexShrink: 0 }} />
                         {!collapsed && (
                             <span className="gradient-text" style={{ fontSize: "1.2rem", fontWeight: 800, whiteSpace: "nowrap" }}>
                                 SimbisData

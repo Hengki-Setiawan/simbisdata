@@ -21,7 +21,7 @@ export default function Navbar() {
             <div className="container">
                 <div className="navbar-inner">
                     <Link href="/" className="navbar-logo">
-                        <img src="/logo-icon.png" alt="SimbisData Logo" width={28} height={28} />
+                        <img src="/logo-icon.svg" alt="SimbisData Logo" width={32} height={32} />
                         <span className="gradient-text">SimbisData</span>
                     </Link>
 

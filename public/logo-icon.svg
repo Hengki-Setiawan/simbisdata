@@ -1,0 +1,20 @@
+<svg width="100" height="100" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20 80V40H35V80H20Z" fill="url(#paint0_linear)" />
+  <path d="M42.5 80V25H57.5V80H42.5Z" fill="url(#paint1_linear)" />
+  <path d="M65 80V55H80V80H65Z" fill="url(#paint2_linear)" />
+  <path d="M20 70L45 45L65 55L90 20M90 20H75M90 20V35" stroke="white" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  <defs>
+    <linearGradient id="paint0_linear" x1="27.5" y1="40" x2="27.5" y2="80" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366f1" />
+      <stop offset="1" stop-color="#4f46e5" />
+    </linearGradient>
+    <linearGradient id="paint1_linear" x1="50" y1="25" x2="50" y2="80" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#06b6d4" />
+      <stop offset="1" stop-color="#0891b2" />
+    </linearGradient>
+    <linearGradient id="paint2_linear" x1="72.5" y1="55" x2="72.5" y2="80" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#10b981" />
+      <stop offset="1" stop-color="#059669" />
+    </linearGradient>
+  </defs>
+</svg>

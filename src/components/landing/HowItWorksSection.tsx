@@ -24,7 +24,7 @@ export default function HowItWorksSection() {
 
     return (
         <section className="section" id="how-it-works">
-            <div className="container">
+            <div className="container" style={{ paddingTop: "20px" }}>
                 <h2 className="section-title">
                     Semudah <span className="gradient-text">3 Langkah</span>
                 </h2>

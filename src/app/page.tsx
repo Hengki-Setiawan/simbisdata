@@ -2,6 +2,7 @@ import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import FeaturesSection from "@/components/landing/FeaturesSection";
 import HowItWorksSection from "@/components/landing/HowItWorksSection";
+import AlgorithmsSection from "@/components/landing/AlgorithmsSection"; // Added import
 import PricingSection from "@/components/landing/PricingSection";
 import TestimonialsSection from "@/components/landing/TestimonialsSection";
 import CTASection from "@/components/landing/CTASection";
@@ -22,6 +23,7 @@ export default async function HomePage() {
         <HeroSection data={heroData} />
         <FeaturesSection data={featuresData} />
         <HowItWorksSection />
+        <AlgorithmsSection /> {/* Added section */}
         <PricingSection />
         <TestimonialsSection data={testimonialsData} />
         <CTASection />
