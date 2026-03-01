@@ -14,6 +14,7 @@ import {
     ChevronRight,
     MapPin,
     Lock,
+    CreditCard,
 } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ui/theme-provider";
@@ -24,6 +25,7 @@ const menuItems = [
     { label: "Analisis", href: "/dashboard/analysis", icon: Brain },
     { label: "Peta Wilayah", href: "/dashboard/regional", icon: MapPin },
     { label: "Riwayat", href: "/dashboard/history", icon: History },
+    { label: "Billing", href: "/dashboard/billing", icon: CreditCard },
     { label: "Pengaturan", href: "/dashboard/settings", icon: Settings },
 ];
 
