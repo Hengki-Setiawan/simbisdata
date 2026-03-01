@@ -12,10 +12,10 @@ import { analyzeData, type AnalysisResult } from "@/lib/analysis";
 import { generatePDFReport } from "@/lib/pdf-export";
 import { exportToExcel } from "@/lib/excel-export";
 import { db } from "@/lib/local-db";
-import DailyBriefing from "@/components/SimbisData/DailyBriefing";
-import InsightCard from "@/components/SimbisData/InsightCard";
-import ActionChecklist from "@/components/SimbisData/ActionChecklist";
-import MetricSnapshot from "@/components/SimbisData/MetricSnapshot";
+import DailyBriefing from "@/components/simbisai/DailyBriefing";
+import InsightCard from "@/components/simbisai/InsightCard";
+import ActionChecklist from "@/components/simbisai/ActionChecklist";
+import MetricSnapshot from "@/components/simbisai/MetricSnapshot";
 import type { ConsultantResult } from "@/lib/ai-consultant";
 
 export default function DashboardPage() {

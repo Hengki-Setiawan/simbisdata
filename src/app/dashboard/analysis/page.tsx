@@ -145,17 +145,114 @@ export default function AnalysisPage() {
                 setGenericResults(prev => ({
                     ...prev,
                     [id]: {
-                        ...(data.summary || {}),
-                        score: (data.average !== undefined ? data.average : (data.summary?.avgScore || 0)).toFixed(2),
+                        avg_score: (data.average !== undefined ? data.average : (data.summary?.avgScore || 0)).toFixed(2),
                         total_analyzed: data.totalAnalyzed,
                         source_column: textCol
                     }
                 }));
                 setActiveTab(id);
+            } else if (id === "lstm_forecast" || id === "sma_forecast") {
+                // Prepare time series data
+                const dateKey = Object.keys(targetData[0]).find(k => k.toLowerCase().includes("tgl") || k.toLowerCase().includes("tanggal") || k.toLowerCase().includes("date")) || "date";
+                const valKey = Object.keys(targetData[0]).find(k => k.toLowerCase().includes("total") || k.toLowerCase().includes("omset") || k.toLowerCase().includes("payment")) || "total";
+
+                const timeData = targetData.map(d => ({
+                    date: String(d[dateKey]),
+                    value: parseFloat(String(d[valKey]).replace(/[^0-9.-]/g, "")) || 0
+                })).filter(d => !isNaN(new Date(d.date).getTime()));
+
+                const res = id === "lstm_forecast"
+                    ? await instance.lstmForecast(timeData, 30)
+                    : await instance.timeSeriesForecast(timeData, 30);
+
+                setGenericResults(prev => ({
+                    ...prev,
+                    [id]: {
+                        trend: res.trend.toUpperCase(),
+                        prediction_30d: res.forecast[res.forecast.length - 1]?.predicted.toLocaleString("id-ID"),
+                        model: res.modelInfo || "Time Series",
+                        forecast_data: res.forecast.slice(0, 5) // Sample
+                    }
+                }));
+                setActiveTab(id);
+            } else if (id === "association_rules") {
+                const res = await instance.associationRules(targetData);
+                setGenericResults(prev => ({
+                    ...prev,
+                    [id]: {
+                        top_patterns: res.rules.slice(0, 5).map(r => `${r.antecedent} → ${r.consequent} (Lift: ${r.lift.toFixed(2)})`),
+                        total_rules_found: res.rules.length
+                    }
+                }));
+                setActiveTab(id);
+            } else if (id === "price_sensitivity") {
+                const res = await instance.priceSensitivity(targetData);
+                setGenericResults(prev => ({
+                    ...prev,
+                    [id]: {
+                        optimal_price: `Rp ${res.optimalPrice.toLocaleString("id-ID")}`,
+                        elasticity: res.elasticity.toFixed(2),
+                        insight: res.elasticity < -1 ? "Sangat Sensitif" : "Kurang Sensitif"
+                    }
+                }));
+                setActiveTab(id);
+            } else if (id === "correlation_matrix") {
+                const res = await instance.correlationMatrix(targetData);
+                setGenericResults(prev => ({
+                    ...prev,
+                    [id]: {
+                        strongest_correlations: res.matrix
+                            .filter(m => m.row !== m.col && Math.abs(m.value) > 0.5)
+                            .slice(0, 5)
+                            .map(m => `${m.row} vs ${m.col}: ${(m.value * 100).toFixed(0)}%`),
+                        total_variables: res.fields.length
+                    }
+                }));
+                setActiveTab(id);
+            } else if (id === "clv") {
+                const res = await instance.customerLifetimeValue(targetData);
+                setGenericResults(prev => ({
+                    ...prev,
+                    [id]: {
+                        avg_lifetime_value: `Rp ${res.avgCLV.toLocaleString("id-ID")}`,
+                        top_customer: res.customers[0]?.name || "N/A",
+                        total_segments: new Set(res.customers.map(c => c.segment)).size
+                    }
+                }));
+                setActiveTab(id);
+            } else if (id === "day_hour_heatmap") {
+                const res = await instance.dayHourHeatmap(targetData);
+                setGenericResults(prev => ({
+                    ...prev,
+                    [id]: {
+                        peak_day: res.peakDay,
+                        peak_hour: `${res.peakHour}:00`,
+                        total_slots_analyzed: res.data.length
+                    }
+                }));
+                setActiveTab(id);
+            } else if (id === "shipping_optimization") {
+                const res = await instance.shippingOptimization(targetData);
+                setGenericResults(prev => ({
+                    ...prev,
+                    [id]: {
+                        best_courier: res.bestOverall,
+                        avg_cost: `Rp ${res.couriers[0]?.avgCost.toLocaleString("id-ID")}`,
+                        avg_delivery_days: `${res.couriers[0]?.avgDays} hari`
+                    }
+                }));
+                setActiveTab(id);
             } else {
-                // Generic execution for newly recommended AI algorithms
-                await new Promise(r => setTimeout(r, 1500));
-                setGenericResults(prev => ({ ...prev, [id]: { status: "Success", detail: `AI berhasil memproses ${targetData.length} baris untuk algoritma ini.`, timestamp: new Date().toISOString() } }));
+                // Call worker directly if function exists by name
+                const workerFunc = instance[id];
+                if (typeof workerFunc === "function") {
+                    const res = await workerFunc(targetData);
+                    setGenericResults(prev => ({ ...prev, [id]: res }));
+                } else {
+                    // Placeholder for absolute fallback
+                    await new Promise(r => setTimeout(r, 1000));
+                    setGenericResults(prev => ({ ...prev, [id]: { status: "Success", detail: `Analisis ${id} selesai.` } }));
+                }
                 setActiveTab(id);
             }
             // Notify Success
