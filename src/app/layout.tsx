@@ -46,8 +46,11 @@ export const metadata: Metadata = {
     description: "15 algoritma ML + AI narasi. Upload Excel, dapatkan insight bisnis dalam 30 detik.",
   },
   icons: {
-    icon: "/logo-icon.png",
-    shortcut: "/logo-icon.png",
+    icon: [
+      { url: "/logo-icon.svg", type: "image/svg+xml" },
+      { url: "/logo-icon.png", type: "image/png" },
+    ],
+    shortcut: "/logo-icon.svg",
     apple: "/logo-icon.png",
   },
   robots: {
