@@ -3,21 +3,28 @@ import Dexie, { type Table } from "dexie";
 // Universal schema record for local storage
 export interface DataRecord {
     id?: number;
-    data: Record<string, any>; // Stores the entire parsed JSON row
+    data: Record<string, any>;
+}
+
+export interface ColumnMapping {
+    id: string; // The platform name, e.g., "shopee"
+    mapping: Record<string, string>;
+    updatedAt: number;
 }
 
 export class SimbisDatabase extends Dexie {
     salesData!: Table<DataRecord, number>;
+    mappings!: Table<ColumnMapping, string>;
 
     constructor() {
         super("SimbisDatabase");
 
         // Define schema
-        this.version(3).stores({
-            salesData: "++id", // Auto-incremented primary key
+        this.version(4).stores({
+            salesData: "++id",
+            mappings: "id",
         }).upgrade(tx => {
-            // Note: Schema version upgraded to v3 to drop the SaaS mock tables 
-            // since Authentication has now been migrated to the cloud (Turso/Drizzle)
+            // Version 4: Add mappings table
         });
     }
 
@@ -34,6 +41,19 @@ export class SimbisDatabase extends Dexie {
     async getAllData(): Promise<Record<string, any>[]> {
         const records = await this.salesData.toArray();
         return records.map((r) => r.data);
+    }
+
+    async getMapping(platform: string): Promise<Record<string, string> | null> {
+        const record = await this.mappings.get(platform);
+        return record ? record.mapping : null;
+    }
+
+    async saveMapping(platform: string, mapping: Record<string, string>) {
+        await this.mappings.put({
+            id: platform,
+            mapping,
+            updatedAt: Date.now()
+        });
     }
 
     // Check if data exists

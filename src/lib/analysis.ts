@@ -108,15 +108,6 @@ function getNum(row: any, key: string, fallbacks: string[] = []): number {
     // Remove "Rp", space, etc.
     str = str.replace(/rp/gi, "").trim();
 
-    // If it contains only a dot and it looks like it had exactly 2 or 3 digits after the dot, 
-    // Excel might have treated IDR thousand separator as a decimal! e.g., `93.06` -> means 93,060
-    // Let's check how many digits are after the dot.
-    const parts = str.split(".");
-    if (parts.length === 2 && parts[1].length <= 3) {
-        // Pad to 3 zeros. e.g. "93.06" -> "93.060" -> "93060"
-        str = parts[0] + parts[1].padEnd(3, '0');
-    }
-
     // Now clean it conventionally
     const cleanStr = str.replace(/[^\d.,\-]/g, "").replace(/,/g, ".");
     return parseFloat(cleanStr) || 0;

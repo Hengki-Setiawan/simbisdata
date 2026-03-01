@@ -59,29 +59,57 @@ export function cleanData(rows: Record<string, any>[]): { cleaned: Record<string
     for (const col of columns) {
         const values = cleaned.map((r) => r[col]).filter((v) => v != null && v !== "");
         const hasNumeric = values.some((v) => {
+            if (typeof v === "number") return true;
             const s = String(v).replace(numericPatterns, "").replace(/\s/g, "").replace(/\./g, "").replace(/,/g, ".");
             return !isNaN(parseFloat(s)) && s.length > 0;
         });
 
         // Check if this column looks like it should be numeric
         const looksNumeric = values.filter((v) => {
+            if (typeof v === "number") return true;
             const s = String(v).replace(numericPatterns, "").replace(/\s/g, "").replace(/\./g, "").replace(/,/g, ".");
             return !isNaN(parseFloat(s));
-        }).length > values.length * 0.4; // Lower threshold to 40% to catch messy currency columns
+        }).length > values.length * 0.4;
 
         if (looksNumeric && hasNumeric) {
             let fixed = 0;
             cleaned = cleaned.map((row) => {
                 const val = row[col];
                 if (val == null || val === "") return row;
+
+                // If it's already a number, keep it as is (don't strip dots!)
+                if (typeof val === "number") return row;
+
                 const str = String(val);
-                // Remove currency symbols & thousand separators (Indonesian format assumes . is thousand, , is decimal)
-                // Also handles spaces like "Rp 1 000 000"
-                const cleaned_str = str.replace(numericPatterns, "").replace(/\s/g, "").replace(/\./g, "").replace(/,/g, ".").trim();
+                // Remove currency symbols & handle thousands/decimals
+                // If string contains both . and , (e.g. 1.000,50), remove . and turn , to .
+                // If string contains ONLY . and it has 3 digits after it, it's likely a thousand separator
+                // If it's Shopee format like "93.060", parseFloat will handle it correctly if we keep the dot.
+
+                let cleaned_str = str.replace(numericPatterns, "").replace(/\s/g, "").trim();
+
+                // Smart separator detection for Indonesian/International formats
+                if (cleaned_str.includes(".") && cleaned_str.includes(",")) {
+                    // 1.000,50 -> remove . then replace , with .
+                    cleaned_str = cleaned_str.replace(/\./g, "").replace(/,/g, ".");
+                } else if (cleaned_str.includes(",")) {
+                    // 1000,50 -> replace , with .
+                    cleaned_str = cleaned_str.replace(/,/g, ".");
+                } else if (cleaned_str.includes(".")) {
+                    // Only dots. Check if it's a thousand separator or decimal.
+                    // Shopee exports sometimes use . as thousand separator but JS reads it as decimal.
+                    // If there are exactly 3 digits after the LAST dot, treat it as thousand separator.
+                    const lastDotIdx = cleaned_str.lastIndexOf(".");
+                    const digitsAfter = cleaned_str.length - lastDotIdx - 1;
+                    if (digitsAfter === 3) {
+                        cleaned_str = cleaned_str.replace(/\./g, "");
+                    }
+                    // Else: keep the dot as decimal
+                }
+
                 const num = parseFloat(cleaned_str);
 
-                // Extra safety: If it's a valid number but original was a string with symbols
-                if (!isNaN(num) && (str !== String(num) || typeof val === "string")) {
+                if (!isNaN(num)) {
                     fixed++;
                     return { ...row, [col]: num };
                 }

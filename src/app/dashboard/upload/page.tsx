@@ -74,6 +74,7 @@ export default function UploadPage() {
     const [unresolvedIssues, setUnresolvedIssues] = useState<CleaningIssue[]>([]);
     const [isRepairing, setIsRepairing] = useState(false);
     const [showAdvice, setShowAdvice] = useState(false);
+    const [detectedPlatform, setDetectedPlatform] = useState<string>("generic");
 
     // Step updater helper
     const updateStep = (stepId: string, status: ProcessingStep["status"], detail?: string) => {
@@ -149,18 +150,32 @@ export default function UploadPage() {
             // === Step 3: Platform Detection ===
             updateStep("detect", "running", "Mendeteksi platform...");
             const { detectPlatform } = await import("@/lib/platform-detector");
-            const platform = detectPlatform(Object.keys(cleaned[0] || {}));
-            updateStep("detect", "done", `${platform.icon} ${platform.label} (${Math.round(platform.confidence * 100)}%)`);
+            const platformResult = detectPlatform(Object.keys(cleaned[0] || {}));
+            setDetectedPlatform(platformResult.platform);
+            updateStep("detect", "done", `${platformResult.icon} ${platformResult.label} (${Math.round(platformResult.confidence * 100)}%)`);
 
             // === Step 4: Column Mapping ===
             updateStep("map", "running", "Memetakan kolom...");
-            const mappings = autoMapColumns(cleaned);
-            // Check corrections store for better mappings
-            for (let i = 0; i < mappings.length; i++) {
-                if (!mappings[i].mappedTo || mappings[i].confidence < 0.6) {
-                    const saved = await lookupColumnCorrection(mappings[i].originalName);
-                    if (saved) {
-                        mappings[i] = { ...mappings[i], mappedTo: saved, confidence: 0.93 };
+            let mappings = autoMapColumns(cleaned);
+
+            // Check Database for specific saved mapping for this platform
+            const savedDbMapping = await db.getMapping(platformResult.platform);
+            if (savedDbMapping) {
+                mappings = mappings.map(m => {
+                    if (savedDbMapping[m.originalName]) {
+                        return { ...m, mappedTo: savedDbMapping[m.originalName], confidence: 1.0 };
+                    }
+                    return m;
+                });
+                console.log(`Applied saved database mapping for ${platformResult.platform}`);
+            } else {
+                // Fallback to corrections store if no platform-wide mapping
+                for (let i = 0; i < mappings.length; i++) {
+                    if (!mappings[i].mappedTo || mappings[i].confidence < 0.6) {
+                        const saved = await lookupColumnCorrection(mappings[i].originalName);
+                        if (saved) {
+                            mappings[i] = { ...mappings[i], mappedTo: saved, confidence: 0.93 };
+                        }
                     }
                 }
             }
@@ -302,6 +317,16 @@ export default function UploadPage() {
     const handleAnalyze = async () => {
         setProcessing(true);
         const mapped = applyMapping(rawRows, columnMappings);
+
+        // Save current mapping to database for this platform
+        const currentMappingRecord: Record<string, string> = {};
+        columnMappings.forEach(m => {
+            if (m.mappedTo) currentMappingRecord[m.originalName] = m.mappedTo;
+        });
+        if (Object.keys(currentMappingRecord).length > 0) {
+            await db.saveMapping(detectedPlatform, currentMappingRecord);
+        }
+
         await db.saveNewData(mapped);
         router.push("/dashboard");
     };
