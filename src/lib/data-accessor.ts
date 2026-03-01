@@ -96,7 +96,51 @@ export function getFieldStr(row: any, key: string, fallbacks: string[] = []): st
  */
 export function getFieldDate(row: any, key: string, fallbacks: string[] = []): Date | null {
     const val = getFieldValue(row, key, fallbacks);
-    if (!val) return null;
+    if (val === undefined || val === null || val === "") return null;
+
+    // 1. Handle Excel Serial Date (e.g., 44927) or Unix Timestamps
+    if (typeof val === 'number' || (typeof val === 'string' && /^\d+(\.\d+)?$/.test(val))) {
+        const num = Number(val);
+        // Valid Excel Date typical range (year ~1954 to ~2173) -> (20000 to 100000)
+        if (num > 20000 && num < 100000) {
+            const date = new Date((Math.floor(num) - 25569) * 86400 * 1000);
+            return isNaN(date.getTime()) ? null : date;
+        }
+        // If Unix timestamp in ms or s
+        if (num > 1000000000) {
+            const dMs = new Date(num);
+            if (dMs.getFullYear() === 1970) { // likely timestamp was in seconds
+                const dS = new Date(num * 1000);
+                return isNaN(dS.getTime()) ? null : dS;
+            }
+            return isNaN(dMs.getTime()) ? null : dMs;
+        }
+    }
+
+    // 2. Handle DD/MM/YYYY or DD-MM-YYYY formats safely
+    if (typeof val === 'string') {
+        const str = val.trim();
+        // Regex to capture DD/MM/YYYY or DD-MM-YYYY (and optional time)
+        const dmyMatch = str.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+        if (dmyMatch) {
+            const [_, day, month, year] = dmyMatch;
+            const rest = str.substring(dmyMatch[0].length);
+            // Construct standard ISO string for parsing
+            const formatted = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}${rest}`;
+            const d = new Date(formatted);
+            if (!isNaN(d.getTime())) return d;
+        }
+    }
+
+    // 3. Fallback to native JS Date parser
     const d = new Date(val);
-    return isNaN(d.getTime()) ? null : d;
+    if (!isNaN(d.getTime())) {
+        const yr = d.getFullYear();
+        // Ensure parsed year is reasonable for E-Commerce / modern systems to avoid 1970 fallback
+        if (yr > 2000 && yr <= new Date().getFullYear() + 5) {
+            return d;
+        }
+    }
+
+    return null;
 }
