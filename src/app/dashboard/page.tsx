@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Upload, Brain, Loader2, FileDown, Sparkles } from "lucide-react";
+import { Upload, Brain, Loader2, FileDown, Sparkles, FileText } from "lucide-react";
 import Link from "next/link";
 import {
     AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer,

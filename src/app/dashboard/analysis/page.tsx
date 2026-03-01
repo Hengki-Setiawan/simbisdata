@@ -210,17 +210,29 @@ export default function AnalysisPage() {
                                     {rec.description}
                                 </p>
                                 <button
-                                    onClick={() => !isDone && !isRunning && runAlgorithm(rec.id)}
-                                    disabled={isRunning || Boolean(isDone)}
+                                    onClick={() => isDone ? setActiveTab(rec.id) : !isRunning && runAlgorithm(rec.id)}
+                                    disabled={isRunning}
                                     className="btn-primary"
                                     style={{
                                         width: "100%", padding: "6px", fontSize: "0.8rem",
-                                        background: isDone ? "var(--bg-surface)" : isRunning ? "var(--bg-surface)" : "var(--primary)",
-                                        color: isDone || isRunning ? "var(--text-secondary)" : "white",
-                                        cursor: isDone || isRunning ? "default" : "pointer"
+                                        background: isRunning ? "var(--bg-surface)" : isDone ? "var(--success)" : "var(--primary)",
+                                        color: isRunning ? "var(--text-secondary)" : "white",
+                                        cursor: isRunning ? "default" : "pointer",
+                                        border: "none", borderRadius: "8px", fontWeight: 600,
+                                        transition: "all 0.2s ease"
                                     }}
                                 >
-                                    {isRunning ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}><Loader2 size={12} className="spin" /> Memproses... {rec.estimatedTime}</span> : isDone ? "Lihat Hasil (Selesai)" : "Jalankan Manual"}
+                                    {isRunning ? (
+                                        <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                                            <Loader2 size={12} className="spin" /> Memproses...
+                                        </span>
+                                    ) : isDone ? (
+                                        <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                                            Lihat Hasil (Selesai)
+                                        </span>
+                                    ) : (
+                                        "Jalankan Analisis"
+                                    )}
                                 </button>
                             </div>
                         );

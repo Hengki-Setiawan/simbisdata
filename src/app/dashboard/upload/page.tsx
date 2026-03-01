@@ -284,7 +284,9 @@ export default function UploadPage() {
         const mappings = autoMapColumns(finalData);
         setColumnMappings(mappings);
 
-        db.saveNewData(finalData).catch(console.error);
+        db.saveNewData(finalData).then(() => {
+            addToast("Data berhasil dibersihkan dan disimpan!", "success");
+        }).catch(console.error);
     };
 
     // AI-powered repair for complex issues

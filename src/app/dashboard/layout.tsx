@@ -15,6 +15,7 @@ import {
     MapPin,
     Lock,
     CreditCard,
+    LayoutDashboard,
 } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ui/theme-provider";
@@ -22,6 +23,7 @@ import { ThemeToggle } from "@/components/ui/theme-provider";
 const menuItems = [
     { label: "Beranda", href: "/dashboard", icon: Home },
     { label: "Upload Data", href: "/dashboard/upload", icon: Upload },
+    { label: "Data Studio", href: "/dashboard/data-studio", icon: LayoutDashboard },
     { label: "Analisis", href: "/dashboard/analysis", icon: Brain },
     { label: "Peta Wilayah", href: "/dashboard/regional", icon: MapPin },
     { label: "Riwayat", href: "/dashboard/history", icon: History },
