@@ -100,11 +100,7 @@ export default function UploadPage() {
             const count = await getMonthlyUploadCount(parseInt(session.user.id));
             if (count >= limits.uploadsPerMonth) {
                 setError(`Batas upload bulanan tercapai (${limits.uploadsPerMonth}). Borong paket Pro untuk upload sepuasnya!`);
-                addToast({
-                    title: "Limit Tercapai",
-                    description: `Paket ${userTier} Anda hanya mengizinkan ${limits.uploadsPerMonth} upload per bulan.`,
-                    type: "error"
-                });
+                addToast(`Limit Tercapai: Paket ${userTier} Anda hanya mengizinkan ${limits.uploadsPerMonth} upload per bulan.`, "error");
                 return;
             }
         }
@@ -165,11 +161,7 @@ export default function UploadPage() {
                 setError(`File terlalu besar (${mergedJson.length.toLocaleString()} baris). Paket ${userTier} Anda maksimal ${limits.maxRowsPerFile.toLocaleString()} baris.`);
                 setProcessing(false);
                 updateStep("parse", "error", "Limit baris terlampaui");
-                addToast({
-                    title: "Baris Melampaui Limit",
-                    description: `Maksimal ${limits.maxRowsPerFile.toLocaleString()} baris untuk paket ${userTier}.`,
-                    type: "error"
-                });
+                addToast(`Baris Melampaui Limit: Maksimal ${limits.maxRowsPerFile.toLocaleString()} baris untuk paket ${userTier}.`, "error");
                 return;
             }
 

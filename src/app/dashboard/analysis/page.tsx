@@ -7,6 +7,7 @@ import {
     Loader2, Upload, ChevronRight, Activity, Sparkles
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis,
@@ -36,6 +37,7 @@ const tooltipStyle = {
 
 export default function AnalysisPage() {
     const { addToast } = useToast();
+    const router = useRouter();
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [rawData, setRawData] = useState<Record<string, unknown>[] | null>(null);
@@ -101,11 +103,7 @@ export default function AnalysisPage() {
         const recIndex = currentRecs.findIndex(r => r.id === id);
 
         if (recIndex >= limits.mlAlgorithms && limits.mlAlgorithms !== Infinity) {
-            addToast({
-                title: "Fitur Terkunci",
-                description: `Paket ${userTier} Anda hanya mengizinkan ${limits.mlAlgorithms} algoritma teratas. Silakan upgrade paket.`,
-                type: "warning"
-            });
+            addToast(`Fitur Terkunci: Paket ${userTier} Anda hanya mengizinkan ${limits.mlAlgorithms} algoritma teratas. Silakan upgrade paket.`, "info");
             return;
         }
 
@@ -180,7 +178,7 @@ export default function AnalysisPage() {
                 setGenericResults(prev => ({
                     ...prev,
                     [id]: {
-                        top_patterns: res.rules.slice(0, 5).map(r => `${r.antecedent} → ${r.consequent} (Lift: ${r.lift.toFixed(2)})`),
+                        top_patterns: res.rules.slice(0, 5).map((r: any) => `${r.antecedent} → ${r.consequent} (Lift: ${r.lift.toFixed(2)})`),
                         total_rules_found: res.rules.length
                     }
                 }));
@@ -202,9 +200,9 @@ export default function AnalysisPage() {
                     ...prev,
                     [id]: {
                         strongest_correlations: res.matrix
-                            .filter(m => m.row !== m.col && Math.abs(m.value) > 0.5)
+                            .filter((m: any) => m.row !== m.col && Math.abs(m.value) > 0.5)
                             .slice(0, 5)
-                            .map(m => `${m.row} vs ${m.col}: ${(m.value * 100).toFixed(0)}%`),
+                            .map((m: any) => `${m.row} vs ${m.col}: ${(m.value * 100).toFixed(0)}%`),
                         total_variables: res.fields.length
                     }
                 }));
@@ -216,7 +214,7 @@ export default function AnalysisPage() {
                     [id]: {
                         avg_lifetime_value: `Rp ${res.avgCLV.toLocaleString("id-ID")}`,
                         top_customer: res.customers[0]?.name || "N/A",
-                        total_segments: new Set(res.customers.map(c => c.segment)).size
+                        total_segments: new Set(res.customers.map((c: any) => c.segment)).size
                     }
                 }));
                 setActiveTab(id);
