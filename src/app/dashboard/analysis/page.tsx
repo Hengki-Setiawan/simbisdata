@@ -434,22 +434,56 @@ export default function AnalysisPage() {
                     </div>
 
                     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "16px" }}>
-                        {Object.entries(genericResults[activeTab]).map(([key, value]) => (
-                            <div key={key} className="glass-card" style={{ padding: "20px", borderTop: "3px solid var(--primary-light)" }}>
-                                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textTransform: "capitalize", marginBottom: "8px" }}>
-                                    {key.replace(/_/g, ' ')}
-                                </p>
-                                <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "white", wordBreak: "break-word" }}>
-                                    {typeof value === 'object' ? (
-                                        <pre style={{ fontSize: "0.75rem", background: "rgba(0,0,0,0.2)", padding: "8px", borderRadius: "6px", color: "var(--text-secondary)" }}>
-                                            {JSON.stringify(value, null, 2)}
-                                        </pre>
-                                    ) : (
-                                        String(value)
+                        {Object.entries(genericResults[activeTab]).map(([key, value]) => {
+                            // Define actionable translations for common raw JSON keys returned by backend/ml worker
+                            const titleMappings: Record<string, string> = {
+                                "score": "Tingkat Kecocokan/Skor",
+                                "total_analyzed": "Total Data Dianalisis",
+                                "source_column": "Sumber Kolom Data",
+                                "positive": "Persentase Positif",
+                                "neutral": "Persentase Netral",
+                                "negative": "Persentase Negatif",
+                                "status": "Status Analisis",
+                            };
+
+                            const actionableAdvice: Record<string, string> = {
+                                "sentiment_analysis": "Skor sentimen di atas 70% menunjukkan dominasi ulasan positif. Fokus pertahankan kualitas pengiriman dan produk. Jika skor negatif tinggi, analisis produk yang paling banyak diretur.",
+                                "lstm_forecast": "Angka prediksi ini menunjukkan perkiraan nilai 30 hari ke depan. Siapkan persediaan (restock) jika grafiknya cenderung naik tajam.",
+                                "day_hour_heatmap": "Jadwalkan peluncuran diskon (Flash Sale) atau promosi iklan Anda tepat pada jam dan hari dengan aktivitas tertinggi ini untuk memaksimalkan ROI.",
+                                "price_sensitivity": "Gunakan rentang harga optimal yang ditemukan ini untuk menetapkan harga diskon agar tetap menghasilkan keuntungan (margin) tertinggi tanpa mengurangi volume pembelian.",
+                                "association_rules": "Buat program 'Beli A Diskon B' (Bundling) menggunakan pasangan produk yang sering dibeli bersamaan pada hasil ini.",
+                                "correlation_matrix": "Nilai korelasi positif yang tinggi (>0.7) berarti kedua hal tersebut sangat berhubungan (misal: Diskon besar -> Angka penjualan naik tajam)."
+                            };
+
+                            const displayTitle = titleMappings[key] || key.replace(/_/g, ' ');
+                            const adviceText = actionableAdvice[activeTab];
+
+                            return (
+                                <div key={key} className="glass-card" style={{ padding: "20px", borderTop: "3px solid var(--primary-light)" }}>
+                                    <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", textTransform: "capitalize", marginBottom: "8px" }}>
+                                        {displayTitle}
+                                    </p>
+                                    <div style={{ fontSize: "1.4rem", fontWeight: 800, color: "white", wordBreak: "break-word" }}>
+                                        {typeof value === 'object' ? (
+                                            <pre style={{ fontSize: "0.75rem", background: "rgba(0,0,0,0.2)", padding: "12px", borderRadius: "8px", color: "var(--text-secondary)", overflowX: "auto", border: "1px solid rgba(255,255,255,0.05)" }}>
+                                                {JSON.stringify(value, null, 2)}
+                                            </pre>
+                                        ) : (
+                                            <span style={{ color: typeof value === 'number' && key.includes('score') && value > 70 ? 'var(--success)' : 'inherit' }}>
+                                                {String(value)}
+                                            </span>
+                                        )}
+                                    </div>
+                                    {/* Actionable Advice Injection based on activeTab (the ML rec ID) */}
+                                    {adviceText && key === Object.keys(genericResults[activeTab])[0] && (
+                                        <div style={{ marginTop: "16px", padding: "12px", background: "rgba(99,102,241,0.1)", borderRadius: "8px", borderLeft: "3px solid var(--primary)" }}>
+                                            <h4 style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--primary-light)", marginBottom: "4px" }}>💡 Rekomendasi Bisnis:</h4>
+                                            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", lineHeight: 1.5 }}>{adviceText}</p>
+                                        </div>
                                     )}
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </motion.div>
             )}
