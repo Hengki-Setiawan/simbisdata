@@ -119,6 +119,7 @@ export async function POST(request: Request) {
         return NextResponse.json({
             results: results.slice(0, 100), // Limit response size
             summary,
+            average: summary.avgScore, // Added for backward compatibility
             wordFrequencies: wordFreqs.slice(0, 30),
             totalAnalyzed: texts.length
         });

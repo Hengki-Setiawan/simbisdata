@@ -1,7 +1,7 @@
 import { AnalysisResult } from "@/lib/analysis";
 
 export function generatePremiumPDFHTML(analysis: AnalysisResult, aiNarration?: string): string {
-  const formatRp = (num: number) => `Rp ${(num * 1000).toLocaleString("id-ID")}`;
+  const formatRp = (num: number) => `Rp ${num.toLocaleString("id-ID")}`;
   const o = analysis.overview;
 
   return `<!DOCTYPE html>

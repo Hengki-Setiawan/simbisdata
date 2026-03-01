@@ -62,68 +62,7 @@ export interface AnalysisResult {
     };
 }
 
-import { UNIVERSAL_FIELDS, type UniversalField } from "./column-mapper";
-
-// Smart field getter — tries universal key first, then common Shopee names, then generic
-function getField(row: any, universalKey: string, fallbacks: string[] = []): any {
-    // 1. Try exact match on raw column name
-    if (row[universalKey] !== undefined) return row[universalKey];
-
-    // 2. Try match on mapped Universal Label (e.g. "Total Pembayaran")
-    const universalLabel = UNIVERSAL_FIELDS[universalKey as UniversalField];
-    if (universalLabel && row[universalLabel] !== undefined) return row[universalLabel];
-
-    // 3. Try custom fallbacks
-    for (const fb of fallbacks) {
-        if (row[fb] !== undefined) return row[fb];
-    }
-
-    // 4. Try case-insensitive fallback across all keys
-    const rowKeys = Object.keys(row);
-    const searchKeys = [universalKey, universalLabel, ...fallbacks].filter(Boolean).map(k => String(k).toLowerCase());
-    for (const key of rowKeys) {
-        if (searchKeys.includes(key.toLowerCase())) return row[key];
-    }
-
-    return undefined;
-}
-
-function getNum(row: any, key: string, fallbacks: string[] = []): number {
-    const val = getField(row, key, fallbacks);
-    if (val == null || val === "" || val === "-") return 0;
-
-    if (typeof val === "number") return val;
-
-    let str = String(val).trim();
-
-    // Convert Indonesian Shopee weird formats
-    // e.g., "93.06" -> 93.06 -> but Shopee means 93,060 Rp
-    // Wait, in Shopee export: "93.06" means 93 + 60/100 = wait no, usually it's "93.06" when the price is originally 93,060 but parsed by Excel JS as 93.06.
-    // If the string from excel literally says 93.06 and we need a bigger number. Let's just remove non-digits if it matches Rp format.
-    // Actually, in the test, we saw EXACTLY 93.06. When user downloads shopee, "93.06" means 93,060?
-    // Let's strip the dot if there are 3 decimal places. If there's 1 or 2, Excel might have truncated "93.060" into "93.06".
-    // Better logic: if it parses to < 1000 and the file is e-commerce, it might be in thousands. We will multiply by 1000 dynamically based on typical ticket sizes.
-    // For now, let's just parse float safely.
-
-    // Remove "Rp", space, etc.
-    str = str.replace(/rp/gi, "").trim();
-
-    // Now clean it conventionally
-    const cleanStr = str.replace(/[^\d.,\-]/g, "").replace(/,/g, ".");
-    return parseFloat(cleanStr) || 0;
-}
-
-function getStr(row: any, key: string, fallbacks: string[] = []): string {
-    const val = getField(row, key, fallbacks);
-    return val != null ? String(val).trim() : "";
-}
-
-function getDate(row: any, key: string, fallbacks: string[] = []): Date | null {
-    const val = getField(row, key, fallbacks);
-    if (!val) return null;
-    const d = new Date(val);
-    return isNaN(d.getTime()) ? null : d;
-}
+import { getFieldValue, getFieldNum as getNum, getFieldStr as getStr, getFieldDate as getDate } from "./data-accessor";
 
 export function analyzeData(rows: any[]): AnalysisResult {
     const totalOrders = rows.length;

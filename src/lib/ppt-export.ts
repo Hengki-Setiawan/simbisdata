@@ -11,7 +11,7 @@ export async function generatePPTX(analysis: AnalysisResult, aiNarration?: strin
     pptx.subject = "Laporan Analisis Data Penjualan";
     pptx.title = "SimbisData Export";
 
-    const formatRp = (num: number) => `Rp ${(num * 1000).toLocaleString("id-ID")}`;
+    const formatRp = (num: number) => `Rp ${num.toLocaleString("id-ID")}`;
 
     // ---------------------------------------------------------
     // SLIDE 1: TITLE

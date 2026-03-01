@@ -17,8 +17,8 @@ export function exportToExcel(rows: any[], analysis: AnalysisResult, aiNarration
         [""],
         ["Metrik", "Nilai"],
         ["Total Baris/Pesanan", analysis.overview.totalOrders],
-        ["Total Revenue", `Rp ${(analysis.overview.totalRevenue * 1000).toLocaleString("id-ID")}`],
-        ["Rata-rata Order", `Rp ${(analysis.overview.avgOrderValue * 1000).toLocaleString("id-ID")}`],
+        ["Total Revenue", `Rp ${analysis.overview.totalRevenue.toLocaleString("id-ID")}`],
+        ["Rata-rata Order", `Rp ${analysis.overview.avgOrderValue.toLocaleString("id-ID")}`],
         ["Return Rate", `${analysis.overview.returnRate.toFixed(1)}%`],
         ["Growth Rate", `${analysis.overview.growthRate.toFixed(1)}%`],
         ["Periode Mulai", analysis.overview.dateRange.start],
@@ -36,7 +36,7 @@ export function exportToExcel(rows: any[], analysis: AnalysisResult, aiNarration
     };
 
     addSheetIfData(analysis.productPerformance, ["Nama Produk", "Jumlah", "Revenue", "Persentase"], "Produk",
-        (p) => [p.name, p.count, `Rp ${(p.revenue * 1000).toLocaleString("id-ID")}`, `${p.percentage.toFixed(1)}%`]);
+        (p) => [p.name, p.count, `Rp ${p.revenue.toLocaleString("id-ID")}`, `${p.percentage.toFixed(1)}%`]);
 
     addSheetIfData(analysis.regionalAnalysis, ["Provinsi", "Jumlah", "Persentase"], "Wilayah",
         (r) => [r.province, r.count, `${r.percentage.toFixed(1)}%`]);

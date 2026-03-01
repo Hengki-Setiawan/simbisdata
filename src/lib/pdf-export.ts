@@ -27,7 +27,7 @@ export function generatePDFReport(analysis: AnalysisResult, aiNarration?: string
         y += 8;
     };
 
-    const formatRp = (num: number) => `Rp ${(num * 1000).toLocaleString("id-ID")}`;
+    const formatRp = (num: number) => `Rp ${num.toLocaleString("id-ID")}`;
 
     // Header
     doc.setFillColor(15, 15, 35);
@@ -185,7 +185,7 @@ export function generatePDFReport(analysis: AnalysisResult, aiNarration?: string
 }
 
 export function generatePremiumPDFHTML(analysis: AnalysisResult, aiNarration?: string): string {
-    const formatRp = (num: number) => `Rp ${(num * 1000).toLocaleString("id-ID")}`;
+    const formatRp = (num: number) => `Rp ${num.toLocaleString("id-ID")}`;
 
     // Basic HTML structure with styling for the premium PDF
     let html = `

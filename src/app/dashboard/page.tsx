@@ -372,9 +372,9 @@ Berikan analisis mendalam dalam bahasa Indonesia yang mudah dipahami, insight te
 
             {/* KPI Cards */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "24px" }}>
-                <KPICard icon={DollarSign} label="Total Revenue" value={formatRupiah(overview.totalRevenue * 1000)} sub={`${overview.growthRate >= 0 ? "↑" : "↓"} ${Math.abs(overview.growthRate).toFixed(1)}%`} color="var(--success)" delay={0} />
+                <KPICard icon={DollarSign} label="Total Revenue" value={formatRupiah(overview.totalRevenue)} sub={`${overview.growthRate >= 0 ? "↑" : "↓"} ${Math.abs(overview.growthRate).toFixed(1)}%`} color="var(--success)" delay={0} />
                 <KPICard icon={Package} label="Total Pesanan" value={overview.totalOrders.toLocaleString()} sub={`${productPerformance.length} produk`} color="var(--primary)" delay={0.1} />
-                <KPICard icon={TrendingUp} label="Rata-rata Order" value={formatRupiah(overview.avgOrderValue * 1000)} sub="per pesanan" color="var(--accent)" delay={0.2} />
+                <KPICard icon={TrendingUp} label="Rata-rata Order" value={formatRupiah(overview.avgOrderValue)} sub="per pesanan" color="var(--accent)" delay={0.2} />
                 <KPICard icon={RotateCcw} label="Return Rate" value={`${overview.returnRate.toFixed(1)}%`} sub={overview.returnRate < 2 ? "✅ Sangat baik" : "⚠️ Perlu perhatian"} color={overview.returnRate < 2 ? "var(--success)" : "var(--warning)"} delay={0.3} />
             </div>
 

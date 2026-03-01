@@ -106,13 +106,25 @@ export default function AnalysisPage() {
                 setCohort(res);
                 setActiveTab("cohort_analysis");
             } else if (id === "sentiment_analysis") {
-                const textCol = Object.keys(targetData[0]).find(k => typeof targetData[0][k] === "string" && targetData[0][k].length > 15) || Object.keys(targetData[0])[0];
+                const textCol = Object.keys(targetData[0]).find(k => {
+                    const val = targetData[0][k];
+                    return typeof val === "string" && val.length > 15 && !k.toLowerCase().includes("id") && !k.toLowerCase().includes("url");
+                }) || Object.keys(targetData[0])[0];
+
                 const texts = targetData.map(d => d[textCol]).filter(Boolean).slice(0, 50);
                 const res = await fetch("/api/sentiment", {
                     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ texts })
                 });
                 const data = await res.json();
-                setGenericResults(prev => ({ ...prev, [id]: data.summary || { status: "OK", score: data.average } }));
+                setGenericResults(prev => ({
+                    ...prev,
+                    [id]: {
+                        ...(data.summary || {}),
+                        score: (data.average !== undefined ? data.average : (data.summary?.avgScore || 0)).toFixed(2),
+                        total_analyzed: data.totalAnalyzed,
+                        source_column: textCol
+                    }
+                }));
                 setActiveTab(id);
             } else {
                 // Generic execution for newly recommended AI algorithms
@@ -285,7 +297,7 @@ export default function AnalysisPage() {
                                 ⚠️ {anomalies.anomalies.length} Anomali Terdeteksi
                             </h3>
                             <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-                                dari {anomalies.totalChecked} pesanan | threshold: Rp {(anomalies.threshold * 1000).toLocaleString("id-ID")}
+                                dari {anomalies.totalChecked} pesanan | threshold: Rp {anomalies.threshold.toLocaleString("id-ID")}
                             </span>
                         </div>
                         <ResponsiveContainer width="100%" height={200}>
@@ -307,7 +319,7 @@ export default function AnalysisPage() {
                                 borderBottom: "1px solid var(--border-color)", fontSize: "0.85rem",
                             }}>
                                 <span style={{ color: "var(--text-secondary)", flex: 1 }}>{a.product}</span>
-                                <span style={{ fontWeight: 700, marginRight: "16px" }}>Rp {(a.value * 1000).toLocaleString("id-ID")}</span>
+                                <span style={{ fontWeight: 700, marginRight: "16px" }}>Rp {a.value.toLocaleString("id-ID")}</span>
                                 <span style={{ color: "var(--danger)", fontSize: "0.8rem" }}>Z-score: {a.score.toFixed(2)}</span>
                             </div>
                         ))}

@@ -345,6 +345,8 @@ function CustomTreemapContent(props: any) {
     );
 }
 
+import { getFieldValue, getFieldNum, getFieldStr } from "@/lib/data-accessor";
+
 // Helper: Aggregation logic for raw data based on chart recommendation
 function generateChartData(data: any[], rec: ChartRecommendation): any[] {
     const { xField, yField, categoryField } = rec;
@@ -353,9 +355,9 @@ function generateChartData(data: any[], rec: ChartRecommendation): any[] {
     if (xField && yField && !categoryField && (rec.type === "line" || rec.type === "area" || rec.type === "stacked_area")) {
         const map = new Map();
         data.forEach(row => {
-            let key = row[xField];
+            let key = getFieldValue(row, xField);
             if (key instanceof Date) key = key.toISOString().split('T')[0];
-            const val = Number(row[yField]) || 0;
+            const val = getFieldNum(row, yField) || 0;
             if (key) map.set(key, (map.get(key) || 0) + val);
         });
         const result = Array.from(map.entries()).map(([k, v]) => ({ [xField]: k, [yField]: v }));
@@ -366,8 +368,8 @@ function generateChartData(data: any[], rec: ChartRecommendation): any[] {
     if (categoryField && yField) {
         const map = new Map();
         data.forEach(row => {
-            const cat = String(row[categoryField] || "Unknown").trim();
-            const val = Number(row[yField]) || 1; // if value key not numeric, count it
+            const cat = getFieldStr(row, categoryField) || "Unknown";
+            const val = getFieldNum(row, yField) || 1; // if value key not numeric, count it
             map.set(cat, (map.get(cat) || 0) + val);
         });
         const result = Array.from(map.entries())
@@ -382,7 +384,7 @@ function generateChartData(data: any[], rec: ChartRecommendation): any[] {
         const wordCount = new Map();
 
         data.forEach(row => {
-            const text = String(row[textCol] || "").toLowerCase();
+            const text = getFieldStr(row, textCol).toLowerCase();
             // Split by words, remove short words and basic punctuation
             const words = text.split(/[\s,.-]+/).filter(w => w.length > 3);
             words.forEach(w => {
@@ -398,7 +400,7 @@ function generateChartData(data: any[], rec: ChartRecommendation): any[] {
 
     // Scatter plot (no aggregation)
     if (xField && yField && (rec.type === "scatter" || rec.type === "bubble")) {
-        return data.filter(d => d[xField] != null && d[yField] != null).slice(0, 500);
+        return data.filter(d => getFieldValue(d, xField) != null && getFieldValue(d, yField) != null).slice(0, 500);
     }
 
     // Fallback: assume data is already formatted or we just take top N rows
