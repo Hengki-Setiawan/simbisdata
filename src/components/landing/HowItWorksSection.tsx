@@ -32,7 +32,15 @@ export default function HowItWorksSection() {
                     Dari file Excel mentah menjadi insight bisnis profesional — tanpa skill coding atau data science.
                 </p>
 
-                <div style={{ display: "flex", gap: "32px", justifyContent: "center", flexWrap: "wrap", maxWidth: "1000px", margin: "0 auto", position: "relative" }}>
+                <div style={{
+                    display: "flex",
+                    gap: "32px",
+                    justifyContent: "center",
+                    flexWrap: "wrap",
+                    maxWidth: "1000px",
+                    margin: "40px auto 0 auto", // Increased top margin to 40px
+                    position: "relative"
+                }}>
                     {/* Connecting line */}
                     <div style={{ position: "absolute", top: "60px", left: "15%", right: "15%", height: "2px", background: "linear-gradient(90deg, var(--border-color), var(--primary), var(--border-color))", display: "none" }} className="connecting-line" />
 
