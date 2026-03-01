@@ -21,7 +21,7 @@ export default function Navbar() {
             <div className="container">
                 <div className="navbar-inner">
                     <Link href="/" className="navbar-logo">
-                        <img src="/logo.png" alt="SimbisData Logo" width={28} height={28} style={{ borderRadius: "4px" }} />
+                        <img src="/logo-icon.png" alt="SimbisData Logo" width={28} height={28} />
                         <span className="gradient-text">SimbisData</span>
                     </Link>
 
@@ -62,14 +62,22 @@ export default function Navbar() {
                     top: "100%",
                     left: 0,
                     right: 0,
-                    background: "var(--bg-card)",
+                    background: "rgba(15, 15, 35, 0.95)",
+                    backdropFilter: "blur(20px)",
                     borderBottom: "1px solid var(--border-color)",
                     padding: "24px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "24px",
                 }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                        <a href="#features" onClick={() => setMobileOpen(false)} style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Fitur</a>
-                        <a href="#algorithms" onClick={() => setMobileOpen(false)} style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Algoritma</a>
-                        <a href="#pricing" onClick={() => setMobileOpen(false)} style={{ color: "var(--text-secondary)", textDecoration: "none" }}>Harga</a>
+                        <a href="#features" onClick={() => setMobileOpen(false)} style={{ color: "var(--text-secondary)", textDecoration: "none", fontSize: "1.1rem" }}>Fitur</a>
+                        <a href="#algorithms" onClick={() => setMobileOpen(false)} style={{ color: "var(--text-secondary)", textDecoration: "none", fontSize: "1.1rem" }}>Algoritma</a>
+                        <a href="#pricing" onClick={() => setMobileOpen(false)} style={{ color: "var(--text-secondary)", textDecoration: "none", fontSize: "1.1rem" }}>Harga</a>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "12px", paddingTop: "16px", borderTop: "1px solid var(--border-color)" }}>
+                        <Link href="/login" className="btn-secondary" style={{ justifyContent: "center" }}>Masuk</Link>
+                        <Link href="/register" className="btn-primary" style={{ justifyContent: "center" }}>Daftar Gratis</Link>
                     </div>
                 </div>
             )}

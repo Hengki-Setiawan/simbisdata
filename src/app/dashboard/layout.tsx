@@ -83,7 +83,7 @@ export default function DashboardLayout({
                             gap: "10px",
                         }}
                     >
-                        <img src="/logo.png" alt="SimbisData Logo" width={24} height={24} style={{ borderRadius: "4px", flexShrink: 0 }} />
+                        <img src="/logo-icon.png" alt="SimbisData Logo" width={24} height={24} style={{ borderRadius: "4px", flexShrink: 0 }} />
                         {!collapsed && (
                             <span className="gradient-text" style={{ fontSize: "1.2rem", fontWeight: 800, whiteSpace: "nowrap" }}>
                                 SimbisData
@@ -195,7 +195,7 @@ export default function DashboardLayout({
                     overflowX: "hidden",
                     marginLeft: collapsed ? "72px" : "260px",
                     transition: "margin-left 0.3s ease",
-                    padding: "32px",
+                    padding: "24px 16px",
                     minHeight: "100vh",
                 }}
             >

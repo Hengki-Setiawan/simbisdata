@@ -16,9 +16,9 @@ interface SubItem {
     userEmail?: string;
 }
 
-const tierColors: Record<string, string> = { free: "#64748b", starter: "#6366f1", pro: "#10b981", enterprise: "#f59e0b" };
+const tierColors: Record<string, string> = { free: "#64748b", starter: "#6366f1", pro: "#10b981" };
 const statusColors: Record<string, string> = { active: "#10b981", expired: "#f59e0b", cancelled: "#ef4444" };
-const tierPrices: Record<string, number> = { starter: 29000, pro: 79000, enterprise: 199000 };
+const tierPrices: Record<string, number> = { starter: 29000, pro: 79000 };
 
 export default function AdminSubscriptionsPage() {
     const [subs, setSubs] = useState<SubItem[]>([]);
@@ -97,7 +97,7 @@ export default function AdminSubscriptionsPage() {
                         borderRadius: "var(--radius)", color: "var(--text-primary)", fontSize: "0.85rem",
                     }}>
                         <option value="all">Semua Plan</option><option value="starter">Starter</option>
-                        <option value="pro">Pro</option><option value="enterprise">Enterprise</option>
+                        <option value="pro">Pro</option>
                     </select>
                 </div>
             </div>

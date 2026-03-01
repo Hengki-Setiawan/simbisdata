@@ -44,12 +44,12 @@ export default function LoginPage() {
     };
 
     return (
-        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "24px" }}>
-            <div className="glass-card" style={{ width: "100%", maxWidth: "440px", padding: "48px 40px" }}>
-                <div style={{ textAlign: "center", marginBottom: "36px" }}>
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}>
+            <div className="glass-card" style={{ width: "100%", maxWidth: "440px", padding: "32px 24px" }}>
+                <div style={{ textAlign: "center", marginBottom: "32px" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
-                        <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px" }}>
-                            <BarChart3 size={32} style={{ color: "var(--primary)" }} />
+                        <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "10px" }}>
+                            <img src="/logo-icon.png" alt="SimbisData Logo" width={32} height={32} />
                             <span className="gradient-text" style={{ fontSize: "1.5rem", fontWeight: 800 }}>SimbisData</span>
                         </Link>
                         <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "20px", background: "var(--bg-card)", border: "1px solid var(--border-color)" }}>

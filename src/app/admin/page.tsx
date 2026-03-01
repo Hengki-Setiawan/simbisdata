@@ -99,7 +99,7 @@ export default function AdminOverview() {
                                 {stats?.activeProUsers?.toLocaleString() || 0}
                             </div>
                             <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
-                                Starter + Pro + Enterprise
+                                Starter + Pro
                             </p>
                         </div>
 

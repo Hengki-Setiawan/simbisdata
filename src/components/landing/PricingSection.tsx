@@ -59,24 +59,6 @@ const plans = [
         cta: "Pilih Pro",
         popular: true,
     },
-    {
-        name: "Enterprise",
-        emoji: "👑",
-        price: "Rp 199K",
-        period: "/ bulan",
-        description: "Untuk brand & tim",
-        features: [
-            { text: "Upload unlimited", included: true },
-            { text: "100.000+ baris data", included: true },
-            { text: "Semua metrik + custom", included: true },
-            { text: "Narasi AI unlimited", included: true },
-            { text: "Semua ML + custom", included: true },
-            { text: "Forecast 180 hari", included: true },
-            { text: "White-label report", included: true },
-        ],
-        cta: "Hubungi Kami",
-        popular: false,
-    },
 ];
 
 export default function PricingSection() {

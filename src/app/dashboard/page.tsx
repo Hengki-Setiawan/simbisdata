@@ -224,13 +224,13 @@ export default function DashboardPage() {
             </motion.div>
 
             {/* Supporting Charts (simplified — only 2) */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))", gap: "16px", marginTop: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "16px", marginTop: "16px" }}>
                 {/* Trend Chart */}
                 {timeAnalysis?.monthly && timeAnalysis.monthly.length > 0 && (
                     <motion.div className="glass-card" style={{ padding: "20px" }}
                         initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.7 }}>
                         <h4 style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "16px" }}>📈 Tren Penjualan</h4>
-                        <ResponsiveContainer width="100%" height={200}>
+                        <ResponsiveContainer width="100%" height={250}>
                             <AreaChart data={timeAnalysis.monthly}>
                                 <defs>
                                     <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -252,10 +252,10 @@ export default function DashboardPage() {
                     <motion.div className="glass-card" style={{ padding: "20px" }}
                         initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}>
                         <h4 style={{ fontSize: "0.9rem", fontWeight: 700, marginBottom: "16px" }}>🏆 Produk Terlaris</h4>
-                        <ResponsiveContainer width="100%" height={200}>
+                        <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={productPerformance.slice(0, 5)} layout="vertical">
                                 <XAxis type="number" tick={{ fontSize: 11 }} />
-                                <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 10 }} />
+                                <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 10 }} />
                                 <Tooltip formatter={(v: any) => [v.toLocaleString(), "Qty"]} />
                                 <Bar dataKey="count" fill="#06b6d4" radius={[0, 6, 6, 0]} />
                             </BarChart>

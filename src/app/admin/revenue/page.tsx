@@ -39,12 +39,11 @@ export default function AdminRevenuePage() {
     const tierRevenue = data?.tierBreakdown || [
         { name: "Starter", count: 0, color: "#f59e0b" },
         { name: "Pro", count: 0, color: "#6366f1" },
-        { name: "Enterprise", count: 0, color: "#10b981" },
     ];
 
     const pieData = tierRevenue.map(t => ({
         name: t.name,
-        value: t.count * (t.name === "Starter" ? 29000 : t.name === "Pro" ? 79000 : 199000),
+        value: t.count * (t.name === "Starter" ? 29000 : 79000),
         color: t.color,
     }));
 
@@ -52,7 +51,6 @@ export default function AdminRevenuePage() {
         { stage: "Free Users", count: Math.max(0, (data?.totalPaidUsers || 0) * 3), pct: 100 },
         { stage: "Starter", count: tierRevenue.find(t => t.name === "Starter")?.count || 0, pct: 0 },
         { stage: "Pro", count: tierRevenue.find(t => t.name === "Pro")?.count || 0, pct: 0 },
-        { stage: "Enterprise", count: tierRevenue.find(t => t.name === "Enterprise")?.count || 0, pct: 0 },
     ];
 
     return (

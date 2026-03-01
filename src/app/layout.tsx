@@ -45,6 +45,11 @@ export const metadata: Metadata = {
     title: "SimbisData — Analisis Penjualan AI untuk UMKM",
     description: "15 algoritma ML + AI narasi. Upload Excel, dapatkan insight bisnis dalam 30 detik.",
   },
+  icons: {
+    icon: "/logo-icon.png",
+    shortcut: "/logo-icon.png",
+    apple: "/logo-icon.png",
+  },
   robots: {
     index: true,
     follow: true,

@@ -8,7 +8,7 @@ import { useToast } from "@/components/ui/toast-provider";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-const tierColors: Record<string, string> = { free: "#64748b", starter: "#6366f1", pro: "#10b981", enterprise: "#f59e0b" };
+const tierColors: Record<string, string> = { free: "#64748b", starter: "#6366f1", pro: "#10b981" };
 
 export default function UsersManagementPage() {
     const [users, setUsers] = useState<any[]>([]);
@@ -161,7 +161,6 @@ export default function UsersManagementPage() {
                                                 <option value="free">Free</option>
                                                 <option value="starter">Starter</option>
                                                 <option value="pro">Pro</option>
-                                                <option value="enterprise">Enterprise</option>
                                             </select>
                                             {user.role !== "admin" && (
                                                 <button

@@ -6,9 +6,9 @@ export default function Footer() {
             <div className="container">
                 <div className="footer-grid">
                     <div>
-                        <div className="footer-brand" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <img src="/logo.png" alt="SimbisData Logo" width={24} height={24} style={{ borderRadius: "4px" }} />
-                            <span className="gradient-text">SimbisData</span>
+                        <div className="footer-brand">
+                            <img src="/logo-icon.png" alt="SimbisData Logo" width={24} height={24} style={{ display: "inline-block", verticalAlign: "middle", marginRight: "10px" }} />
+                            SimbisData
                         </div>
                         <p className="footer-desc">
                             Platform analisis data penjualan UMKM dengan Machine Learning dan AI.
