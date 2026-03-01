@@ -103,8 +103,8 @@ export default function SubscriptionPage() {
                     planName: plan.name,
                     price: numericPrice,
                     userId: session?.user?.id || "unknown-user",
-                    userName: session?.user?.name || "SimbisData User",
-                    userEmail: session?.user?.email || "user@simbisdata.com",
+                    userName: session?.user?.name || "simbisai User",
+                    userEmail: session?.user?.email || "user@simbisai.com",
                 }),
             });
 
@@ -130,7 +130,7 @@ export default function SubscriptionPage() {
             <div style={{ marginBottom: "32px" }}>
                 <h1 style={{ fontSize: "1.8rem", fontWeight: 800, marginBottom: "8px" }}>Pilih Paket Langganan</h1>
                 <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-                    Upgrade akunmu untuk akses fitur premium SimbisData.
+                    Upgrade akunmu untuk akses fitur premium simbisai.
                 </p>
             </div>
 

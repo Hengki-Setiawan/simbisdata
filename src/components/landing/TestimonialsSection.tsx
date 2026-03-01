@@ -10,7 +10,7 @@ export default function TestimonialsSection({ data }: { data?: any[] }) {
                     Dipercaya oleh <span className="gradient-text">UMKM Indonesia</span>
                 </h2>
                 <p className="section-subtitle">
-                    Dengarkan langsung dari para pemilik bisnis yang sudah merasakan manfaat SimbisData.
+                    Dengarkan langsung dari para pemilik bisnis yang sudah merasakan manfaat simbisai.
                 </p>
 
                 <div style={{

@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
                 disallow: ['/dashboard/', '/admin/', '/api/'],
             },
         ],
-        sitemap: 'https://simbisdata.com/sitemap.xml',
+        sitemap: 'https://simbisai.com/sitemap.xml',
     }
 }

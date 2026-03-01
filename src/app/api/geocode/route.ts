@@ -30,7 +30,7 @@ export async function POST(request: Request) {
                 const encoded = encodeURIComponent(addr + " Indonesia");
                 const res = await fetch(
                     `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`,
-                    { headers: { "User-Agent": "SimbisData/1.0" } }
+                    { headers: { "User-Agent": "simbisai/1.0" } }
                 );
                 const data = await res.json();
 

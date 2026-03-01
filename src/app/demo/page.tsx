@@ -32,7 +32,7 @@ export default function DemoPage() {
             {/* Nav */}
             <nav style={{ padding: "20px 0", position: "sticky", top: 0, zIndex: 100, background: "rgba(15,15,35,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border-color)" }}>
                 <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Link href="/" className="navbar-logo"><BarChart3 size={28} style={{ color: "var(--primary)" }} /><span className="gradient-text">SimbisData</span></Link>
+                    <Link href="/" className="navbar-logo"><BarChart3 size={28} style={{ color: "var(--primary)" }} /><span className="gradient-text">simbisai</span></Link>
                     <div style={{ display: "flex", gap: "12px" }}>
                         <Link href="/register" className="btn-primary" style={{ padding: "10px 24px", fontSize: "0.9rem" }}>Mulai Gratis <ArrowRight size={16} /></Link>
                     </div>
@@ -45,7 +45,7 @@ export default function DemoPage() {
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                         <div className="hero-badge">🎮 Interactive Demo</div>
                         <h1 style={{ fontSize: "3rem", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: "16px" }}>
-                            Lihat <span className="gradient-text">SimbisData</span> Beraksi
+                            Lihat <span className="gradient-text">simbisai</span> Beraksi
                         </h1>
                         <p style={{ color: "var(--text-secondary)", fontSize: "1.1rem", maxWidth: "600px", margin: "0 auto 48px" }}>
                             Data sampel dari 327 pesanan — lihat bagaimana AI & ML menganalisis penjualan kamu.

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "Kebijakan Privasi — SimbisData", description: "Kebijakan privasi dan perlindungan data pengguna SimbisData." };
+export const metadata: Metadata = { title: "Kebijakan Privasi — simbisai", description: "Kebijakan privasi dan perlindungan data pengguna simbisai." };
 
 export default function PrivacyPage() {
     return (

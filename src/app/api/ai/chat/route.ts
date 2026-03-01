@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
             if (cached) return NextResponse.json({ answer: cached, provider: "cache" });
         } catch { /* skip cache */ }
 
-        const systemPrompt = `Kamu adalah asisten data analyst untuk platform SimbisData. Kamu membantu user UMKM Indonesia memahami data penjualan mereka.
+        const systemPrompt = `Kamu adalah asisten data analyst untuk platform simbisai. Kamu membantu user UMKM Indonesia memahami data penjualan mereka.
 
 Aturan:
 - Jawab dalam Bahasa Indonesia yang sederhana dan mudah dipahami

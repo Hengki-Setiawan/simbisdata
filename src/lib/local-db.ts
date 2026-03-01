@@ -12,12 +12,12 @@ export interface ColumnMapping {
     updatedAt: number;
 }
 
-export class SimbisDatabase extends Dexie {
+export class SimbisAIDatabase extends Dexie {
     salesData!: Table<DataRecord, number>;
     mappings!: Table<ColumnMapping, string>;
 
     constructor() {
-        super("SimbisDatabase");
+        super("SimbisAIDatabase");
 
         // Define schema
         this.version(4).stores({
@@ -68,4 +68,4 @@ export class SimbisDatabase extends Dexie {
     }
 }
 
-export const db = new SimbisDatabase();
+export const db = new SimbisAIDatabase();

@@ -50,7 +50,7 @@ export default function LoginPage() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
                         <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px" }}>
                             <BarChart3 size={32} style={{ color: "var(--primary)" }} />
-                            <span className="gradient-text" style={{ fontSize: "1.5rem", fontWeight: 800 }}>SimbisData</span>
+                            <span className="gradient-text" style={{ fontSize: "1.5rem", fontWeight: 800 }}>simbisai</span>
                         </Link>
                         <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "6px", fontSize: "0.85rem", color: "var(--text-muted)", padding: "6px 12px", borderRadius: "20px", background: "var(--bg-card)", border: "1px solid var(--border-color)" }}>
                             <ArrowLeft size={14} /> Kembali

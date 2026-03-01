@@ -10,7 +10,7 @@ export default function AdminSettingsPage() {
     const [loading, setLoading] = useState(true);
     const { addToast } = useToast();
     const [config, setConfig] = useState({
-        siteName: "SimbisData",
+        siteName: "simbisai",
         maintenanceMode: false,
         maxUploadSize: "10",
         groqEnabled: true,

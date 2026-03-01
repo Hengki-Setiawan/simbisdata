@@ -22,7 +22,7 @@ export default function BlogPage() {
             {/* Nav */}
             <nav style={{ padding: "20px 0", position: "sticky", top: 0, zIndex: 100, background: "rgba(15,15,35,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid var(--border-color)" }}>
                 <div className="container" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <Link href="/" className="navbar-logo"><BarChart3 size={28} style={{ color: "var(--primary)" }} /><span className="gradient-text">SimbisData</span></Link>
+                    <Link href="/" className="navbar-logo"><BarChart3 size={28} style={{ color: "var(--primary)" }} /><span className="gradient-text">simbisai</span></Link>
                     <Link href="/register" className="btn-primary" style={{ padding: "10px 24px", fontSize: "0.9rem" }}>Mulai Gratis</Link>
                 </div>
             </nav>
@@ -32,7 +32,7 @@ export default function BlogPage() {
                 <div className="container">
                     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                         <h1 style={{ fontSize: "3rem", fontWeight: 900, letterSpacing: "-0.03em", marginBottom: "16px" }}>
-                            Blog <span className="gradient-text">SimbisData</span>
+                            Blog <span className="gradient-text">simbisai</span>
                         </h1>
                         <p style={{ color: "var(--text-secondary)", fontSize: "1.1rem", maxWidth: "600px", margin: "0 auto" }}>
                             Tips, tutorial, dan insight seputar analisis data penjualan UMKM.

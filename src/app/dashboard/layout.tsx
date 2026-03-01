@@ -4,37 +4,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
-    BarChart3,
-    LayoutDashboard,
+    Home,
     Upload,
     History,
     Settings,
-    CreditCard,
     Brain,
-    GitCompareArrows,
-    Bell,
-    Receipt,
     LogOut,
     ChevronLeft,
     ChevronRight,
     MapPin,
-    Database,
     Lock,
 } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/ui/theme-provider";
 
 const menuItems = [
-    { label: "Overview", href: "/dashboard", icon: LayoutDashboard },
+    { label: "Beranda", href: "/dashboard", icon: Home },
     { label: "Upload Data", href: "/dashboard/upload", icon: Upload },
-    { label: "Data Studio", href: "/dashboard/data-studio", icon: Database },
-    { label: "ML Analysis", href: "/dashboard/analysis", icon: Brain },
-    { label: "Peta Regional", href: "/dashboard/regional", icon: MapPin },
-    { label: "Compare", href: "/dashboard/compare", icon: GitCompareArrows },
-    { label: "Smart Alerts", href: "/dashboard/alerts", icon: Bell },
+    { label: "Analisis", href: "/dashboard/analysis", icon: Brain },
+    { label: "Peta Wilayah", href: "/dashboard/regional", icon: MapPin },
     { label: "Riwayat", href: "/dashboard/history", icon: History },
-    { label: "Langganan", href: "/dashboard/subscription", icon: CreditCard },
-    { label: "Billing", href: "/dashboard/billing", icon: Receipt },
     { label: "Pengaturan", href: "/dashboard/settings", icon: Settings },
 ];
 
@@ -90,10 +79,10 @@ export default function DashboardLayout({
                             gap: "10px",
                         }}
                     >
-                        <img src="/logo.png" alt="SimbisData Logo" width={24} height={24} style={{ borderRadius: "4px", flexShrink: 0 }} />
+                        <img src="/logo.png" alt="SimbisAI Logo" width={24} height={24} style={{ borderRadius: "4px", flexShrink: 0 }} />
                         {!collapsed && (
                             <span className="gradient-text" style={{ fontSize: "1.2rem", fontWeight: 800, whiteSpace: "nowrap" }}>
-                                SimbisData
+                                SimbisAI
                             </span>
                         )}
                     </Link>

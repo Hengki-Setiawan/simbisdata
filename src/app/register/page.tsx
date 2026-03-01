@@ -60,7 +60,7 @@ export default function RegisterPage() {
                 <div style={{ textAlign: "center", marginBottom: "36px" }}>
                     <Link href="/" style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: "8px", marginBottom: "24px" }}>
                         <BarChart3 size={32} style={{ color: "var(--primary)" }} />
-                        <span className="gradient-text" style={{ fontSize: "1.5rem", fontWeight: 800 }}>SimbisData</span>
+                        <span className="gradient-text" style={{ fontSize: "1.5rem", fontWeight: 800 }}>simbisai</span>
                     </Link>
                     <h1 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "8px" }}>Buat Akun Gratis</h1>
                     <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>Mulai analisis data penjualan kamu</p>

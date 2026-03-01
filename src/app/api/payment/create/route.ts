@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
         const merchantCode = process.env.DUITKU_MERCHANT_CODE;
         const apiKey = process.env.DUITKU_API_KEY;
-        const appUrl = (process.env.NEXTAUTH_URL || "https://simbisdata.vercel.app").replace(/\/+$/, "");
+        const appUrl = (process.env.NEXTAUTH_URL || "https://simbisai.vercel.app").replace(/\/+$/, "");
 
         // Determine if sandbox or production
         const isSandbox = (process.env.DUITKU_PASSPORT_URL || "").includes("sandbox");
@@ -52,13 +52,13 @@ export async function POST(request: Request) {
             paymentAmount: paymentAmount,
             paymentMethod: paymentMethod,
             merchantOrderId: merchantOrderId,
-            productDetails: `SimbisData ${planName} Plan`,
-            email: userEmail || "user@simbisdata.com",
+            productDetails: `simbisai ${planName} Plan`,
+            email: userEmail || "user@simbisai.com",
             customerVaName: userName || "SimbisUser",
             phoneNumber: "081234567890",
             itemDetails: [
                 {
-                    name: `SimbisData ${planName} Plan`,
+                    name: `simbisai ${planName} Plan`,
                     price: paymentAmount,
                     quantity: 1
                 }

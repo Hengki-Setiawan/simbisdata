@@ -7,8 +7,8 @@ export default function Footer() {
                 <div className="footer-grid">
                     <div>
                         <div className="footer-brand" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <img src="/logo.png" alt="SimbisData Logo" width={24} height={24} style={{ borderRadius: "4px" }} />
-                            <span className="gradient-text">SimbisData</span>
+                            <img src="/logo.png" alt="simbisai Logo" width={24} height={24} style={{ borderRadius: "4px" }} />
+                            <span className="gradient-text">simbisai</span>
                         </div>
                         <p className="footer-desc">
                             Platform analisis data penjualan UMKM dengan Machine Learning dan AI.
@@ -47,7 +47,7 @@ export default function Footer() {
                 </div>
 
                 <div className="footer-bottom">
-                    &copy; {new Date().getFullYear()} SimbisData. build by hengki setiawan
+                    &copy; {new Date().getFullYear()} simbisai. build by hengki setiawan
                 </div>
             </div>
         </footer>

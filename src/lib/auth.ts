@@ -59,5 +59,5 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return session;
         },
     },
-    secret: process.env.NEXTAUTH_SECRET || "simbisdata-dev-secret-key-change-in-production",
+    secret: process.env.NEXTAUTH_SECRET || "simbisai-dev-secret-key-change-in-production",
 });

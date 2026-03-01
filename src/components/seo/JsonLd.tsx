@@ -2,11 +2,11 @@ export default function JsonLd() {
     const jsonLd = {
         "@context": "https://schema.org",
         "@type": "SoftwareApplication",
-        name: "SimbisData",
+        name: "simbisai",
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
         description: "Platform SaaS analisis data penjualan UMKM Indonesia menggunakan 15 algoritma Machine Learning dan AI narasi.",
-        url: "https://simbisdata.com",
+        url: "https://simbisai.com",
         offers: [
             {
                 "@type": "Offer",
@@ -44,8 +44,8 @@ export default function JsonLd() {
         },
         creator: {
             "@type": "Organization",
-            name: "SimbisData",
-            url: "https://simbisdata.com",
+            name: "simbisai",
+            url: "https://simbisai.com",
         },
     };
 

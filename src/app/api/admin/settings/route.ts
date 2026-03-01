@@ -4,7 +4,7 @@ import { redis } from "@/lib/redis";
 const SETTINGS_KEY = "admin:settings";
 
 const defaultSettings = {
-    siteName: "SimbisData",
+    siteName: "simbisai",
     maintenanceMode: false,
     maxUploadSize: "10",
     groqEnabled: true,

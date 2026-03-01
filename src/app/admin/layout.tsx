@@ -42,7 +42,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 {/* Logo */}
                 <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border-color)" }}>
                     <h2 className="gradient-text" style={{ fontSize: "1.25rem", fontWeight: 800 }}>
-                        SimbisData Admin
+                        simbisai Admin
                     </h2>
                     <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "4px" }}>Platform Management</p>
                 </div>

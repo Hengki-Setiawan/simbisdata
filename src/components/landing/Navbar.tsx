@@ -21,8 +21,8 @@ export default function Navbar() {
             <div className="container">
                 <div className="navbar-inner">
                     <Link href="/" className="navbar-logo">
-                        <img src="/logo.png" alt="SimbisData Logo" width={28} height={28} style={{ borderRadius: "4px" }} />
-                        <span className="gradient-text">SimbisData</span>
+                        <img src="/logo.png" alt="simbisai Logo" width={28} height={28} style={{ borderRadius: "4px" }} />
+                        <span className="gradient-text">simbisai</span>
                     </Link>
 
                     <ul className="navbar-links">

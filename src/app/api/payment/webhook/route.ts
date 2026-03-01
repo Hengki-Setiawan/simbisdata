@@ -74,13 +74,13 @@ export async function POST(request: Request) {
 
                     // Since Duitku callback doesn't have customer email
                     // In a real app we would load it from the database based on the merchantOrderId
-                    const customerEmail = "user@simbisdata.com";
-                    const customerName = "SimbisData Premium User";
+                    const customerEmail = "user@simbisai.com";
+                    const customerName = "simbisai Premium User";
 
                     await resend.emails.send({
-                        from: "SimbisData <no-reply@simbisdata.com>",
+                        from: "simbisai <no-reply@simbisai.com>",
                         to: [customerEmail],
-                        subject: `Struk Pembayaran SimbisData Premium #${merchantOrderId}`,
+                        subject: `Struk Pembayaran simbisai Premium #${merchantOrderId}`,
                         react: InvoiceEmail({
                             name: customerName,
                             plan: "Premium Analytics Plan",

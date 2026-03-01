@@ -13,9 +13,9 @@ export async function POST(req: Request) {
         }
 
         const data = await resend.emails.send({
-            from: "SimbisData <no-reply@simbisdata.com>", // You must verify this domain in Resend
+            from: "simbisai <no-reply@simbisai.com>", // You must verify this domain in Resend
             to: [email],
-            subject: "Selamat datang di SimbisData! 🚀",
+            subject: "Selamat datang di simbisai! 🚀",
             react: WelcomeEmail({ firstName }) as React.ReactElement,
         });
 

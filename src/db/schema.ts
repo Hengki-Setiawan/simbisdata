@@ -6,6 +6,7 @@ export const users = sqliteTable("users", {
     email: text("email").notNull().unique(),
     password: text("password"),
     name: text("name").notNull(),
+    preferredName: text("preferred_name"), // sapaan AI: "Budi", "Kak Ani"
     role: text("role").notNull().default("user"),
     planId: text("plan_id").notNull().default("free"),
     isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
@@ -64,6 +65,7 @@ export const analysisSessions = sqliteTable("analysis_sessions", {
     status: text("status").notNull().default("processing"), // processing, completed, failed
     totalRevenue: integer("total_revenue").default(0),
     totalOrders: integer("total_orders").default(0),
+    aiConsultResult: text("ai_consult_result"), // JSON string ConsultantResult
     completedAt: integer("completed_at"),
     createdAt: integer("created_at").notNull(),
 });
@@ -161,4 +163,14 @@ export const landingFaqs = sqliteTable("landing_faqs", {
     answer: text("answer").notNull(),
     displayOrder: integer("display_order").notNull().default(0),
     isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+});
+
+// === SIMBISAI: AI Insight Cache ===
+export const aiInsightCache = sqliteTable("ai_insight_cache", {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: integer("user_id").notNull().references(() => users.id),
+    dataHash: text("data_hash").notNull(),
+    consultResult: text("consult_result").notNull(), // JSON ConsultantResult
+    createdAt: integer("created_at").notNull(),
+    expiresAt: integer("expires_at").notNull(),
 });
