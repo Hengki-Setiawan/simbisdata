@@ -22,6 +22,7 @@ FORMAT OUTPUT (WAJIB JSON VALID, TANPA MARKDOWN BACKTICKS):
       "title": "Judul masalah/peluang (maksimal 8 kata)",
       "summary": "Penjelasan utama (Wajib mengandung angka spesifik dari data)",
       "details": "HARUS DIISI LENGKAP: Penjelasan mendalam 3-4 kalimat mengapa hal ini terjadi berdasarkan data, dan apa kerugian/keuntungannya bagi bisnis secara jangka panjang.",
+      "mlUsed": "Nama Algoritma (Contoh: 'LSTM Forecast', 'K-Means Clustering', 'Prophet Trend Analysis', 'Random Forest Classifier')",
       "priority": 1
     }
   ],
@@ -57,6 +58,7 @@ export interface ConsultantInsight {
   title: string;
   summary: string;
   details?: string;
+  mlUsed?: string;
   priority: number;
 }
 

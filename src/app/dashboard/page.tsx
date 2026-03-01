@@ -155,6 +155,7 @@ export default function DashboardPage() {
                             type={insight.type} icon={insight.icon}
                             title={insight.title} summary={insight.summary}
                             details={insight.details}
+                            mlBadge={insight.mlUsed}
                         />
                     ))}
 
@@ -169,6 +170,58 @@ export default function DashboardPage() {
                     ))}
                 </>
             ) : null}
+
+            {/* Processed Data Table Section */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.8 }}
+                style={{ marginTop: "32px", marginBottom: "32px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "16px" }}>
+                    <div style={{ padding: "8px", borderRadius: "10px", background: "rgba(99,102,241,0.1)", color: "var(--primary)" }}>
+                        <FileDown size={20} />
+                    </div>
+                    <div>
+                        <h3 style={{ fontSize: "1.1rem", fontWeight: 800 }}>Tabel Data Terproses</h3>
+                        <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>Preview 5 baris pertama dari total {analysis.overview.totalOrders} data.</p>
+                    </div>
+                </div>
+
+                <div className="glass-card" style={{ padding: "0", overflow: "hidden" }}>
+                    <div style={{ overflowX: "auto" }}>
+                        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.82rem" }}>
+                            <thead style={{ background: "rgba(255,255,255,0.03)" }}>
+                                <tr>
+                                    {Object.keys(data[0] || {}).slice(0, 6).map((col, idx) => (
+                                        <th key={idx} style={{
+                                            padding: "12px 16px", textAlign: "left", color: "var(--text-muted)",
+                                            fontWeight: 600, borderBottom: "1px solid var(--border-color)", whiteSpace: "nowrap"
+                                        }}>
+                                            {col}
+                                        </th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {data.slice(0, 5).map((row, rowIdx) => (
+                                    <tr key={rowIdx} style={{ borderBottom: "1px solid var(--border-color)" }}>
+                                        {Object.keys(data[0] || {}).slice(0, 6).map((col, colIdx) => (
+                                            <td key={colIdx} style={{
+                                                padding: "10px 16px", color: "var(--text-secondary)",
+                                                maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"
+                                            }}>
+                                                {String(row[col] ?? "-")}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style={{ padding: "12px 16px", background: "rgba(0,0,0,0.1)", borderTop: "1px solid var(--border-color)", textAlign: "center" }}>
+                        <Link href="/dashboard/data-studio" style={{ fontSize: "0.78rem", color: "var(--primary)", fontWeight: 600, textDecoration: "none" }}>
+                            Buka Data Studio untuk kelola data lengkap →
+                        </Link>
+                    </div>
+                </div>
+            </motion.div>
 
             {/* Supporting Charts (simplified — only 2) */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(380px, 1fr))", gap: "16px", marginTop: "16px" }}>

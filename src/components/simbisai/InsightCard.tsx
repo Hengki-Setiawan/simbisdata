@@ -17,12 +17,13 @@ interface InsightCardProps {
     title: string;
     summary: string;
     details?: string;
+    mlBadge?: string;
     actions?: { label: string; href?: string; onClick?: () => void }[];
     chart?: React.ReactNode;
     delay?: number;
 }
 
-export default function InsightCard({ type, icon, title, summary, details, actions, chart, delay = 0 }: InsightCardProps) {
+export default function InsightCard({ type, icon, title, summary, details, mlBadge, actions, chart, delay = 0 }: InsightCardProps) {
     const [expanded, setExpanded] = useState(false);
     const style = TYPE_STYLES[type] || TYPE_STYLES.info;
 
@@ -43,6 +44,16 @@ export default function InsightCard({ type, icon, title, summary, details, actio
                     {icon}
                 </div>
                 <div style={{ flex: 1 }}>
+                    {mlBadge && (
+                        <div style={{
+                            display: "inline-flex", alignItems: "center", gap: "4px",
+                            padding: "2px 8px", borderRadius: "100px", background: "rgba(255,255,255,0.08)",
+                            color: "var(--text-muted)", fontSize: "0.65rem", fontWeight: 700, marginBottom: "6px",
+                            border: "1px solid rgba(255,255,255,0.1)", textTransform: "uppercase", letterSpacing: "0.5px"
+                        }}>
+                            🤖 {mlBadge}
+                        </div>
+                    )}
                     <h4 style={{ fontSize: "1rem", fontWeight: 700, marginBottom: "4px" }}>{title}</h4>
                     <p style={{ color: "var(--text-secondary)", fontSize: "0.88rem", lineHeight: 1.6 }}>{summary}</p>
 
