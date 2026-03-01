@@ -12,10 +12,10 @@ import { analyzeData, type AnalysisResult } from "@/lib/analysis";
 import { generatePDFReport } from "@/lib/pdf-export";
 import { exportToExcel } from "@/lib/excel-export";
 import { db } from "@/lib/local-db";
-import DailyBriefing from "@/components/simbisai/DailyBriefing";
-import InsightCard from "@/components/simbisai/InsightCard";
-import ActionChecklist from "@/components/simbisai/ActionChecklist";
-import MetricSnapshot from "@/components/simbisai/MetricSnapshot";
+import DailyBriefing from "@/components/SimbisData/DailyBriefing";
+import InsightCard from "@/components/SimbisData/InsightCard";
+import ActionChecklist from "@/components/SimbisData/ActionChecklist";
+import MetricSnapshot from "@/components/SimbisData/MetricSnapshot";
 import type { ConsultantResult } from "@/lib/ai-consultant";
 
 export default function DashboardPage() {
@@ -106,7 +106,7 @@ export default function DashboardPage() {
                 <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}>
                     <Sparkles size={48} style={{ color: "var(--primary)", marginBottom: "16px" }} />
                     <h2 style={{ fontSize: "1.5rem", fontWeight: 800, marginBottom: "8px" }}>
-                        Selamat datang di SimbisAI!
+                        Selamat datang di SimbisData!
                     </h2>
                     <p style={{ color: "var(--text-muted)", marginBottom: "24px", maxWidth: "500px", margin: "0 auto 24px" }}>
                         Upload data penjualan dari Shopee, Tokopedia, atau TikTok Shop untuk mendapatkan saran bisnis dari AI.
@@ -145,7 +145,7 @@ export default function DashboardPage() {
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     style={{ padding: "32px", textAlign: "center", borderRadius: "14px", border: "1px solid var(--border-color)", marginBottom: "16px" }}>
                     <Brain size={28} className="animate-spin" style={{ color: "var(--primary)", marginBottom: "8px" }} />
-                    <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>🧠 SimbisAI sedang menganalisis data bisnismu...</p>
+                    <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>🧠 SimbisData sedang menganalisis data bisnismu...</p>
                 </motion.div>
             ) : aiResult ? (
                 <>

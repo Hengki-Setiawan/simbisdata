@@ -77,7 +77,7 @@ export default function DailyBriefing({
                             </span>
                         )}
                         <span style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", border: "1px solid rgba(16, 185, 129, 0.3)", padding: "2px 8px", borderRadius: "6px", fontWeight: 600 }}>
-                            🤖 SimbisAI ML Engine Aktif
+                            🤖 SimbisData ML Engine Aktif
                         </span>
                     </div>
                 </div>

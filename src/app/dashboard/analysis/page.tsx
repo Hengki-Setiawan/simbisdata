@@ -19,6 +19,10 @@ import Scatter3D from "@/components/charts/Scatter3D";
 import CohortHeatmap from "@/components/charts/CohortHeatmap";
 import { analyzeColumns } from "@/lib/ai-viz-recommender";
 import { recommendAlgorithms, type MLRecommendation } from "@/lib/ai-ml-selector";
+import { useToast } from "@/components/ui/toast-provider";
+import { useSession } from "next-auth/react";
+import { getTierLimits, type Tier } from "@/lib/feature-gating";
+import { Lock } from "lucide-react";
 
 const COLORS = ["#ef4444", "#f59e0b", "#10b981", "#6366f1", "#a78bfa", "#f472b6"];
 
@@ -31,6 +35,8 @@ const tooltipStyle = {
 };
 
 export default function AnalysisPage() {
+    const { addToast } = useToast();
+    const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     const [rawData, setRawData] = useState<Record<string, unknown>[] | null>(null);
     const [recommendations, setRecommendations] = useState<MLRecommendation[]>([]);
@@ -65,8 +71,13 @@ export default function AnalysisPage() {
                     const ml = Comlink.wrap<MLWorker>(workerInstance);
                     setWorker(ml);
 
-                    // 3. Auto-run top recommendations (max 3)
-                    const topSupported = recs.filter(r => r.confidence > 0.6).slice(0, 3);
+                    // 3. Auto-run top recommendations (max based on tier)
+                    const userTier = (session?.user as any)?.planId as Tier || "free";
+                    const limits = getTierLimits(userTier);
+
+                    const topSupported = recs
+                        .filter(r => r.confidence > 0.6)
+                        .slice(0, limits.mlAlgorithms);
 
                     if (topSupported.length > 0) setActiveTab(topSupported[0].id);
 
@@ -75,13 +86,28 @@ export default function AnalysisPage() {
             } catch { /* ignore */ }
             setLoading(false);
         };
-        load();
-    }, []);
+        if (session) load();
+    }, [session]);
 
     const runAlgorithm = async (id: string, mlInst?: any, data?: any[]) => {
         const instance = mlInst || worker;
         const targetData = data || rawData;
         if (!instance || !targetData) return;
+
+        // --- TIER CHECK: ML Algorithm Access ---
+        const userTier = (session?.user as any)?.planId as Tier || "free";
+        const limits = getTierLimits(userTier);
+        const currentRecs = recommendations;
+        const recIndex = currentRecs.findIndex(r => r.id === id);
+
+        if (recIndex >= limits.mlAlgorithms && limits.mlAlgorithms !== Infinity) {
+            addToast({
+                title: "Fitur Terkunci",
+                description: `Paket ${userTier} Anda hanya mengizinkan ${limits.mlAlgorithms} algoritma teratas. Silakan upgrade paket.`,
+                type: "warning"
+            });
+            return;
+        }
 
         setRunning(prev => ({ ...prev, [id]: true }));
         try {
@@ -132,8 +158,12 @@ export default function AnalysisPage() {
                 setGenericResults(prev => ({ ...prev, [id]: { status: "Success", detail: `AI berhasil memproses ${targetData.length} baris untuk algoritma ini.`, timestamp: new Date().toISOString() } }));
                 setActiveTab(id);
             }
+            // Notify Success
+            const recName = recommendations.find(r => r.id === id)?.name || id;
+            addToast(`${recName} selesai diproses!`, "success");
         } catch (e) {
             console.error("ML Error:", e);
+            addToast(`Gagal menjalankan ${id}. Silakan coba lagi.`, "error");
         } finally {
             setRunning(prev => ({ ...prev, [id]: false }));
         }
@@ -184,8 +214,12 @@ export default function AnalysisPage() {
                     <Sparkles size={18} style={{ color: "var(--warning)" }} /> AI Rekomendasi Algoritma
                 </h3>
                 <div style={{ display: "flex", gap: "16px", overflowX: "auto", paddingBottom: "12px", scrollbarWidth: "thin" }}>
-                    {recommendations.slice(0, 6).map((rec, i) => {
+                    {recommendations.slice(0, 8).map((rec, i) => {
                         const isRunning = running[rec.id];
+                        const userTier = (session?.user as any)?.planId as Tier || "free";
+                        const limits = getTierLimits(userTier);
+                        const isLocked = i >= limits.mlAlgorithms && limits.mlAlgorithms !== Infinity;
+
                         const isDone =
                             (rec.id === "kmeans_clustering" && clusters) ||
                             (rec.id === "autoencoder_anomaly" && anomalies) ||
@@ -197,12 +231,16 @@ export default function AnalysisPage() {
                         return (
                             <div key={i} className="glass-card" style={{
                                 minWidth: "260px", padding: "16px",
-                                borderLeft: `3px solid ${isDone ? "var(--success)" : "var(--primary)"}`,
-                                opacity: i > 2 && !isDone ? 0.7 : 1
+                                borderLeft: `3px solid ${isLocked ? "var(--text-muted)" : isDone ? "var(--success)" : "var(--primary)"}`,
+                                opacity: isLocked ? 0.6 : 1,
+                                filter: isLocked ? "grayscale(40%)" : "none"
                             }}>
                                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700 }}>{rec.icon} {rec.name.replace(/[^a-zA-Z \-]/g, '')}</h4>
-                                    <span style={{ fontSize: "0.7rem", fontWeight: 600, background: "var(--bg-surface)", padding: "2px 6px", borderRadius: "10px", color: "var(--primary-light)" }}>
+                                    <h4 style={{ fontSize: "0.95rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}>
+                                        {rec.icon} {rec.name.replace(/[^a-zA-Z \-]/g, '')}
+                                        {isLocked && <Lock size={12} style={{ color: "var(--warning)" }} />}
+                                    </h4>
+                                    <span style={{ fontSize: "0.7rem", fontWeight: 600, background: "var(--bg-surface)", padding: "2px 6px", borderRadius: "100px", color: isLocked ? "var(--text-muted)" : "var(--primary-light)" }}>
                                         {Math.round(rec.confidence * 100)}% Match
                                     </span>
                                 </div>
@@ -210,25 +248,30 @@ export default function AnalysisPage() {
                                     {rec.description}
                                 </p>
                                 <button
-                                    onClick={() => isDone ? setActiveTab(rec.id) : !isRunning && runAlgorithm(rec.id)}
+                                    onClick={() => isLocked ? router.push("/dashboard/subscription") : isDone ? setActiveTab(rec.id) : !isRunning && runAlgorithm(rec.id)}
                                     disabled={isRunning}
                                     className="btn-primary"
                                     style={{
                                         width: "100%", padding: "6px", fontSize: "0.8rem",
-                                        background: isRunning ? "var(--bg-surface)" : isDone ? "var(--success)" : "var(--primary)",
-                                        color: isRunning ? "var(--text-secondary)" : "white",
+                                        background: isLocked ? "rgba(255,255,255,0.05)" : isRunning ? "var(--bg-surface)" : isDone ? "var(--success)" : "var(--primary)",
+                                        color: isLocked ? "var(--text-muted)" : isRunning ? "var(--text-secondary)" : "white",
                                         cursor: isRunning ? "default" : "pointer",
-                                        border: "none", borderRadius: "8px", fontWeight: 600,
+                                        border: isLocked ? "1px dashed var(--border-color)" : "none",
+                                        borderRadius: "8px", fontWeight: 600,
                                         transition: "all 0.2s ease"
                                     }}
                                 >
-                                    {isRunning ? (
+                                    {isLocked ? (
+                                        <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
+                                            🔒 Upgrade Tier
+                                        </span>
+                                    ) : isRunning ? (
                                         <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
                                             <Loader2 size={12} className="spin" /> Memproses...
                                         </span>
                                     ) : isDone ? (
                                         <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}>
-                                            Lihat Hasil (Selesai)
+                                            Lihat Hasil
                                         </span>
                                     ) : (
                                         "Jalankan Analisis"

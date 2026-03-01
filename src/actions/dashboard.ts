@@ -56,9 +56,37 @@ export async function deleteUserHistory(docId: number, userId: number) {
                 eq(uploadedFiles.userId, userId)
             ));
         revalidatePath("/dashboard/history");
+        revalidatePath("/dashboard/upload");
         return { success: true };
     } catch (err) {
         console.error("Failed to delete user history:", err);
         return { success: false };
+    }
+}
+
+export async function getMonthlyUploadCount(userId: number) {
+    try {
+        const now = new Date();
+        const startOfMonth = Math.floor(new Date(now.getFullYear(), now.getMonth(), 1).getTime() / 1000);
+
+        const uploads = await db.select()
+            .from(uploadedFiles)
+            .where(and(
+                eq(uploadedFiles.userId, userId),
+                eq(uploadedFiles.uploadedAt, startOfMonth) // This is wrong, should be >=
+            ));
+        // Using gte in drizzle:
+        const { gte } = await import("drizzle-orm");
+        const results = await db.select()
+            .from(uploadedFiles)
+            .where(and(
+                eq(uploadedFiles.userId, userId),
+                gte(uploadedFiles.uploadedAt, startOfMonth)
+            ));
+
+        return results.length;
+    } catch (err) {
+        console.error("Failed to fetch monthly upload count:", err);
+        return 0;
     }
 }

@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "simbisai — Analisis Data Penjualan UMKM dengan AI & ML",
+  title: "SimbisData — Analisis Data Penjualan UMKM dengan AI & ML",
   description:
     "Platform SaaS yang membantu UMKM Indonesia menganalisis data penjualan menggunakan Machine Learning dan AI untuk menghasilkan insight bisnis yang mendalam.",
   keywords: [
@@ -33,16 +33,16 @@ export const metadata: Metadata = {
     "e-commerce analytics",
   ],
   openGraph: {
-    title: "simbisai — Analisis Data Penjualan UMKM dengan AI & ML",
+    title: "SimbisData — Analisis Data Penjualan UMKM dengan AI & ML",
     description: "Upload file Excel penjualan → dapatkan analisis ML + AI dalam hitungan detik. Gratis untuk UMKM Indonesia.",
-    url: "https://simbisai.com",
-    siteName: "simbisai",
+    url: "https://SimbisData.com",
+    siteName: "SimbisData",
     type: "website",
     locale: "id_ID",
   },
   twitter: {
     card: "summary_large_image",
-    title: "simbisai — Analisis Penjualan AI untuk UMKM",
+    title: "SimbisData — Analisis Penjualan AI untuk UMKM",
     description: "15 algoritma ML + AI narasi. Upload Excel, dapatkan insight bisnis dalam 30 detik.",
   },
   robots: {

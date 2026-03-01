@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { CreditCard, FileText, Download, Calendar, Loader2 } from "lucide-react";
+import { useToast } from "@/components/ui/toast-provider";
 
 interface Transaction {
     id: number;
@@ -23,6 +24,7 @@ interface BillingData {
 export default function BillingPage() {
     const [data, setData] = useState<BillingData | null>(null);
     const [loading, setLoading] = useState(true);
+    const { addToast } = useToast();
 
     useEffect(() => {
         fetch("/api/user/billing")
@@ -47,8 +49,8 @@ export default function BillingPage() {
 
     const planName = data?.planId ? data.planId.charAt(0).toUpperCase() + data.planId.slice(1) : "Free";
     const expiryDate = data?.subscription?.endDate ? new Date(data.subscription.endDate * 1000).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : "Selamanya";
-    const bgClass = data?.planId === 'enterprise' ? 'rgba(16, 185, 129, 0.15)' : data?.planId === 'pro' ? 'rgba(99,102,241,0.15)' : 'rgba(245, 158, 11, 0.15)';
-    const iconColor = data?.planId === 'enterprise' ? '#10b981' : data?.planId === 'pro' ? 'var(--primary)' : '#f59e0b';
+    const bgClass = data?.planId === 'pro' ? 'rgba(99,102,241,0.15)' : data?.planId === 'starter' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(148, 163, 184, 0.1)';
+    const iconColor = data?.planId === 'pro' ? 'var(--primary)' : data?.planId === 'starter' ? '#f59e0b' : 'var(--text-muted)';
 
     return (
         <div style={{ maxWidth: "800px" }}>
@@ -131,7 +133,10 @@ export default function BillingPage() {
                                         </td>
                                         <td style={{ padding: "14px 16px" }}>
                                             {inv.status === 'paid' && (
-                                                <button style={{ background: "none", border: "none", color: "var(--primary)", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "0.82rem" }}>
+                                                <button
+                                                    onClick={() => addToast("Invoice PDF sedang disiapkan dan akan tersedia segera.", "info")}
+                                                    style={{ background: "none", border: "none", color: "var(--primary)", cursor: "pointer", display: "flex", alignItems: "center", gap: "4px", fontSize: "0.82rem" }}
+                                                >
                                                     <Download size={14} /> PDF
                                                 </button>
                                             )}

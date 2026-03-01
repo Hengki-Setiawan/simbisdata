@@ -35,7 +35,7 @@ export function generatePDFReport(analysis: AnalysisResult, aiNarration?: string
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont("helvetica", "bold");
-    doc.text("simbisai", 20, 25);
+    doc.text("SimbisData", 20, 25);
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
     doc.text("Laporan Analisis Data Penjualan", 20, 35);
@@ -172,7 +172,7 @@ export function generatePDFReport(analysis: AnalysisResult, aiNarration?: string
         doc.setFontSize(8);
         doc.setTextColor(150, 150, 150);
         doc.text(
-            `simbisai — Halaman ${i} dari ${totalPages}`,
+            `SimbisData — Halaman ${i} dari ${totalPages}`,
             pageWidth / 2,
             290,
             { align: "center" }
@@ -180,7 +180,7 @@ export function generatePDFReport(analysis: AnalysisResult, aiNarration?: string
     }
 
     // Download
-    const fileName = `simbisai_Report_${new Date().toISOString().split("T")[0]}.pdf`;
+    const fileName = `SimbisData_Report_${new Date().toISOString().split("T")[0]}.pdf`;
     doc.save(fileName);
 }
 
@@ -212,7 +212,7 @@ export function generatePremiumPDFHTML(analysis: AnalysisResult, aiNarration?: s
     </head>
     <body>
         <div class="header">
-            <h1>simbisai Premium Report</h1>
+            <h1>SimbisData Premium Report</h1>
             <p>Laporan Eksekutif Analisis Data Penjualan</p>
             <p style="font-size: 12px; margin-top: 15px;">Periode: ${analysis.overview.dateRange.start} — ${analysis.overview.dateRange.end}</p>
         </div>

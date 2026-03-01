@@ -33,7 +33,7 @@ export function generatePremiumPDFHTML(analysis: AnalysisResult, aiNarration?: s
 </head>
 <body>
   <div class="header">
-    <h1>📊 simbisai Report</h1>
+    <h1>📊 SimbisData Report</h1>
     <p>Laporan Analisis Data Penjualan — ${o.dateRange.start} s/d ${o.dateRange.end}</p>
     <p>Dibuat: ${new Date().toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}</p>
   </div>
@@ -126,8 +126,8 @@ export function generatePremiumPDFHTML(analysis: AnalysisResult, aiNarration?: s
   </div>
 
   <div class="footer">
-    simbisai — Platform Analisis Data Penjualan UMKM dengan AI & ML<br>
-    Laporan ini di-generate secara otomatis. © ${new Date().getFullYear()} simbisai
+    SimbisData — Platform Analisis Data Penjualan UMKM dengan AI & ML<br>
+    Laporan ini di-generate secara otomatis. © ${new Date().getFullYear()} SimbisData
   </div>
 </body>
 </html>`;

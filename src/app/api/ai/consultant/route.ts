@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
         }
 
         const prompt = buildConsultantPrompt(mlSummary);
-        const cacheKey = `simbisai:ai:consultant:${Buffer.from(JSON.stringify(mlSummary)).toString("base64")}`;
+        const cacheKey = `SimbisData:ai:consultant:${Buffer.from(JSON.stringify(mlSummary)).toString("base64")}`;
 
         try {
             const cached = await redis.get(cacheKey);

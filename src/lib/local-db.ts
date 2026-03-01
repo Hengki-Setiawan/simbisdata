@@ -20,13 +20,13 @@ export interface FileRecord {
     uploadedAt: number;
 }
 
-export class SimbisAIDatabase extends Dexie {
+export class SimbisDataDatabase extends Dexie {
     salesData!: Table<DataRecord, number>;
     mappings!: Table<ColumnMapping, string>;
     files!: Table<FileRecord, number>;
 
     constructor() {
-        super("SimbisAIDatabase");
+        super("SimbisDataDatabase");
 
         // Define schema
         this.version(5).stores({
@@ -78,4 +78,4 @@ export class SimbisAIDatabase extends Dexie {
     }
 }
 
-export const db = new SimbisAIDatabase();
+export const db = new SimbisDataDatabase();

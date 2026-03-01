@@ -15,7 +15,7 @@ export async function POST(request: Request) {
 
         const merchantCode = process.env.DUITKU_MERCHANT_CODE;
         const apiKey = process.env.DUITKU_API_KEY;
-        const appUrl = (process.env.NEXTAUTH_URL || "https://simbisai.vercel.app").replace(/\/+$/, "");
+        const appUrl = (process.env.NEXTAUTH_URL || "https://SimbisData.vercel.app").replace(/\/+$/, "");
 
         // Determine if sandbox or production
         const isSandbox = (process.env.DUITKU_PASSPORT_URL || "").includes("sandbox");
@@ -52,13 +52,13 @@ export async function POST(request: Request) {
             paymentAmount: paymentAmount,
             paymentMethod: paymentMethod,
             merchantOrderId: merchantOrderId,
-            productDetails: `simbisai ${planName} Plan`,
-            email: userEmail || "user@simbisai.com",
+            productDetails: `SimbisData ${planName} Plan`,
+            email: userEmail || "user@SimbisData.com",
             customerVaName: userName || "SimbisUser",
             phoneNumber: "081234567890",
             itemDetails: [
                 {
-                    name: `simbisai ${planName} Plan`,
+                    name: `SimbisData ${planName} Plan`,
                     price: paymentAmount,
                     quantity: 1
                 }
@@ -104,6 +104,26 @@ export async function POST(request: Request) {
         }
 
         console.log("--- SUCCESS DUITKU PAYMENT CREATION ---");
+
+        // Save transaction to DB
+        try {
+            const { db } = await import("@/db");
+            const { paymentTransactions } = await import("@/db/schema");
+            await db.insert(paymentTransactions).values({
+                userId: parseInt(userId) || 0,
+                orderId: merchantOrderId,
+                planId: planName.toLowerCase(),
+                amount: paymentAmount,
+                status: "pending",
+                provider: "duitku",
+                createdAt: Math.floor(Date.now() / 1000)
+            });
+            console.log("Transaction saved to DB:", merchantOrderId);
+        } catch (dbErr) {
+            console.error("Failed to save transaction to DB:", dbErr);
+            // We continue even if DB save fails, as the payment can still proceed via Duitku
+        }
+
         return NextResponse.json({
             checkoutUrl: data.paymentUrl,
             reference: data.reference,

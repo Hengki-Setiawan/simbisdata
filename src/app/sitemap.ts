@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://simbisai.com'
+    const baseUrl = 'https://SimbisData.com'
 
     return [
         { url: baseUrl, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },

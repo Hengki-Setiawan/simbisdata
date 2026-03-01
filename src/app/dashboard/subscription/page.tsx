@@ -49,30 +49,14 @@ const plans = [
         color: "var(--primary)",
         popular: true,
         features: [
-            { name: "Unlimited analisis ML", included: true },
+            { name: "Unlimited everything", included: true },
             { name: "Semua fitur Starter", included: true },
             { name: "Prediksi Demand (LSTM)", included: true },
             { name: "Cohort Retention AI", included: true },
             { name: "Customer Lifetime Value", included: true },
             { name: "Semua format export", included: true },
             { name: "Premium PDF Report", included: true },
-            { name: "Priority AI Engine", included: true },
-        ],
-    },
-    {
-        name: "Enterprise",
-        price: "Rp 499K",
-        period: "/bulan",
-        icon: Building2,
-        color: "var(--success)",
-        features: [
-            { name: "Unlimited everything", included: true },
-            { name: "White-label AI Report", included: true },
-            { name: "Custom domain model", included: true },
-            { name: "API access", included: true },
-            { name: "Multi-user team", included: true },
-            { name: "Dedicated Data Scientist", included: true },
-            { name: "SLA guarantee", included: true },
+            { name: "API Access & Smart Alerts", included: true },
         ],
     },
 ];
@@ -106,8 +90,8 @@ export default function SubscriptionPage() {
                     planName: plan.name,
                     price: numericPrice,
                     userId: session?.user?.id || "unknown-user",
-                    userName: session?.user?.name || "simbisai User",
-                    userEmail: session?.user?.email || "user@simbisai.com",
+                    userName: session?.user?.name || "SimbisData User",
+                    userEmail: session?.user?.email || "user@SimbisData.com",
                 }),
             });
 
@@ -133,7 +117,7 @@ export default function SubscriptionPage() {
             <div style={{ marginBottom: "32px" }}>
                 <h1 style={{ fontSize: "1.8rem", fontWeight: 800, marginBottom: "8px" }}>Pilih Paket Langganan</h1>
                 <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
-                    Upgrade akunmu untuk akses fitur premium simbisai.
+                    Upgrade akunmu untuk akses fitur premium SimbisData.
                 </p>
             </div>
 

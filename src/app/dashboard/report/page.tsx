@@ -88,7 +88,7 @@ export default function ReportPage() {
                 </head>
                 <body>
                     <div class="header">
-                        <h1 class="title">SimbisAI Executive Summary</h1>
+                        <h1 class="title">SimbisData Executive Summary</h1>
                         <div class="meta">
                             Dihasilkan pada: ${new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}<br/>
                             File Sumber: ${fileInfo?.name || "Unknown"}<br/>
@@ -96,7 +96,7 @@ export default function ReportPage() {
                         </div>
                     </div>
                     ${reportElement.innerHTML}
-                    <div class="footer">Dihasilkan secara otomatis oleh SimbisAI - Platform Analisis Data Driven & AI Powered</div>
+                    <div class="footer">Dihasilkan secara otomatis oleh SimbisData - Platform Analisis Data Driven & AI Powered</div>
                 </body>
                 </html>
             `;
@@ -113,7 +113,7 @@ export default function ReportPage() {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement("a");
             a.href = url;
-            a.download = `SimbisAI_Report_${new Date().toISOString().slice(0, 10)}.pdf`;
+            a.download = `SimbisData_Report_${new Date().toISOString().slice(0, 10)}.pdf`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -179,7 +179,7 @@ export default function ReportPage() {
                             </div>
                             <div>
                                 <h1 style={{ fontSize: "1.8rem", fontWeight: 900, margin: 0 }}>Laporan Ringkasan AI</h1>
-                                <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginTop: "4px" }}>SimbisAI Executive Intelligent Briefing</p>
+                                <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", marginTop: "4px" }}>SimbisData Executive Intelligent Briefing</p>
                             </div>
                         </div>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", fontSize: "0.85rem", color: "var(--text-secondary)" }}>
@@ -283,7 +283,7 @@ export default function ReportPage() {
 
             {/* Page Footer */}
             <div style={{ marginTop: "32px", textAlign: "center", color: "var(--text-muted)", fontSize: "0.8rem" }}>
-                <p>© 2026 SimbisAI. Laporan ini bersifat rahasia dan dihasilkan berdasarkan algoritma pemrosesan data otomatis kami.</p>
+                <p>© 2026 SimbisData. Laporan ini bersifat rahasia dan dihasilkan berdasarkan algoritma pemrosesan data otomatis kami.</p>
             </div>
         </div>
     );

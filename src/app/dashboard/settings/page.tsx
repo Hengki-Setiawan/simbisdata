@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { Settings, User, CreditCard, Bell, Shield, Save, CheckCircle2 } from "lucide-react";
+import { useToast } from "@/components/ui/toast-provider";
+import Link from "next/link";
 
 export default function SettingsPage() {
     const { data: session } = useSession();
@@ -11,10 +13,16 @@ export default function SettingsPage() {
     const [name, setName] = useState(session?.user?.name || "User");
     const [email] = useState(session?.user?.email || "user@email.com");
     const [notifications, setNotifications] = useState(true);
+    const { addToast } = useToast();
 
     const handleSave = () => {
         setSaved(true);
+        addToast("Pengaturan profil diperbarui", "success");
         setTimeout(() => setSaved(false), 2000);
+    };
+
+    const handlePasswordChange = () => {
+        addToast("Fitur keamanan tingkat lanjut sedang dikembangkan", "info");
     };
 
     const inputStyle: React.CSSProperties = {
@@ -30,13 +38,12 @@ export default function SettingsPage() {
     };
 
     const tierInfo: Record<string, { label: string; color: string; features: string }> = {
-        free: { label: "Free", color: "var(--text-muted)", features: "3 analisis/bulan, export CSV" },
-        starter: { label: "Starter", color: "var(--accent)", features: "20 analisis/bulan, export PDF + Excel" },
-        pro: { label: "Pro", color: "var(--primary)", features: "Unlimited, Premium PDF, AI Insight" },
-        enterprise: { label: "Enterprise", color: "var(--success)", features: "White-label, Priority support" },
+        free: { label: "Free", color: "var(--text-muted)", features: "1 upload/bulan, maks 200 baris" },
+        starter: { label: "Starter", color: "var(--accent)", features: "10 upload/bulan, 5000 baris, ML Dasar" },
+        pro: { label: "Pro", color: "var(--primary)", features: "Unlimited, 100rb baris, Deep Learning ML" },
     };
 
-    const currentTier = (session?.user as { tier?: string })?.tier || "free";
+    const currentTier = (session?.user as { planId?: string })?.planId || "free";
     const tier = tierInfo[currentTier] || tierInfo.free;
 
     return (
@@ -101,10 +108,10 @@ export default function SettingsPage() {
                         </div>
                         <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{tier.features}</p>
                     </div>
-                    {currentTier !== "enterprise" && (
-                        <button className="btn-primary" style={{ padding: "8px 20px", fontSize: "0.85rem" }}>
+                    {currentTier !== "pro" && (
+                        <Link href="/dashboard/subscription" className="btn-primary" style={{ padding: "8px 20px", fontSize: "0.85rem", textDecoration: "none" }}>
                             Upgrade
-                        </button>
+                        </Link>
                     )}
                 </div>
             </motion.div>
@@ -145,10 +152,13 @@ export default function SettingsPage() {
                     <Shield size={20} style={{ color: "var(--primary)" }} />
                     <h2 style={{ fontSize: "1.1rem", fontWeight: 700 }}>Keamanan</h2>
                 </div>
-                <button style={{
-                    padding: "10px 20px", borderRadius: "var(--radius)", border: "1px solid var(--border-color)",
-                    background: "none", color: "var(--text-secondary)", cursor: "pointer", fontSize: "0.9rem",
-                }}>
+                <button
+                    onClick={handlePasswordChange}
+                    style={{
+                        padding: "10px 20px", borderRadius: "var(--radius)", border: "1px solid var(--border-color)",
+                        background: "none", color: "var(--text-secondary)", cursor: "pointer", fontSize: "0.9rem",
+                    }}
+                >
                     Ubah Password
                 </button>
             </motion.div>

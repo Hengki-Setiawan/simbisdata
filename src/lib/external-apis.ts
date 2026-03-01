@@ -23,7 +23,7 @@ export async function geocode(address: string): Promise<GeoResult | null> {
         const encoded = encodeURIComponent(address + " Indonesia");
         const res = await fetch(
             `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`,
-            { headers: { "User-Agent": "SimbisAI/2.0" } }
+            { headers: { "User-Agent": "SimbisData/2.0" } }
         );
         const data = await res.json();
         if (data.length > 0) {

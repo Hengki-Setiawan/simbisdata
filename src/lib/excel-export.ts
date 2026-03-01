@@ -13,7 +13,7 @@ export function exportToExcel(rows: any[], analysis: AnalysisResult, aiNarration
 
     // Sheet 2: Overview
     const overviewData = [
-        ["simbisai — LAPORAN ANALISIS DATA"],
+        ["SimbisData — LAPORAN ANALISIS DATA"],
         [""],
         ["Metrik", "Nilai"],
         ["Total Baris/Pesanan", analysis.overview.totalOrders],
@@ -58,7 +58,7 @@ export function exportToExcel(rows: any[], analysis: AnalysisResult, aiNarration
     }
 
     // Download
-    const fileName = `simbisai_Export_${new Date().toISOString().split("T")[0]}.xlsx`;
+    const fileName = `SimbisData_Export_${new Date().toISOString().split("T")[0]}.xlsx`;
     XLSX.writeFile(wb, fileName);
 }
 
@@ -81,7 +81,7 @@ export function exportToCSV(rows: any[]) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `simbisai_Raw_${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `SimbisData_Raw_${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
 }

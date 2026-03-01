@@ -4,12 +4,12 @@
  * Feature Gating — Controls access to features based on user tier
  */
 
-export type Tier = "free" | "starter" | "pro" | "enterprise";
+export type Tier = "free" | "starter" | "pro";
 
 export interface TierLimits {
     uploadsPerMonth: number;
     maxRowsPerFile: number;
-    mlAlgorithms: number;
+    mlAlgorithms: number; // 0: basic, 1-10: limit, Infinity: all
     aiNarrationsPerMonth: number;
     forecastDays: number;
     exportFormats: string[];
@@ -23,29 +23,22 @@ export interface TierLimits {
 
 const tierConfig: Record<Tier, TierLimits> = {
     free: {
-        uploadsPerMonth: 2, maxRowsPerFile: 500, mlAlgorithms: 0,
+        uploadsPerMonth: 1, maxRowsPerFile: 200, mlAlgorithms: 3,
         aiNarrationsPerMonth: 0, forecastDays: 0,
         exportFormats: ["csv"],
-        compareMode: false, premiumPdf: false, customerSegmentation: false,
+        compareMode: false, premiumPdf: false, customerSegmentation: true,
         smartAlerts: false, apiAccess: false, historyDays: 7,
     },
     starter: {
-        uploadsPerMonth: 10, maxRowsPerFile: 5000, mlAlgorithms: 3,
-        aiNarrationsPerMonth: 10, forecastDays: 30,
+        uploadsPerMonth: 10, maxRowsPerFile: 5000, mlAlgorithms: 10,
+        aiNarrationsPerMonth: 20, forecastDays: 30,
         exportFormats: ["csv", "pdf", "excel"],
-        compareMode: true, premiumPdf: false, customerSegmentation: false,
-        smartAlerts: false, apiAccess: false, historyDays: 30,
+        compareMode: true, premiumPdf: false, customerSegmentation: true,
+        smartAlerts: true, apiAccess: false, historyDays: 30,
     },
     pro: {
-        uploadsPerMonth: Infinity, maxRowsPerFile: 50000, mlAlgorithms: 10,
-        aiNarrationsPerMonth: 100, forecastDays: 90,
-        exportFormats: ["csv", "pdf", "excel", "premium-pdf"],
-        compareMode: true, premiumPdf: true, customerSegmentation: true,
-        smartAlerts: true, apiAccess: false, historyDays: 365,
-    },
-    enterprise: {
-        uploadsPerMonth: Infinity, maxRowsPerFile: 100000, mlAlgorithms: 10,
-        aiNarrationsPerMonth: Infinity, forecastDays: 180,
+        uploadsPerMonth: Infinity, maxRowsPerFile: 100000, mlAlgorithms: Infinity,
+        aiNarrationsPerMonth: Infinity, forecastDays: 365,
         exportFormats: ["csv", "pdf", "excel", "premium-pdf"],
         compareMode: true, premiumPdf: true, customerSegmentation: true,
         smartAlerts: true, apiAccess: true, historyDays: Infinity,
@@ -70,6 +63,6 @@ export function canExport(tier: Tier, format: string): boolean {
 }
 
 export function getUpgradeMessage(feature: string, requiredTier: Tier): string {
-    const tierNames: Record<Tier, string> = { free: "Free", starter: "Starter", pro: "Pro", enterprise: "Enterprise" };
+    const tierNames: Record<Tier, string> = { free: "Free", starter: "Starter", pro: "Pro" };
     return `Fitur "${feature}" membutuhkan paket ${tierNames[requiredTier]} atau lebih tinggi. Upgrade sekarang untuk akses penuh.`;
 }

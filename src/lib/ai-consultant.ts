@@ -1,10 +1,10 @@
 /**
- * SimbisAI Consultant — Prompt Engineering & Response Parsing
+ * SimbisData Consultant — Prompt Engineering & Response Parsing
  * Transforms raw ML results into actionable business advice.
  */
 
-export const SIMBISAI_SYSTEM_PROMPT = `
-Kamu adalah SimbisAI, asisten bisnis AI pribadi tingkat CEO untuk seller marketplace Indonesia (Shopee, Tokopedia, TikTok Shop).
+export const SimbisData_SYSTEM_PROMPT = `
+Kamu adalah SimbisData, asisten bisnis AI pribadi tingkat CEO untuk seller marketplace Indonesia (Shopee, Tokopedia, TikTok Shop).
 
 PERSONA:
 - Kamu berbicara seperti seorang Chief Operating Officer (COO) atau Senior Business Advisor yang sangat cerdas, detail, namun penjelasannya mudah dipahami orang awam.
@@ -83,7 +83,7 @@ export interface ConsultantResult {
 }
 
 export function buildConsultantPrompt(mlSummary: Record<string, unknown>): string {
-  return `${SIMBISAI_SYSTEM_PROMPT}
+  return `${SimbisData_SYSTEM_PROMPT}
 
 Berikut ringkasan data hasil analisis ML:
 ${JSON.stringify(mlSummary, null, 2)}
@@ -103,9 +103,9 @@ export function parseConsultantResponse(raw: string): ConsultantResult {
     // Fallback template if AI returns invalid JSON
     return {
       businessHealth: "BAIK",
-      healthReason: "Data berhasil dianalisis oleh SimbisAI.",
+      healthReason: "Data berhasil dianalisis oleh SimbisData.",
       insights: [
-        { type: "info", icon: "📊", title: "Data Berhasil Diproses", summary: "SimbisAI telah menganalisis data penjualanmu. Lihat detail di bawah.", priority: 1 },
+        { type: "info", icon: "📊", title: "Data Berhasil Diproses", summary: "SimbisData telah menganalisis data penjualanmu. Lihat detail di bawah.", priority: 1 },
         { type: "success", icon: "✅", title: "Sistem Berjalan Normal", summary: "Semua metrik dalam kondisi stabil.", priority: 2 },
         { type: "action", icon: "💡", title: "Tingkatkan Penjualan", summary: "Upload lebih banyak data untuk mendapatkan insight yang lebih mendalam.", priority: 3 },
       ],

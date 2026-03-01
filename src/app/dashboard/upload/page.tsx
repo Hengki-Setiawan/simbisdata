@@ -22,6 +22,9 @@ import { db } from "@/lib/local-db";
 import { uploadFiles } from "@/utils/uploadthing";
 import { trackUpload } from "@/lib/tracking";
 import { useToast } from "@/components/ui/toast-provider";
+import { useSession } from "next-auth/react";
+import { getTierLimits, type Tier } from "@/lib/feature-gating";
+import { getMonthlyUploadCount } from "@/actions/dashboard";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -51,6 +54,7 @@ export default function UploadPage() {
     const { addToast } = useToast();
     const [files, setFiles] = useState<File[]>([]);
     const [rawRows, setRawRows] = useState<Record<string, any>[]>([]);
+    const { data: session } = useSession();
     const [preview, setPreview] = useState<{ columns: string[]; rows: Record<string, unknown>[]; total: number } | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [processing, setProcessing] = useState(false);
@@ -87,6 +91,24 @@ export default function UploadPage() {
         if (acceptedFiles.length === 0) return;
 
         setError(null);
+
+        // --- TIER CHECK: Monthly Upload Limit ---
+        const userTier = (session?.user as any)?.planId as Tier || "free";
+        const limits = getTierLimits(userTier);
+
+        if (session?.user?.id) {
+            const count = await getMonthlyUploadCount(parseInt(session.user.id));
+            if (count >= limits.uploadsPerMonth) {
+                setError(`Batas upload bulanan tercapai (${limits.uploadsPerMonth}). Borong paket Pro untuk upload sepuasnya!`);
+                addToast({
+                    title: "Limit Tercapai",
+                    description: `Paket ${userTier} Anda hanya mengizinkan ${limits.uploadsPerMonth} upload per bulan.`,
+                    type: "error"
+                });
+                return;
+            }
+        }
+
         setFiles(acceptedFiles);
         setProcessing(true);
         setIsCleaned(false);
@@ -137,6 +159,19 @@ export default function UploadPage() {
             const { mergeDatasets } = await import("@/lib/data-merger");
             const mergeResult = mergeDatasets(allDatasets);
             const mergedJson = mergeResult.merged;
+
+            // --- TIER CHECK: Row Limit ---
+            if (mergedJson.length > limits.maxRowsPerFile) {
+                setError(`File terlalu besar (${mergedJson.length.toLocaleString()} baris). Paket ${userTier} Anda maksimal ${limits.maxRowsPerFile.toLocaleString()} baris.`);
+                setProcessing(false);
+                updateStep("parse", "error", "Limit baris terlampaui");
+                addToast({
+                    title: "Baris Melampaui Limit",
+                    description: `Maksimal ${limits.maxRowsPerFile.toLocaleString()} baris untuk paket ${userTier}.`,
+                    type: "error"
+                });
+                return;
+            }
 
             updateStep("parse", "done", `Digabung menjadi ${mergedJson.length} baris`);
 

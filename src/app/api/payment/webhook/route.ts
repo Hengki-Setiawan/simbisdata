@@ -49,16 +49,40 @@ export async function POST(request: Request) {
         if (paymentStatus === "success") {
             console.log(`Successfully activated subscription for order ${merchantOrderId}`);
 
-            // Update user subscription in Turso DB
             try {
-                // Here we would normally match the merchantOrderId to a saved invoice.
-                // Assuming we stored the exact user ID linked to this order, we update their status:
-                // await db.update(subscriptions)
-                //     .set({ status: "active", endDate: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60) })
-                //     .where(eq(subscriptions.paymentReference, merchantOrderId));
+                const { paymentTransactions, users, subscriptions } = await import("@/db/schema");
 
-                // For demonstration, simulating successful DB update:
-                console.log("Turso Cloud Database -> Subscription set to active");
+                // 1. Find the transaction to get userId and planId
+                const [tx] = await db.select()
+                    .from(paymentTransactions)
+                    .where(eq(paymentTransactions.orderId, merchantOrderId))
+                    .limit(1);
+
+                if (tx) {
+                    // 2. Update Transaction Status
+                    await db.update(paymentTransactions)
+                        .set({ status: "paid", paidAt: Math.floor(Date.now() / 1000) })
+                        .where(eq(paymentTransactions.orderId, merchantOrderId));
+
+                    // 3. Update User Plan
+                    await db.update(users)
+                        .set({ planId: tx.planId })
+                        .where(eq(users.id, tx.userId));
+
+                    // 4. Update/Insert Subscription
+                    const endDate = Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60);
+                    await db.insert(subscriptions).values({
+                        userId: tx.userId,
+                        planId: tx.planId,
+                        status: "active",
+                        endDate,
+                        createdAt: Math.floor(Date.now() / 1000)
+                    });
+
+                    console.log(`Turso Cloud Database -> Plan ${tx.planId} activated for User ${tx.userId}`);
+                } else {
+                    console.warn(`Transaction not found for orderId: ${merchantOrderId}`);
+                }
             } catch (dbErr) {
                 console.error("Failed to update Turso DB:", dbErr);
             }
@@ -74,13 +98,13 @@ export async function POST(request: Request) {
 
                     // Since Duitku callback doesn't have customer email
                     // In a real app we would load it from the database based on the merchantOrderId
-                    const customerEmail = "user@simbisai.com";
-                    const customerName = "simbisai Premium User";
+                    const customerEmail = "user@SimbisData.com";
+                    const customerName = "SimbisData Premium User";
 
                     await resend.emails.send({
-                        from: "simbisai <no-reply@simbisai.com>",
+                        from: "SimbisData <no-reply@SimbisData.com>",
                         to: [customerEmail],
-                        subject: `Struk Pembayaran simbisai Premium #${merchantOrderId}`,
+                        subject: `Struk Pembayaran SimbisData Premium #${merchantOrderId}`,
                         react: InvoiceEmail({
                             name: customerName,
                             plan: "Premium Analytics Plan",

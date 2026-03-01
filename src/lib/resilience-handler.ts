@@ -1,6 +1,6 @@
 /**
  * Resilience Handler — Graceful degradation when data is incomplete.
- * Instead of crashing, SimbisAI tells the user what CAN be analyzed.
+ * Instead of crashing, SimbisData tells the user what CAN be analyzed.
  */
 
 export interface ResilienceReport {
@@ -59,11 +59,11 @@ export function assessDataCompleteness(
 
     let message: string;
     if (completeness >= 80) {
-        message = "Data kamu sangat lengkap! SimbisAI bisa menjalankan hampir semua analisis. 🎉";
+        message = "Data kamu sangat lengkap! SimbisData bisa menjalankan hampir semua analisis. 🎉";
     } else if (completeness >= 50) {
-        message = `SimbisAI bisa menjalankan ${available.length} dari ${total} analisis. Beberapa fitur tidak tersedia karena kolom data kurang lengkap.`;
+        message = `SimbisData bisa menjalankan ${available.length} dari ${total} analisis. Beberapa fitur tidak tersedia karena kolom data kurang lengkap.`;
     } else if (completeness > 0) {
-        message = `Data yang tersedia terbatas, tapi SimbisAI tetap bisa menganalisis: ${available.join(", ")}. ${essentialsMissing.length ? `Kolom yang belum ditemukan: ${essentialsMissing.join(", ")}.` : ""}`;
+        message = `Data yang tersedia terbatas, tapi SimbisData tetap bisa menganalisis: ${available.join(", ")}. ${essentialsMissing.length ? `Kolom yang belum ditemukan: ${essentialsMissing.join(", ")}.` : ""}`;
     } else {
         message = "Format data belum dikenali. Pastikan file berasal dari Shopee, Tokopedia, atau TikTok Shop.";
     }

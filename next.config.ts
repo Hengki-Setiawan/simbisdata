@@ -8,8 +8,8 @@ const nextConfig: NextConfig = {
 export default withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options
-  org: "simbisai",
-  project: "simbisai-web",
+  org: "SimbisData",
+  project: "SimbisData-web",
   silent: !process.env.CI,
   widenClientFileUpload: true,
 });

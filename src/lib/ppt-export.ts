@@ -5,11 +5,11 @@ import { AnalysisResult } from "@/lib/analysis";
 export async function generatePPTX(analysis: AnalysisResult, aiNarration?: string) {
     const pptx = new pptxgen();
 
-    pptx.author = "simbisai Platform";
+    pptx.author = "SimbisData Platform";
     pptx.company = "Simbisdis";
     pptx.revision = "1";
     pptx.subject = "Laporan Analisis Data Penjualan";
-    pptx.title = "simbisai Export";
+    pptx.title = "SimbisData Export";
 
     const formatRp = (num: number) => `Rp ${num.toLocaleString("id-ID")}`;
 
@@ -19,7 +19,7 @@ export async function generatePPTX(analysis: AnalysisResult, aiNarration?: strin
     const slideTitle = pptx.addSlide();
     slideTitle.background = { color: "0F172A" }; // Dark Slate
 
-    slideTitle.addText("simbisai Report", {
+    slideTitle.addText("SimbisData Report", {
         x: 1, y: 2, w: "80%", h: 1,
         fontSize: 44, bold: true, color: "6366F1", align: "center", fontFace: "Inter"
     });
@@ -104,6 +104,6 @@ export async function generatePPTX(analysis: AnalysisResult, aiNarration?: strin
     });
 
     // Save
-    const fileName = `simbisai_Presentasi_${new Date().toISOString().split("T")[0]}.pptx`;
+    const fileName = `SimbisData_Presentasi_${new Date().toISOString().split("T")[0]}.pptx`;
     await pptx.writeFile({ fileName });
 }

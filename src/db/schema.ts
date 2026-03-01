@@ -165,7 +165,7 @@ export const landingFaqs = sqliteTable("landing_faqs", {
     isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
 });
 
-// === SIMBISAI: AI Insight Cache ===
+// === SimbisData: AI Insight Cache ===
 export const aiInsightCache = sqliteTable("ai_insight_cache", {
     id: integer("id").primaryKey({ autoIncrement: true }),
     userId: integer("user_id").notNull().references(() => users.id),
