@@ -12,19 +12,29 @@ export interface ColumnMapping {
     updatedAt: number;
 }
 
+export interface FileRecord {
+    id?: number;
+    name: string;
+    size: number;
+    type: string;
+    uploadedAt: number;
+}
+
 export class SimbisAIDatabase extends Dexie {
     salesData!: Table<DataRecord, number>;
     mappings!: Table<ColumnMapping, string>;
+    files!: Table<FileRecord, number>;
 
     constructor() {
         super("SimbisAIDatabase");
 
         // Define schema
-        this.version(4).stores({
+        this.version(5).stores({
             salesData: "++id",
             mappings: "id",
+            files: "++id, uploadedAt",
         }).upgrade(tx => {
-            // Version 4: Add mappings table
+            // Version 5: Add files table
         });
     }
 

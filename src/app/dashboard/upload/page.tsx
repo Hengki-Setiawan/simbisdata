@@ -217,6 +217,15 @@ export default function UploadPage() {
             // Store to IndexedDB
             await db.saveNewData(finalData);
 
+            // Store file metadata
+            const mainFile = acceptedFiles[0];
+            await db.files.add({
+                name: acceptedFiles.length === 1 ? mainFile.name : `${acceptedFiles.length} file tergabung`,
+                size: acceptedFiles.reduce((sum, f) => sum + f.size, 0),
+                type: mainFile.type || "unknown",
+                uploadedAt: Date.now()
+            });
+
             // Background cloud upload
             try {
                 await uploadFiles("excelUploader", { files: acceptedFiles });

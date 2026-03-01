@@ -25,6 +25,8 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [aiLoading, setAiLoading] = useState(false);
     const [exportOpen, setExportOpen] = useState(false);
+    const [fileName, setFileName] = useState<string>("Data Berhasil Diproses");
+    const [uploadDate, setUploadDate] = useState<Date>(new Date());
 
     // Load data from IndexedDB
     useEffect(() => {
@@ -32,6 +34,17 @@ export default function DashboardPage() {
             try {
                 const records = await db.salesData.toArray();
                 if (records.length > 0) {
+                    // Try to get metadata from local-db (files table)
+                    try {
+                        const files = await db.files.orderBy("uploadedAt").reverse().toArray();
+                        if (files.length > 0) {
+                            setFileName(files[0].name);
+                            setUploadDate(new Date(files[0].uploadedAt));
+                        }
+                    } catch (e) {
+                        // gracefully ignore if files store not found or empty
+                    }
+
                     const parsed = records.map((r) => r.data);
                     setData(parsed);
                     const result = analyzeData(parsed);
@@ -65,6 +78,8 @@ export default function DashboardPage() {
                             monthlySales: analysis.timeAnalysis?.monthly?.slice(-6),
                             dateRange: analysis.overview.dateRange,
                         },
+                        // Penambahan instruksi untuk AI
+                        contextPuzzler: "Please provide a much richer, detailed, and actionable business explanation for the landing page dashboard. Identify at least 3 concrete strategies the seller can do right now to increase revenue using the data provided. Use encouraging, professional tone."
                     }),
                 });
                 if (res.ok) setAiResult(await res.json());
@@ -113,7 +128,7 @@ export default function DashboardPage() {
     return (
         <div style={{ maxWidth: "900px" }}>
             {/* Daily Briefing */}
-            <DailyBriefing data={analysis} userName={undefined} />
+            <DailyBriefing data={analysis} userName={undefined} fileName={fileName} processedDate={uploadDate} />
 
             {/* Metric Snapshot */}
             <MetricSnapshot

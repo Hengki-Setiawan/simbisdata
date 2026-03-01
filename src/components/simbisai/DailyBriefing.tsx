@@ -19,7 +19,17 @@ function getHealthStatus(analysis: AnalysisResult): { label: string; color: stri
     return { label: "STABIL", color: "var(--primary)", emoji: "📊" };
 }
 
-export default function DailyBriefing({ data, userName }: { data: AnalysisResult | null; userName?: string }) {
+export default function DailyBriefing({
+    data,
+    userName,
+    fileName,
+    processedDate
+}: {
+    data: AnalysisResult | null;
+    userName?: string;
+    fileName?: string;
+    processedDate?: Date;
+}) {
     const greeting = getGreeting();
     const health = data ? getHealthStatus(data) : null;
     const name = userName || "Seller";
@@ -42,16 +52,34 @@ export default function DailyBriefing({ data, userName }: { data: AnalysisResult
             </div>
 
             {data && health ? (
-                <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
-                    <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
-                        Kondisi bisnismu saat ini:{" "}
-                        <span style={{ color: health.color, fontWeight: 700 }}>
-                            {health.emoji} {health.label}
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "16px", flexWrap: "wrap" }}>
+                        <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+                            Kondisi bisnismu saat ini:{" "}
+                            <span style={{ color: health.color, fontWeight: 700 }}>
+                                {health.emoji} {health.label}
+                            </span>
+                        </p>
+                        <span style={{ color: "var(--text-muted)", fontSize: "0.85rem", background: "rgba(255,255,255,0.05)", padding: "2px 8px", borderRadius: "100px" }}>
+                            {data.overview.dateRange.start} — {data.overview.dateRange.end}
                         </span>
-                    </p>
-                    <span style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                        {data.overview.dateRange.start} — {data.overview.dateRange.end}
-                    </span>
+                    </div>
+
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap", fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "4px" }}>
+                        {fileName && (
+                            <span style={{ display: "flex", alignItems: "center", gap: "4px", border: "1px solid var(--border-color)", padding: "2px 8px", borderRadius: "6px" }}>
+                                📄 {fileName}
+                            </span>
+                        )}
+                        {processedDate && (
+                            <span style={{ display: "flex", alignItems: "center", gap: "4px", border: "1px solid var(--border-color)", padding: "2px 8px", borderRadius: "6px" }}>
+                                🕒 Diproses {processedDate.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                        )}
+                        <span style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(16, 185, 129, 0.15)", color: "#10b981", border: "1px solid rgba(16, 185, 129, 0.3)", padding: "2px 8px", borderRadius: "6px", fontWeight: 600 }}>
+                            🤖 SimbisAI ML Engine Aktif
+                        </span>
+                    </div>
                 </div>
             ) : (
                 <p style={{ color: "var(--text-muted)", fontSize: "0.9rem" }}>
