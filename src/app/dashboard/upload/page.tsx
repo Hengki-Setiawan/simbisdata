@@ -107,7 +107,10 @@ export default function UploadPage() {
 
             // 1. Upload to Cloud first (UploadThing)
             try {
-                const { uploadFiles } = await import("@uploadthing/react");
+                const { genUploader } = await import("uploadthing/client");
+                const { uploadFiles } = genUploader<import("@/app/api/uploadthing/core").OurFileRouter>({
+                    package: "simbisdata",
+                });
                 updateStep("parse", "running", "Mengunggah file ke Cloud aman...");
                 const uploadRes = await uploadFiles("datasetUploader", {
                     files: acceptedFiles,
@@ -130,7 +133,7 @@ export default function UploadPage() {
                 addToast("Berhasil diunggah ke penyimpanan Cloud", "success");
             } catch (err) {
                  console.warn("UploadThing error:", err);
-                 addToast("Gagal menyimpan ke Cloud, melanjutkan proses lokal.", "warning");
+                 addToast("Gagal menyimpan ke Cloud, melanjutkan proses lokal.", "error");
                  
                  // Fallback local storage if cloud fails
                  const mainFile = acceptedFiles[0];
