@@ -7,7 +7,6 @@ import {
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 import type { ChartRecommendation } from "@/lib/ai-viz-recommender";
-import { RegionalMap } from "./RegionalMap";
 import { AnimatedBarRace } from "./AnimatedBarRace";
 import { CustomWordCloud } from "./CustomWordCloud";
 
@@ -291,8 +290,8 @@ export function DynamicChartRenderer({ rec, data }: Props) {
 
         case "map":
             return (
-                <div style={{ width: "100%", height: "80%", position: "relative" }}>
-                    <RegionalMap data={data} rec={rec} />
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--text-muted)", fontSize: "0.9rem", textAlign: "center", padding: "20px" }}>
+                    <p>Visualisasi <b>peta regional</b> sedang dalam pengembangan.<br /><br />Data tersedia di tabel.</p>
                 </div>
             );
 

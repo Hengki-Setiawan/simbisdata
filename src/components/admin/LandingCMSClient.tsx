@@ -6,7 +6,6 @@ import { Save, Plus, Trash2, Edit2, CheckCircle2 } from "lucide-react";
 import {
     updateLandingHero,
     updateFeature, createFeature, deleteFeature,
-    updateTestimonial, createTestimonial, deleteTestimonial
 } from "@/actions/cms";
 
 export default function LandingCMSClient({ initialHero, initialFeatures, initialTestimonials }: any) {

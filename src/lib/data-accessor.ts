@@ -10,7 +10,7 @@ import { UNIVERSAL_FIELDS, type UniversalField } from "./column-mapper";
 export const FIELD_MAP: Record<string, string[]> = {
     product: ["product_name", "Nama Produk", "Item Name", "Nama Barang", "Product", "Item"],
     customer: ["customer_name", "Username (Pembeli)", "Nama Penerima", "Buyer Name", "Customer", "Pelanggan", "Nama Pembeli"],
-    total: ["total_payment", "Total Pembayaran", "Total Penjualan (IDR)", "Grand Total", "Total", "total", "subtotal", "Total Harga Produk", "Subtotal"],
+    total: ["total_payment", "Total Pembayaran", "Total Penjualan (IDR)", "Grand Total", "Total", "total", "subtotal", "Total Harga Produk", "Subtotal", "Harga Awal", "Harga Jual", "Harga Jual (IDR)", "Subtotal After Discount", "original_price", "sale_price"],
     qty: ["quantity", "Jumlah", "Qty", "Quantity", "Jumlah Barang"],
     price: ["sale_price", "original_price", "Harga Setelah Diskon", "Harga Awal", "Harga", "Price", "Unit Price", "Harga Jual (IDR)"],
     date: ["order_date", "Waktu Pesanan Dibuat", "Tanggal", "Date", "Created at", "Tanggal Transaksi", "Created Time"],
@@ -75,12 +75,24 @@ export function getFieldNum(row: any, key: string, fallbacks: string[] = []): nu
     const val = getFieldValue(row, key, fallbacks);
     if (val === undefined || val === null || val === "" || val === "-") return 0;
 
-    if (typeof val === "number") return val;
+    let num = 0;
+    if (typeof val === "number") {
+        num = val;
+    } else {
+        // Clean string and parse
+        const str = String(val).replace(/rp/gi, "").trim();
+        const cleanStr = str.replace(/[^\d.,\-]/g, "").replace(/,/g, ".");
+        num = parseFloat(cleanStr) || 0;
+    }
 
-    // Clean string and parse
-    const str = String(val).replace(/rp/gi, "").trim();
-    const cleanStr = str.replace(/[^\d.,\-]/g, "").replace(/,/g, ".");
-    return parseFloat(cleanStr) || 0;
+    // Shopee/Tokopedia Excel exports sometimes parse "93.060" (93 thousand) as "93.06" in javascript 
+    // due to locale decimal confusion. If number is unexpectedly tiny but has fractional parts that look like thousands:
+    if (num > 0 && num < 1000) {
+        // e.g. 93.06 -> multiply by 1000 -> 93060
+        num = num * 1000;
+    }
+
+    return num;
 }
 
 /**

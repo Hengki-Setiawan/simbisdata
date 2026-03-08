@@ -18,6 +18,7 @@ export interface FileRecord {
     size: number;
     type: string;
     uploadedAt: number;
+    url?: string;
 }
 
 export class SimbisDataDatabase extends Dexie {
@@ -75,6 +76,22 @@ export class SimbisDataDatabase extends Dexie {
     // Get current data (alias for getAllData, used by Data Studio)
     async getCurrentData(): Promise<Record<string, any>[]> {
         return this.getAllData();
+    }
+
+    // Completely wipe all data and settings (Reset)
+    async clearAll() {
+        await this.transaction("rw", this.salesData, this.mappings, async () => {
+            await this.salesData.clear();
+            await this.mappings.clear();
+        });
+        
+        // Also wipe local storage cache for analysis pipeline
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("analyze_cache");
+            localStorage.removeItem("feature_cache");
+            localStorage.removeItem("ml_cluster_cache");
+            localStorage.removeItem("pipeline_report");
+        }
     }
 }
 

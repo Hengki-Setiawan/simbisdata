@@ -6,11 +6,11 @@ export default function Footer() {
             <div className="container">
                 <div className="footer-grid">
                     <div>
-                        <div className="footer-brand">
-                            <img src="/logo-icon.svg" alt="SimbisData Logo" width={24} height={24} style={{ display: "inline-block", verticalAlign: "middle", marginRight: "10px" }} />
+                        <div className="footer-brand" style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "1.25rem", fontWeight: 800, color: "var(--text-heading)", marginBottom: "16px" }}>
+                            <img src="/logo-icon.svg" alt="SimbisData Logo" width={28} height={28} />
                             SimbisData
                         </div>
-                        <p className="footer-desc">
+                        <p className="footer-desc" style={{ color: "var(--text-muted)", lineHeight: 1.6, fontSize: "0.95rem" }}>
                             Platform analisis data penjualan UMKM dengan Machine Learning dan AI.
                             Bantu seller UMKM Indonesia mengambil keputusan bisnis berbasis data.
                         </p>

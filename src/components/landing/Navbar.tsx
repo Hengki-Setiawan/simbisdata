@@ -25,17 +25,17 @@ export default function Navbar() {
                         <span className="gradient-text">SimbisData</span>
                     </Link>
 
-                    <ul className="navbar-links">
-                        <li><a href="#features">Fitur</a></li>
-                        <li><a href="#algorithms">Algoritma</a></li>
-                        <li><a href="#pricing">Harga</a></li>
+                    <ul className="navbar-links" style={{ gap: "32px", fontWeight: 500 }}>
+                        <li><a href="#features" style={{ color: "var(--text-secondary)", transition: "color 0.2s" }}>Fitur</a></li>
+                        <li><a href="#algorithms" style={{ color: "var(--text-secondary)", transition: "color 0.2s" }}>Algoritma</a></li>
+                        <li><a href="#pricing" style={{ color: "var(--text-secondary)", transition: "color 0.2s" }}>Harga</a></li>
                     </ul>
 
                     <div className="navbar-actions">
-                        <Link href="/login" className="btn-secondary" style={{ padding: "8px 20px", fontSize: "0.9rem" }}>
+                        <Link href="/login" className="btn-secondary" style={{ padding: "8px 24px", fontSize: "0.9rem", fontWeight: 600, borderRadius: "8px", border: "1px solid var(--border-color)", background: "transparent", color: "var(--text-primary)" }}>
                             Masuk
                         </Link>
-                        <Link href="/register" className="btn-primary" style={{ padding: "8px 20px", fontSize: "0.9rem" }}>
+                        <Link href="/register" className="btn-primary" style={{ padding: "8px 24px", fontSize: "0.9rem", fontWeight: 600, borderRadius: "8px", background: "var(--primary)", color: "#fff", border: "none" }}>
                             Daftar Gratis
                         </Link>
 

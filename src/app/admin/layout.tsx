@@ -3,19 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-    LayoutDashboard, Users, Key, LineChart, DollarSign,
-    Headphones, Megaphone, Settings, CreditCard, ArrowLeft, Globe
+    LayoutDashboard, Users,
+    Settings, ArrowLeft, Globe
 } from "lucide-react";
 
 const menuItems = [
     { label: "Overview", href: "/admin", icon: LayoutDashboard },
-    { label: "Users & Plans", href: "/admin/users", icon: Users },
-    { label: "Subscriptions", href: "/admin/subscriptions", icon: CreditCard },
-    { label: "Revenue", href: "/admin/revenue", icon: DollarSign },
-    { label: "Support Tickets", href: "/admin/support", icon: Headphones },
-    { label: "Announcements", href: "/admin/announcements", icon: Megaphone },
-    { label: "Demo Tokens", href: "/admin/demo", icon: Key },
-    { label: "API Usage", href: "/admin/logs", icon: LineChart },
+    { label: "Users", href: "/admin/users", icon: Users },
     { label: "Landing CMS", href: "/admin/landing", icon: Globe },
     { label: "Settings", href: "/admin/settings", icon: Settings },
 ];

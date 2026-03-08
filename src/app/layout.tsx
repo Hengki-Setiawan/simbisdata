@@ -1,19 +1,18 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import AuthProvider from "@/components/AuthProvider";
-import { PostHogProvider } from "@/providers/posthog-provider";
 import JsonLd from "@/components/seo/JsonLd";
 import { ToastProvider } from "@/components/ui/toast-provider";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jakarta = Plus_Jakarta_Sans({
+  variable: "--font-jakarta",
   subsets: ["latin"],
 });
 
@@ -53,10 +52,18 @@ export const metadata: Metadata = {
     shortcut: "/logo-icon.svg",
     apple: "/logo-icon.png",
   },
+  manifest: "/manifest.json",
   robots: {
     index: true,
     follow: true,
   },
+};
+
+export const viewport = {
+  themeColor: "#4f46e5",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
@@ -65,23 +72,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className="dark" data-scroll-behavior="smooth">
+    <html lang="id" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${inter.variable} ${jakarta.variable} antialiased`}
+        suppressHydrationWarning
       >
-        <PostHogProvider>
-          <AuthProvider>
-            <ThemeProvider>
-              <ToastProvider>
-                <JsonLd />
-                <div className="bg-grid" />
-                <div className="bg-glow bg-glow-1" />
-                <div className="bg-glow bg-glow-2" />
-                {children}
-              </ToastProvider>
-            </ThemeProvider>
-          </AuthProvider>
-        </PostHogProvider>
+        <AuthProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <JsonLd />
+              {children}
+            </ToastProvider>
+          </ThemeProvider>
+        </AuthProvider>
       </body>
     </html>
   );

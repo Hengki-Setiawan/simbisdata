@@ -1,59 +1,33 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
-import { getCached, setCache } from "@/lib/api-cache";
 
-/**
- * Geocode API — Server-side proxy for geocoding requests
- * Uses OpenStreetMap Nominatim API (free, no key required)
- */
-export async function POST(request: Request) {
+export async function GET(req: Request) {
+    const { searchParams } = new URL(req.url);
+    const q = searchParams.get("q");
+
+    if (!q) {
+        return NextResponse.json({ error: "Missing query parameter" }, { status: 400 });
+    }
+
     try {
-        const { addresses } = await request.json();
+        // q is already encoded by the client, but let's be safe and only encode if it's not
+        const query = q.includes('%') ? q : encodeURIComponent(q);
+        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${query}&countrycodes=id`;
+        
+        const res = await fetch(url, {
+            headers: { 
+                "User-Agent": "SimbisDA/1.1 (Academic Project)",
+                "Accept-Language": "id"
+            },
+            cache: "force-cache" // Cache on server to avoid rate limits
+        });
 
-        if (!addresses || !Array.isArray(addresses)) {
-            return NextResponse.json({ error: "addresses array required" }, { status: 400 });
+        if (!res.ok) {
+            return NextResponse.json({ error: "Nominatim API failed" }, { status: res.status });
         }
 
-        const results: Record<string, any> = {};
-        const unique = [...new Set(addresses as string[])].slice(0, 30);
-
-        for (const addr of unique) {
-            // Check cache first
-            const cacheKey = `geocode:${addr.toLowerCase()}`;
-            const cached = getCached<any>(cacheKey);
-            if (cached) {
-                results[addr] = cached;
-                continue;
-            }
-
-            try {
-                const encoded = encodeURIComponent(addr + " Indonesia");
-                const res = await fetch(
-                    `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`,
-                    { headers: { "User-Agent": "SimbisData/1.0" } }
-                );
-                const data = await res.json();
-
-                if (data.length > 0) {
-                    const result = {
-                        lat: parseFloat(data[0].lat),
-                        lng: parseFloat(data[0].lon),
-                        name: data[0].display_name,
-                        confidence: parseFloat(data[0].importance || "0.5")
-                    };
-                    results[addr] = result;
-                    setCache(cacheKey, result, "geocode");
-                }
-
-                // Rate limit: 1 req/sec for Nominatim
-                await new Promise(r => setTimeout(r, 1100));
-            } catch (e) {
-                console.warn("Geocode failed for:", addr, e);
-            }
-        }
-
-        return NextResponse.json({ results, count: Object.keys(results).length });
-    } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        const data = await res.json();
+        return NextResponse.json(data);
+    } catch (err: any) {
+        return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

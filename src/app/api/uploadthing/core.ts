@@ -4,34 +4,21 @@ const f = createUploadthing();
 
 // FileRouter for your app, can contain multiple FileRoutes
 export const ourFileRouter = {
-    // Define as many FileRoutes as you like, each with a unique routeSlug
-    excelUploader: f({
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": { maxFileSize: "16MB" },
-        "text/csv": { maxFileSize: "16MB" }
+  // Define as many FileRoutes as you like, each with a unique routeSlug
+  datasetUploader: f({ 
+    "text/csv": { maxFileSize: "4MB", maxFileCount: 1 },
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": { maxFileSize: "4MB", maxFileCount: 1 },
+    "application/vnd.ms-excel": { maxFileSize: "4MB", maxFileCount: 1 }
+  })
+    // Set permissions and file types for this FileRoute
+    .middleware(async ({ req }) => {
+      // You can do auth here if you want
+      return { };
     })
-        // Set permissions and file types for this FileRoute
-        .middleware(async ({ req }) => {
-            // Import and run server-side auth check
-            const { auth } = await import("@/lib/auth");
-            const session = await auth();
-
-            // Get actual user ID from the session, throwing error if not logged in
-            const userId = session?.user?.id;
-
-            // If you throw, the user will not be able to upload
-            if (!userId) throw new Error("Unauthorized");
-
-            // Whatever is returned here is accessible in onUploadComplete as `metadata`
-            return { userId };
-        })
-        .onUploadComplete(async ({ metadata, file }) => {
-            // This code RUNS ON YOUR SERVER after upload
-            console.log("Upload complete for userId:", metadata.userId);
-            console.log("file url", file.url);
-
-            // !!! Whatever is returned here is sent to the clientside `onClientUploadComplete` callback
-            return { uploadedBy: metadata.userId, fileUrl: file.url };
-        }),
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Upload complete for url:", file.url);
+      return { uploadedBy: "user", url: file.url };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;

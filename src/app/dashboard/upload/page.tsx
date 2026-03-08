@@ -14,13 +14,10 @@ import { autoMapColumns, applyMapping, getAvailableFields, type ColumnMapping } 
 import { cleanData, type CleaningReport } from "@/lib/data-cleaner";
 import { validateData, type DataQualityReport } from "@/lib/data-validator";
 import { detectUnresolvedIssues, type CleaningIssue } from "@/lib/ai-cleaner";
-import { ruleBasedRepair, applyRepairs, type RepairReport } from "@/lib/ai-data-repair";
-import { generateQualityAdvice, type QualityAdvice } from "@/lib/ai-quality-advisor";
+
 import { detectFormat } from "@/lib/format-detector";
 import { lookupColumnCorrection, saveColumnCorrection } from "@/lib/corrections-store";
 import { db } from "@/lib/local-db";
-import { uploadFiles } from "@/utils/uploadthing";
-import { trackUpload } from "@/lib/tracking";
 import { useToast } from "@/components/ui/toast-provider";
 import { useSession } from "next-auth/react";
 import { getTierLimits, type Tier } from "@/lib/feature-gating";
@@ -63,7 +60,7 @@ export default function UploadPage() {
     const [steps, setSteps] = useState<ProcessingStep[]>(INITIAL_STEPS);
     const [currentStep, setCurrentStep] = useState(0);
 
-    // Smart processing states
+    // Simplified smart processing states
     const [qualityReport, setQualityReport] = useState<DataQualityReport | null>(null);
     const [columnMappings, setColumnMappings] = useState<ColumnMapping[]>([]);
     const [cleaningReport, setCleaningReport] = useState<CleaningReport | null>(null);
@@ -71,13 +68,6 @@ export default function UploadPage() {
     const [showMapping, setShowMapping] = useState(false);
     const [showIssues, setShowIssues] = useState(false);
     const [isMappingAi, setIsMappingAi] = useState(false);
-
-    // AI-augmented states
-    const [qualityAdvice, setQualityAdvice] = useState<QualityAdvice | null>(null);
-    const [repairReport, setRepairReport] = useState<RepairReport | null>(null);
-    const [unresolvedIssues, setUnresolvedIssues] = useState<CleaningIssue[]>([]);
-    const [isRepairing, setIsRepairing] = useState(false);
-    const [showAdvice, setShowAdvice] = useState(false);
     const [detectedPlatform, setDetectedPlatform] = useState<string>("generic");
 
     // Step updater helper
@@ -109,15 +99,50 @@ export default function UploadPage() {
         setProcessing(true);
         setIsCleaned(false);
         setCleaningReport(null);
-        setQualityAdvice(null);
-        setRepairReport(null);
-        setUnresolvedIssues([]);
         setSteps(INITIAL_STEPS);
         setCurrentStep(0);
 
         try {
             updateStep("parse", "running", `Membaca ${acceptedFiles.length} file...`);
 
+            // 1. Upload to Cloud first (UploadThing)
+            try {
+                const { uploadFiles } = await import("@uploadthing/react");
+                updateStep("parse", "running", "Mengunggah file ke Cloud aman...");
+                const uploadRes = await uploadFiles("datasetUploader", {
+                    files: acceptedFiles,
+                });
+                
+                // Keep the URLs for storing in history later
+                const cloudUrls = uploadRes.map(r => r.url);
+                
+                // Store file metadata with URLs
+                const mainFile = acceptedFiles[0];
+                await db.files.add({
+                    name: acceptedFiles.length === 1 ? mainFile.name : `${acceptedFiles.length} file tergabung`,
+                    size: acceptedFiles.reduce((sum, f) => sum + f.size, 0),
+                    type: mainFile.type || "unknown",
+                    uploadedAt: Date.now(),
+                    // Attach the URLs so History page can download them
+                    url: cloudUrls.join(",") 
+                } as any); // Type cast since we add 'url' dynamically to db
+
+                addToast("Berhasil diunggah ke penyimpanan Cloud", "success");
+            } catch (err) {
+                 console.warn("UploadThing error:", err);
+                 addToast("Gagal menyimpan ke Cloud, melanjutkan proses lokal.", "warning");
+                 
+                 // Fallback local storage if cloud fails
+                 const mainFile = acceptedFiles[0];
+                 await db.files.add({
+                     name: acceptedFiles.length === 1 ? mainFile.name : `${acceptedFiles.length} file tergabung`,
+                     size: acceptedFiles.reduce((sum, f) => sum + f.size, 0),
+                     type: mainFile.type || "unknown",
+                     uploadedAt: Date.now()
+                 });
+            }
+
+            updateStep("parse", "running", `Memparsing ${acceptedFiles.length} file lokal...`);
             const allDatasets: Record<string, any>[][] = [];
 
             for (const f of acceptedFiles) {
@@ -194,9 +219,8 @@ export default function UploadPage() {
                     }
                     return m;
                 });
-                console.log(`Applied saved database mapping for ${platformResult.platform}`);
             } else {
-                // Fallback to corrections store if no platform-wide mapping
+                // Fallback to corrections store
                 for (let i = 0; i < mappings.length; i++) {
                     if (!mappings[i].mappedTo || mappings[i].confidence < 0.6) {
                         const saved = await lookupColumnCorrection(mappings[i].originalName);
@@ -206,6 +230,36 @@ export default function UploadPage() {
                     }
                 }
             }
+            
+            // NEW: AI Fallback Mapping for explicitly missing Revenue/Total columns
+            const missingRevenue = !mappings.some(m => m.mappedTo === 'total_payment');
+            const unmappedColumns = mappings.filter(m => !m.mappedTo);
+            
+            if (missingRevenue && unmappedColumns.length > 0 && process.env.NEXT_PUBLIC_GROQ_API_KEY) {
+               updateStep("map", "running", "AI mencoba mengenali kolom pendapatan...");
+               try {
+                   // We do a fast client-side fetch to our generic groq or custom endpoint for mapping
+                   const prompt = `Analisis nama kolom berikut dari file e-commerce. Temukan kolom mana yang paling merepresentasikan "Total Pembayaran" atau "Revenue" atau "Harga".\nKolom: ${unmappedColumns.map(m => m.originalName).join(', ')}. Kembalikan hanya NAMA KOLOM yang paling cocok, tanpa teks lain.`;
+                   
+                   const res = await fetch("/api/ai/consult", {
+                       method: "POST",
+                       headers: { "Content-Type": "application/json" },
+                       body: JSON.stringify({ prompt })
+                   });
+                   const aiMatch = await res.json();
+                   if (aiMatch && aiMatch.response) {
+                       const bestCol = String(aiMatch.response).trim();
+                       const targetIndex = mappings.findIndex(m => m.originalName.toLowerCase() === bestCol.toLowerCase());
+                       if (targetIndex >= 0) {
+                           mappings[targetIndex].mappedTo = 'total_payment';
+                           mappings[targetIndex].confidence = 0.95;
+                       }
+                   }
+               } catch (e) {
+                   console.log("AI Column map fallback skipped", e);
+               }
+            }
+
             setColumnMappings(mappings);
             const mapped = mappings.filter(m => m.mappedTo).length;
             updateStep("map", "done", `${mapped}/${mappings.length} kolom terpetakan`);
@@ -216,58 +270,14 @@ export default function UploadPage() {
             setQualityReport(quality);
             updateStep("validate", "done", `Skor: ${quality.score}/100 (${quality.grade})`);
 
-            // === Step 6: Data Repair (rule-based) ===
-            updateStep("repair", "running", "Memeriksa data...");
-            const repair = ruleBasedRepair(cleaned);
-            setRepairReport(repair);
-            // Auto-apply high-confidence repairs
-            let finalData = cleaned;
-            if (repair.autoApplied > 0) {
-                finalData = applyRepairs(cleaned, repair.suggestions, true);
-            }
-            // Detect AI-needed issues
-            const aiIssues = detectUnresolvedIssues(finalData, cleanReport);
-            setUnresolvedIssues(aiIssues);
-            updateStep("repair", "done", `${repair.autoApplied} auto-fix, ${repair.needsReview} perlu review`);
-
-            // === Step 7: Quality Advisory ===
-            updateStep("quality", "running", "Menganalisis kualitas...");
-            const advice = generateQualityAdvice(quality);
-            setQualityAdvice(advice);
-            updateStep("quality", "done", advice.summary.slice(0, 60));
-
             // Set final data
+            const finalData = cleaned;
             setRawRows(finalData);
             const columns = Object.keys(finalData[0] || {});
             setPreview({ columns, rows: finalData.slice(0, 5), total: finalData.length });
 
             // Store to IndexedDB
             await db.saveNewData(finalData);
-
-            // Store file metadata
-            const mainFile = acceptedFiles[0];
-            await db.files.add({
-                name: acceptedFiles.length === 1 ? mainFile.name : `${acceptedFiles.length} file tergabung`,
-                size: acceptedFiles.reduce((sum, f) => sum + f.size, 0),
-                type: mainFile.type || "unknown",
-                uploadedAt: Date.now()
-            });
-
-            // Background cloud upload
-            try {
-                await uploadFiles("excelUploader", { files: acceptedFiles });
-            } catch (uploadError) {
-                console.error("Cloud upload failed:", uploadError);
-            }
-
-            // Track the upload
-            trackUpload({
-                fileName: acceptedFiles.map(f => f.name).join(", "),
-                fileSize: acceptedFiles.reduce((s, f) => s + f.size, 0),
-                rowCount: finalData.length,
-                columnCount: columns.length,
-                platform: "auto-detected",
-            });
 
             // Save to DB history
             const { saveDocumentHistory } = await import("@/actions/dashboard");
@@ -293,51 +303,20 @@ export default function UploadPage() {
         const { cleaned, report } = cleanData(rawRows);
         setCleaningReport(report);
 
-        // Apply rule-based repairs
-        const repair = ruleBasedRepair(cleaned);
-        setRepairReport(repair);
-        const finalData = repair.autoApplied > 0 ? applyRepairs(cleaned, repair.suggestions, true) : cleaned;
-
-        setRawRows(finalData);
+        setRawRows(cleaned);
         setIsCleaned(true);
 
         // Re-validate
-        const quality = validateData(finalData);
+        const quality = validateData(cleaned);
         setQualityReport(quality);
-        const advice = generateQualityAdvice(quality);
-        setQualityAdvice(advice);
-        setPreview({ columns: Object.keys(finalData[0] || {}), rows: finalData.slice(0, 5), total: finalData.length });
+        setPreview({ columns: Object.keys(cleaned[0] || {}), rows: cleaned.slice(0, 5), total: cleaned.length });
 
-        const mappings = autoMapColumns(finalData);
+        const mappings = autoMapColumns(cleaned);
         setColumnMappings(mappings);
 
-        db.saveNewData(finalData).then(() => {
+        db.saveNewData(cleaned).then(() => {
             addToast("Data berhasil dibersihkan dan disimpan!", "success");
         }).catch(console.error);
-    };
-
-    // AI-powered repair for complex issues
-    const handleAIRepair = async () => {
-        if (unresolvedIssues.length === 0) return;
-        setIsRepairing(true);
-        try {
-            const res = await fetch("/api/ai/smart-clean", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ issues: unresolvedIssues, sampleData: rawRows.slice(0, 3) }),
-            });
-            const data = await res.json();
-            if (data.suggestions?.length > 0) {
-                // Re-validate after AI fixes
-                const quality = validateData(rawRows);
-                setQualityReport(quality);
-                setQualityAdvice(generateQualityAdvice(quality));
-            }
-        } catch (err) {
-            console.error("AI Repair failed:", err);
-        } finally {
-            setIsRepairing(false);
-        }
     };
 
     const handleMappingChange = async (index: number, newMapping: string | null) => {
@@ -456,11 +435,35 @@ export default function UploadPage() {
     const progressPercent = Math.round((currentStep / INITIAL_STEPS.length) * 100);
 
     return (
-        <div>
-            <h1 style={{ fontSize: "1.8rem", fontWeight: 800, marginBottom: "8px" }}>Upload Data Penjualan</h1>
+        <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+            <h1 style={{ fontSize: "1.8rem", fontWeight: 800, marginBottom: "8px", color: "var(--text-heading)" }}>Upload Data Penjualan</h1>
             <p style={{ color: "var(--text-muted)", marginBottom: "32px" }}>
-                Upload file dari marketplace manapun. Sistem AI akan otomatis mendeteksi, membersihkan, memetakan, dan memperbaiki data.
+                Upload file Excel/CSV dari marketplace manapun. Sistem AI akan otomatis mendeteksi format, memetakan kolom, dan membersihkan data.
             </p>
+
+            {/* Step Guide */}
+            {!files.length && !processing && (
+                <div style={{ 
+                    display: "flex", alignItems: "center", justifyContent: "space-between", 
+                    marginBottom: "32px", background: "var(--bg-card)", padding: "20px 32px", 
+                    borderRadius: "16px", border: "1px solid var(--border-color)" 
+                }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "var(--primary)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "0.85rem" }}>1</div>
+                        <span style={{ fontWeight: 600, color: "var(--text-heading)", fontSize: "0.95rem" }}>Upload File</span>
+                    </div>
+                    <ArrowRight size={18} style={{ color: "var(--border-color)" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", opacity: 0.6 }}>
+                        <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "var(--bg-main)", color: "var(--text-muted)", border: "1px solid var(--border-color)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "0.85rem" }}>2</div>
+                        <span style={{ fontWeight: 600, color: "var(--text-muted)", fontSize: "0.95rem" }}>Mapping & Parsing</span>
+                    </div>
+                    <ArrowRight size={18} style={{ color: "var(--border-color)" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: "12px", opacity: 0.6 }}>
+                        <div style={{ width: "28px", height: "28px", borderRadius: "50%", background: "var(--bg-main)", color: "var(--text-muted)", border: "1px solid var(--border-color)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: "bold", fontSize: "0.85rem" }}>3</div>
+                        <span style={{ fontWeight: 600, color: "var(--text-muted)", fontSize: "0.95rem" }}>Validasi Data</span>
+                    </div>
+                </div>
+            )}
 
             {/* Dropzone */}
             <div {...getRootProps()} className="glass-card" style={{
@@ -492,10 +495,29 @@ export default function UploadPage() {
                             </p>
                         </div>
                     ) : (
-                        <>
-                            <p style={{ fontSize: "1.1rem", fontWeight: 600 }}>{isDragActive ? "Lepaskan file di sini..." : "Drag & drop file, atau tekan Ctrl+V untuk Paste tabel"}</p>
-                            <p style={{ color: "var(--text-muted)", marginTop: "8px", fontSize: "0.9rem" }}>Format: .xlsx, .xls, .csv, .tsv, .json, .xml, .ods — dari marketplace manapun</p>
-                        </>
+                        <div>
+                            <h3 style={{ fontSize: "1.2rem", fontWeight: 700, color: "var(--text-heading)", marginBottom: "8px" }}>
+                                {isDragActive ? "Lepaskan file di sini..." : "Drag & drop file laporan penjualan"}
+                            </h3>
+                            <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", maxWidth: "400px", margin: "0 auto 24px auto" }}>
+                                Atau tekan Ctrl+V untuk mem-paste tabel langsung dari spreadsheet
+                            </p>
+                            
+                            <div style={{ display: "flex", justifyContent: "center", gap: "12px" }}>
+                                {["Shopee", "Tokopedia", "TikTok Shop"].map(platform => (
+                                    <span key={platform} style={{
+                                        fontSize: "0.75rem", fontWeight: 600, padding: "6px 14px", 
+                                        borderRadius: "100px", background: "var(--primary-surface)", 
+                                        color: "var(--primary)", border: "1px solid rgba(99, 102, 241, 0.2)"
+                                    }}>
+                                        {platform}
+                                    </span>
+                                ))}
+                            </div>
+                            <p style={{ color: "var(--text-muted)", marginTop: "24px", fontSize: "0.8rem", opacity: 0.8 }}>
+                                Mendukung: .xlsx, .csv, .json (Max 10 file sekaligus)
+                            </p>
+                        </div>
                     )}
             </div>
 
@@ -540,58 +562,6 @@ export default function UploadPage() {
                                 </div>
                             ))}
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* AI Quality Advisor */}
-            <AnimatePresence>
-                {qualityAdvice && !processing && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass-card" style={{ marginTop: "16px", padding: "20px 24px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "12px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                <Zap size={18} style={{ color: "var(--primary)" }} />
-                                <span style={{ fontWeight: 700, fontSize: "0.95rem" }}>AI Quality Advisor</span>
-                            </div>
-                            <div style={{ display: "flex", gap: "8px" }}>
-                                {unresolvedIssues.length > 0 && (
-                                    <button onClick={handleAIRepair} disabled={isRepairing} className="btn-secondary" style={{ padding: "6px 12px", fontSize: "0.78rem", display: "flex", alignItems: "center", gap: "4px" }}>
-                                        {isRepairing ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Wrench size={12} />}
-                                        {isRepairing ? "AI Fixing..." : `AI Fix (${unresolvedIssues.length})`}
-                                    </button>
-                                )}
-                                <button onClick={() => setShowAdvice(!showAdvice)} className="btn-secondary" style={{ padding: "6px 12px", fontSize: "0.78rem" }}>
-                                    {showAdvice ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-                                </button>
-                            </div>
-                        </div>
-                        <p style={{ fontSize: "0.85rem", color: "var(--text-secondary)" }}>{qualityAdvice.summary}</p>
-                        {qualityAdvice.canAutoFix && (
-                            <p style={{ fontSize: "0.78rem", color: "var(--primary)", marginTop: "4px" }}>✨ Estimasi skor setelah fix: {qualityAdvice.estimatedImprovement}/100</p>
-                        )}
-                        <AnimatePresence>
-                            {showAdvice && (
-                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden", marginTop: "12px" }}>
-                                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", borderTop: "1px solid var(--border-color)", paddingTop: "12px" }}>
-                                        {qualityAdvice.adviceItems.map((item, i) => (
-                                            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: "8px", fontSize: "0.82rem", padding: "8px 12px", background: "var(--bg-card)", borderRadius: "8px" }}>
-                                                <span style={{ flexShrink: 0 }}>{item.icon}</span>
-                                                <div>
-                                                    <strong>{item.title}</strong>
-                                                    <p style={{ color: "var(--text-muted)", fontSize: "0.78rem", marginTop: "2px" }}>{item.description}</p>
-                                                    {item.fixAction && <p style={{ color: "var(--primary)", fontSize: "0.75rem", marginTop: "4px" }}>💡 {item.fixAction}</p>}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    {repairReport && repairReport.suggestions.length > 0 && (
-                                        <div style={{ marginTop: "12px", padding: "12px", background: "rgba(99,102,241,0.05)", borderRadius: "8px" }}>
-                                            <p style={{ fontSize: "0.82rem", fontWeight: 600, marginBottom: "4px" }}>🔧 Data Repair: {repairReport.summary}</p>
-                                        </div>
-                                    )}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
                     </motion.div>
                 )}
             </AnimatePresence>

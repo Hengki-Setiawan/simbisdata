@@ -1,7 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
- * Feature Gating — Controls access to features based on user tier
+ * Feature Gating — Simplified (All Features Unlocked)
+ * 
+ * Payment system removed, so all features are now free.
+ * Kept the type system for forward compatibility.
  */
 
 export type Tier = "free" | "starter" | "pro";
@@ -9,7 +12,7 @@ export type Tier = "free" | "starter" | "pro";
 export interface TierLimits {
     uploadsPerMonth: number;
     maxRowsPerFile: number;
-    mlAlgorithms: number; // 0: basic, 1-10: limit, Infinity: all
+    mlAlgorithms: number;
     aiNarrationsPerMonth: number;
     forecastDays: number;
     exportFormats: string[];
@@ -21,48 +24,35 @@ export interface TierLimits {
     historyDays: number;
 }
 
-const tierConfig: Record<Tier, TierLimits> = {
-    free: {
-        uploadsPerMonth: 1, maxRowsPerFile: 200, mlAlgorithms: 3,
-        aiNarrationsPerMonth: 0, forecastDays: 0,
-        exportFormats: ["csv"],
-        compareMode: false, premiumPdf: false, customerSegmentation: true,
-        smartAlerts: false, apiAccess: false, historyDays: 7,
-    },
-    starter: {
-        uploadsPerMonth: 10, maxRowsPerFile: 5000, mlAlgorithms: 10,
-        aiNarrationsPerMonth: 20, forecastDays: 30,
-        exportFormats: ["csv", "pdf", "excel"],
-        compareMode: true, premiumPdf: false, customerSegmentation: true,
-        smartAlerts: true, apiAccess: false, historyDays: 30,
-    },
-    pro: {
-        uploadsPerMonth: Infinity, maxRowsPerFile: 100000, mlAlgorithms: Infinity,
-        aiNarrationsPerMonth: Infinity, forecastDays: 365,
-        exportFormats: ["csv", "pdf", "excel", "premium-pdf"],
-        compareMode: true, premiumPdf: true, customerSegmentation: true,
-        smartAlerts: true, apiAccess: true, historyDays: Infinity,
-    },
+// All tiers now get full access (no paywall)
+const unlocked: TierLimits = {
+    uploadsPerMonth: Infinity,
+    maxRowsPerFile: 100000,
+    mlAlgorithms: Infinity,
+    aiNarrationsPerMonth: Infinity,
+    forecastDays: 365,
+    exportFormats: ["csv", "pdf", "excel", "pptx"],
+    compareMode: true,
+    premiumPdf: true,
+    customerSegmentation: true,
+    smartAlerts: true,
+    apiAccess: true,
+    historyDays: Infinity,
 };
 
-export function getTierLimits(tier: Tier): TierLimits {
-    return tierConfig[tier] || tierConfig.free;
+export function getTierLimits(_tier: Tier): TierLimits {
+    // All features unlocked regardless of tier
+    return unlocked;
 }
 
-export function canAccess(tier: Tier, feature: keyof TierLimits): boolean {
-    const limits = getTierLimits(tier);
-    const val = limits[feature];
-    if (typeof val === "boolean") return val;
-    if (typeof val === "number") return val > 0;
-    if (Array.isArray(val)) return val.length > 0;
-    return false;
+export function canAccess(_tier: Tier, _feature: keyof TierLimits): boolean {
+    return true; // Everything is accessible
 }
 
-export function canExport(tier: Tier, format: string): boolean {
-    return getTierLimits(tier).exportFormats.includes(format);
+export function canExport(_tier: Tier, _format: string): boolean {
+    return true; // All exports allowed
 }
 
-export function getUpgradeMessage(feature: string, requiredTier: Tier): string {
-    const tierNames: Record<Tier, string> = { free: "Free", starter: "Starter", pro: "Pro" };
-    return `Fitur "${feature}" membutuhkan paket ${tierNames[requiredTier]} atau lebih tinggi. Upgrade sekarang untuk akses penuh.`;
+export function getUpgradeMessage(_feature: string, _requiredTier: Tier): string {
+    return "Semua fitur sudah tersedia gratis!";
 }

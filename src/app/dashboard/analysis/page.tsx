@@ -12,12 +12,10 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, ScatterChart, Scatter, ZAxis,
 } from "recharts";
-import type { ClusterResult, AnomalyResult, ProductScore, RFMResult, CohortResult } from "@/lib/ml-algorithms";
-import * as Comlink from "comlink";
-import type { MLWorker } from "@/lib/workers/ml.worker";
+import type { ClusterResult, AnomalyResult, ProductScore, RFMResult } from "@/lib/ml-algorithms";
+import * as mlAlgorithms from "@/lib/ml-algorithms";
 import { db } from "@/lib/local-db";
 import Scatter3D from "@/components/charts/Scatter3D";
-import CohortHeatmap from "@/components/charts/CohortHeatmap";
 import { analyzeColumns } from "@/lib/ai-viz-recommender";
 import { recommendAlgorithms, type MLRecommendation } from "@/lib/ai-ml-selector";
 import { useToast } from "@/components/ui/toast-provider";
@@ -48,7 +46,6 @@ export default function AnalysisPage() {
     const [anomalies, setAnomalies] = useState<AnomalyResult | null>(null);
     const [productScores, setProductScores] = useState<ProductScore[] | null>(null);
     const [rfm, setRfm] = useState<RFMResult | null>(null);
-    const [cohort, setCohort] = useState<CohortResult | null>(null);
 
     // Status
     const [genericResults, setGenericResults] = useState<Record<string, any>>({});
@@ -68,10 +65,8 @@ export default function AnalysisPage() {
                     const recs = recommendAlgorithms(colMetas, "ecommerce", data.length);
                     setRecommendations(recs);
 
-                    // 2. Initialize background web worker
-                    const workerInstance = new Worker(new URL("../../../lib/workers/ml.worker", import.meta.url));
-                    const ml = Comlink.wrap<MLWorker>(workerInstance);
-                    setWorker(ml);
+                    // 2. ML algorithms available directly (no worker needed)
+                    const ml = mlAlgorithms;
 
                     // 3. Auto-run top recommendations (max based on tier)
                     const userTier = (session?.user as any)?.planId as Tier || "free";
@@ -125,121 +120,6 @@ export default function AnalysisPage() {
                 const res = await instance.rfmAnalysis(targetData);
                 setRfm(res);
                 setActiveTab("rfm_analysis");
-            } else if (id === "cohort_analysis") {
-                const res = await instance.cohortAnalysis(targetData);
-                setCohort(res);
-                setActiveTab("cohort_analysis");
-            } else if (id === "sentiment_analysis") {
-                const textCol = Object.keys(targetData[0]).find(k => {
-                    const val = targetData[0][k];
-                    return typeof val === "string" && val.length > 15 && !k.toLowerCase().includes("id") && !k.toLowerCase().includes("url");
-                }) || Object.keys(targetData[0])[0];
-
-                const texts = targetData.map(d => d[textCol]).filter(Boolean).slice(0, 50);
-                const res = await fetch("/api/sentiment", {
-                    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ texts })
-                });
-                const data = await res.json();
-                setGenericResults(prev => ({
-                    ...prev,
-                    [id]: {
-                        avg_score: (data.average !== undefined ? data.average : (data.summary?.avgScore || 0)).toFixed(2),
-                        total_analyzed: data.totalAnalyzed,
-                        source_column: textCol
-                    }
-                }));
-                setActiveTab(id);
-            } else if (id === "lstm_forecast" || id === "sma_forecast") {
-                // Prepare time series data
-                const dateKey = Object.keys(targetData[0]).find(k => k.toLowerCase().includes("tgl") || k.toLowerCase().includes("tanggal") || k.toLowerCase().includes("date")) || "date";
-                const valKey = Object.keys(targetData[0]).find(k => k.toLowerCase().includes("total") || k.toLowerCase().includes("omset") || k.toLowerCase().includes("payment")) || "total";
-
-                const timeData = targetData.map(d => ({
-                    date: String(d[dateKey]),
-                    value: parseFloat(String(d[valKey]).replace(/[^0-9.-]/g, "")) || 0
-                })).filter(d => !isNaN(new Date(d.date).getTime()));
-
-                const res = id === "lstm_forecast"
-                    ? await instance.lstmForecast(timeData, 30)
-                    : await instance.timeSeriesForecast(timeData, 30);
-
-                setGenericResults(prev => ({
-                    ...prev,
-                    [id]: {
-                        trend: res.trend.toUpperCase(),
-                        prediction_30d: res.forecast[res.forecast.length - 1]?.predicted.toLocaleString("id-ID"),
-                        model: res.modelInfo || "Time Series",
-                        forecast_data: res.forecast.slice(0, 5) // Sample
-                    }
-                }));
-                setActiveTab(id);
-            } else if (id === "association_rules") {
-                const res = await instance.associationRules(targetData);
-                setGenericResults(prev => ({
-                    ...prev,
-                    [id]: {
-                        top_patterns: res.rules.slice(0, 5).map((r: any) => `${r.antecedent} → ${r.consequent} (Lift: ${r.lift.toFixed(2)})`),
-                        total_rules_found: res.rules.length
-                    }
-                }));
-                setActiveTab(id);
-            } else if (id === "price_sensitivity") {
-                const res = await instance.priceSensitivity(targetData);
-                setGenericResults(prev => ({
-                    ...prev,
-                    [id]: {
-                        optimal_price: `Rp ${res.optimalPrice.toLocaleString("id-ID")}`,
-                        elasticity: res.elasticity.toFixed(2),
-                        insight: res.elasticity < -1 ? "Sangat Sensitif" : "Kurang Sensitif"
-                    }
-                }));
-                setActiveTab(id);
-            } else if (id === "correlation_matrix") {
-                const res = await instance.correlationMatrix(targetData);
-                setGenericResults(prev => ({
-                    ...prev,
-                    [id]: {
-                        strongest_correlations: res.matrix
-                            .filter((m: any) => m.row !== m.col && Math.abs(m.value) > 0.5)
-                            .slice(0, 5)
-                            .map((m: any) => `${m.row} vs ${m.col}: ${(m.value * 100).toFixed(0)}%`),
-                        total_variables: res.fields.length
-                    }
-                }));
-                setActiveTab(id);
-            } else if (id === "clv") {
-                const res = await instance.customerLifetimeValue(targetData);
-                setGenericResults(prev => ({
-                    ...prev,
-                    [id]: {
-                        avg_lifetime_value: `Rp ${res.avgCLV.toLocaleString("id-ID")}`,
-                        top_customer: res.customers[0]?.name || "N/A",
-                        total_segments: new Set(res.customers.map((c: any) => c.segment)).size
-                    }
-                }));
-                setActiveTab(id);
-            } else if (id === "day_hour_heatmap") {
-                const res = await instance.dayHourHeatmap(targetData);
-                setGenericResults(prev => ({
-                    ...prev,
-                    [id]: {
-                        peak_day: res.peakDay,
-                        peak_hour: `${res.peakHour}:00`,
-                        total_slots_analyzed: res.data.length
-                    }
-                }));
-                setActiveTab(id);
-            } else if (id === "shipping_optimization") {
-                const res = await instance.shippingOptimization(targetData);
-                setGenericResults(prev => ({
-                    ...prev,
-                    [id]: {
-                        best_courier: res.bestOverall,
-                        avg_cost: `Rp ${res.couriers[0]?.avgCost.toLocaleString("id-ID")}`,
-                        avg_delivery_days: `${res.couriers[0]?.avgDays} hari`
-                    }
-                }));
-                setActiveTab(id);
             } else {
                 // Call worker directly if function exists by name
                 const workerFunc = instance[id];
@@ -265,8 +145,28 @@ export default function AnalysisPage() {
     };
 
     if (loading) return (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "60vh" }}>
-            <Loader2 size={40} style={{ color: "var(--primary)", animation: "spin 1s linear infinite" }} />
+        <div className="animate-pulse-soft">
+            <div style={{ marginBottom: "24px" }}>
+                <div className="skeleton" style={{ width: "320px", height: "36px", marginBottom: "12px" }} />
+                <div className="skeleton" style={{ width: "500px", height: "20px", marginBottom: "8px" }} />
+                <div className="skeleton" style={{ width: "400px", height: "20px" }} />
+            </div>
+            <div style={{ marginBottom: "24px" }}>
+                <div className="skeleton" style={{ width: "200px", height: "24px", marginBottom: "16px" }} />
+                <div style={{ display: "flex", gap: "16px", overflowX: "hidden" }}>
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="skeleton" style={{ minWidth: "260px", height: "140px", borderRadius: "16px" }} />
+                    ))}
+                </div>
+            </div>
+            <div style={{ display: "flex", gap: "24px" }}>
+                <div style={{ width: "240px", display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div className="skeleton" style={{ width: "100%", height: "48px", borderRadius: "12px" }} />
+                    <div className="skeleton" style={{ width: "100%", height: "48px", borderRadius: "12px" }} />
+                    <div className="skeleton" style={{ width: "100%", height: "48px", borderRadius: "12px" }} />
+                </div>
+                <div className="skeleton" style={{ flex: 1, height: "400px", borderRadius: "24px" }} />
+            </div>
         </div>
     );
 
@@ -284,7 +184,6 @@ export default function AnalysisPage() {
         ...(anomalies ? [{ id: "autoencoder_anomaly", label: "Anomali", icon: AlertTriangle }] : []),
         ...(productScores ? [{ id: "abc_analysis", label: "Skor Produk", icon: Award }] : []),
         ...(rfm ? [{ id: "rfm_analysis", label: "RFM", icon: Target }] : []),
-        ...(cohort ? [{ id: "cohort_analysis", label: "Retensi", icon: Activity }] : []),
         ...Object.keys(genericResults).map(id => {
             const rec = recommendations.find(r => r.id === id);
             return { id, label: rec ? (rec.name.split(" ")[1] || id) : id, icon: Sparkles };
@@ -320,7 +219,6 @@ export default function AnalysisPage() {
                             (rec.id === "autoencoder_anomaly" && anomalies) ||
                             (rec.id === "abc_analysis" && productScores) ||
                             (rec.id === "rfm_analysis" && rfm) ||
-                            (rec.id === "cohort_analysis" && cohort) ||
                             genericResults[rec.id] !== undefined;
 
                         return (
@@ -378,25 +276,35 @@ export default function AnalysisPage() {
                 </div>
             </div>
 
-            {/* Dynamic Tabs */}
-            {tabs.length > 0 && (
-                <div style={{ display: "flex", gap: "8px", marginBottom: "24px", flexWrap: "wrap" }}>
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        return (
-                            <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
-                                padding: "10px 20px", borderRadius: "var(--radius)", border: "1px solid var(--border-color)",
-                                background: activeTab === tab.id ? "rgba(99, 102, 241, 0.15)" : "var(--bg-card)",
-                                color: activeTab === tab.id ? "var(--primary-light)" : "var(--text-muted)",
-                                cursor: "pointer", display: "flex", alignItems: "center", gap: "8px", fontSize: "0.85rem", fontWeight: 600,
-                                transition: "all 0.2s ease",
-                            }}>
-                                <Icon size={16} /> {tab.label}
-                            </button>
-                        );
-                    })}
-                </div>
-            )}
+            {/* Main Content Split Layout */}
+            <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
+                {/* Vertical Sidebar Tags */}
+                {tabs.length > 0 && (
+                    <div style={{ 
+                        width: "240px", flexShrink: 0, display: "flex", flexDirection: "column", gap: "8px",
+                        position: "sticky", top: "24px"
+                    }}>
+                        {tabs.map((tab) => {
+                            const Icon = tab.icon;
+                            // Make done/active status very visible
+                            return (
+                                <button key={tab.id} onClick={() => setActiveTab(tab.id)} style={{
+                                    padding: "12px 16px", borderRadius: "12px", border: "1px solid",
+                                    borderColor: activeTab === tab.id ? "var(--primary)" : "var(--border-color)",
+                                    background: activeTab === tab.id ? "var(--primary-surface)" : "var(--bg-card)",
+                                    color: activeTab === tab.id ? "var(--primary)" : "var(--text-muted)",
+                                    cursor: "pointer", display: "flex", alignItems: "center", gap: "12px", fontSize: "0.9rem", fontWeight: 600,
+                                    transition: "all 0.2s ease", textAlign: "left", boxShadow: activeTab === tab.id ? "var(--shadow-sm)" : "none"
+                                }}>
+                                    <Icon size={18} /> {tab.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
+                
+                {/* Tab Content Pane */}
+                <div style={{ flex: 1, minWidth: 0 }}>
 
             {/* Cluster Tab */}
             {activeTab === "kmeans_clustering" && clusters && (
@@ -554,26 +462,8 @@ export default function AnalysisPage() {
                 </motion.div>
             )}
 
-            {/* Cohort Tab */}
-            {activeTab === "cohort_analysis" && cohort && (
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-                    <div className="glass-card" style={{ padding: "24px", marginBottom: "16px", overflowX: "auto" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-                            <h3 style={{ fontSize: "1rem", fontWeight: 700 }}>
-                                📅 Retensi Pelanggan dari Waktu ke Waktu (Cohort Heatmap)
-                            </h3>
-                            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginLeft: "12px" }}>
-                                {cohort.cohorts.length} Cohort
-                            </span>
-                        </div>
-                        <CohortHeatmap data={cohort} />
-                    </div>
-                </motion.div>
-            )}
-
-
             {/* Generic Tab */}
-            {activeTab !== "kmeans_clustering" && activeTab !== "autoencoder_anomaly" && activeTab !== "abc_analysis" && activeTab !== "rfm_analysis" && activeTab !== "cohort_analysis" && genericResults[activeTab] && (
+            {activeTab !== "kmeans_clustering" && activeTab !== "autoencoder_anomaly" && activeTab !== "abc_analysis" && activeTab !== "rfm_analysis" && genericResults[activeTab] && (
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "20px" }}>
                         <Sparkles size={24} style={{ color: "var(--primary)" }} />
@@ -638,6 +528,8 @@ export default function AnalysisPage() {
                 </motion.div>
             )}
 
+                </div>
+            </div>
         </div>
     );
 }

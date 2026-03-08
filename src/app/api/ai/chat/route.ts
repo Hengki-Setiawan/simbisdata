@@ -1,5 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
+import { getCached, setCache } from "@/lib/api-cache";
 
 /**
  * AI Chat Assistant API — ask anything about your data
@@ -13,13 +16,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Pertanyaan diperlukan" }, { status: 400 });
         }
 
-        // Try Redis cache
-        try {
-            const { redis } = await import("@/lib/redis");
-            const cacheKey = `ai-chat:${question.substring(0, 80).replace(/\s+/g, "-")}`;
-            const cached = await redis.get(cacheKey);
-            if (cached) return NextResponse.json({ answer: cached, provider: "cache" });
-        } catch { /* skip cache */ }
+        // Check in-memory cache
+        const cacheKey = `ai-chat:${question.substring(0, 80).replace(/\s+/g, "-")}`;
+        const cached = getCached<string>(cacheKey);
+        if (cached) return NextResponse.json({ answer: cached, provider: "cache" });
 
         const systemPrompt = `Kamu adalah asisten data analyst untuk platform SimbisData. Kamu membantu user UMKM Indonesia memahami data penjualan mereka.
 
@@ -36,7 +36,7 @@ Aturan:
 
         // Add conversation history if available
         if (history && Array.isArray(history)) {
-            for (const msg of history.slice(-4)) { // Last 4 messages
+            for (const msg of history.slice(-4)) {
                 messages.push({ role: msg.role, content: msg.content });
             }
         }
@@ -65,12 +65,8 @@ Aturan:
 
                 const answer = completion.choices[0]?.message?.content || "";
 
-                // Cache response
-                try {
-                    const { redis } = await import("@/lib/redis");
-                    const cacheKey = `ai-chat:${question.substring(0, 80).replace(/\s+/g, "-")}`;
-                    await redis.set(cacheKey, answer, { ex: 1800 }); // 30 min cache
-                } catch { /* skip cache */ }
+                // Cache response in memory (30 min)
+                setCache(cacheKey, answer, "news");
 
                 return NextResponse.json({ answer, provider: "groq" });
             } catch (groqError) {
@@ -98,7 +94,7 @@ Aturan:
 
         // Template fallback
         return NextResponse.json({
-            answer: `💡 Untuk menjawab pertanyaan tentang "${question}", saya memerlukan koneksi AI (Groq/Gemini). Silakan tambahkan GROQ_API_KEY atau GEMINI_API_KEY di environment variables untuk mengaktifkan AI Chat Assistant.\n\nSementara itu, Anda bisa melihat insight otomatis di tab AI Insight pada dashboard.`,
+            answer: `💡 Untuk menjawab pertanyaan tentang "${question}", saya memerlukan koneksi AI (Groq/Gemini). Silakan tambahkan GROQ_API_KEY atau GEMINI_API_KEY di environment variables.\n\nSementara itu, Anda bisa melihat insight otomatis di tab AI Insight pada dashboard.`,
             provider: "template",
         });
     } catch (error: any) {

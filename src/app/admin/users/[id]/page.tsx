@@ -1,7 +1,7 @@
-import { ArrowLeft, Mail, Calendar, Shield, CreditCard, BarChart3, FileText, Activity } from "lucide-react";
+import { ArrowLeft, Mail, Calendar, Shield, BarChart3, FileText, Activity } from "lucide-react";
 import Link from "next/link";
 import { db } from "@/db";
-import { users, uploadedFiles, activityLogs, paymentTransactions } from "@/db/schema";
+import { users, uploadedFiles, activityLogs } from "@/db/schema";
 import { eq, desc, sum } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import AdminUserActions from "@/components/admin/AdminUserActions";
@@ -28,11 +28,6 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
     // Find last login
     const logins = allAnalyses.filter(a => a.action === "login");
     const lastLoginStr = logins.length > 0 ? new Date(logins[0].createdAt * 1000).toLocaleDateString("id-ID") : "Belum pernah login";
-
-    // Fetch payments
-    const payments = await db.select().from(paymentTransactions).where(eq(paymentTransactions.userId, userId));
-    const paidPayments = payments.filter(p => p.status === "paid");
-    const totalRevenue = paidPayments.reduce((sum, p) => sum + p.amount, 0);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", maximumFractionDigits: 0 }).format(amount);
@@ -88,7 +83,6 @@ export default async function AdminUserDetailPage({ params }: { params: { id: st
                     { label: "Uploads", value: totalUploads.length.toString(), icon: FileText },
                     { label: "Analyses", value: analysisCount.toString(), icon: BarChart3 },
                     { label: "AI Requests", value: allAnalyses.filter(a => a.action === "ai_request").length.toString(), icon: Activity },
-                    { label: "Lifetime Value", value: formatCurrency(totalRevenue), icon: CreditCard },
                 ].map((s, i) => {
                     const Icon = s.icon;
                     return (

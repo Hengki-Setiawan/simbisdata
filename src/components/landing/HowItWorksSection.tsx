@@ -12,7 +12,7 @@ export default function HowItWorksSection() {
             number: "02",
             icon: "🧠",
             title: "AI & ML Menganalisis",
-            description: "15 algoritma Machine Learning berjalan di browser Anda — dari forecasting, clustering, hingga anomaly detection. Tanpa antri server."
+            description: "Berbagai model Machine Learning berjalan di browser Anda — dari forecasting, clustering, hingga anomaly detection. Tanpa antri server."
         },
         {
             number: "03",
@@ -51,10 +51,12 @@ export default function HowItWorksSection() {
                             style={{
                                 flex: "1 1 280px",
                                 maxWidth: "320px",
-                                padding: "32px 24px",
+                                padding: "40px 24px 32px 24px",
                                 textAlign: "center",
                                 position: "relative",
                                 transition: "all 0.3s ease",
+                                overflow: "visible",
+                                marginTop: "16px",
                             }}
                         >
                             {/* Step number badge */}
@@ -77,13 +79,13 @@ export default function HowItWorksSection() {
                                 {step.number}
                             </div>
 
-                            <div style={{ fontSize: "3rem", marginBottom: "16px", marginTop: "8px" }}>
+                            <div style={{ fontSize: "2.5rem", marginBottom: "20px", marginTop: "12px", background: "var(--primary-surface)", width: "64px", height: "64px", borderRadius: "16px", display: "flex", alignItems: "center", justifyContent: "center", margin: "12px auto 20px auto" }}>
                                 {step.icon}
                             </div>
-                            <h3 style={{ fontSize: "1.2rem", fontWeight: 700, marginBottom: "12px", color: "var(--text-primary)" }}>
+                            <h3 style={{ fontSize: "1.15rem", fontWeight: 800, marginBottom: "12px", color: "var(--text-heading)" }}>
                                 {step.title}
                             </h3>
-                            <p style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.7 }}>
+                            <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", lineHeight: 1.6 }}>
                                 {step.description}
                             </p>
                         </div>

@@ -89,20 +89,21 @@ export default function FeaturesSection({ data }: { data?: any[] }) {
                             >
                                 <div
                                     className="feature-icon"
-                                    style={{ background: theme.bg, color: theme.color }}
+                                    style={{ background: theme.bg, color: theme.color, width: "48px", height: "48px", borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "16px" }}
                                 >
                                     {getIcon(feature.icon)}
                                 </div>
                                 <h3
                                     style={{
-                                        fontSize: "1.2rem",
-                                        fontWeight: 700,
-                                        marginBottom: "12px",
+                                        fontSize: "1.15rem",
+                                        fontWeight: 800,
+                                        color: "var(--text-heading)",
+                                        marginBottom: "8px",
                                     }}
                                 >
                                     {feature.title}
                                 </h3>
-                                <p style={{ color: "var(--text-secondary)", fontSize: "0.95rem" }}>
+                                <p style={{ color: "var(--text-muted)", fontSize: "0.9rem", lineHeight: 1.6 }}>
                                     {feature.description}
                                 </p>
                             </motion.div>

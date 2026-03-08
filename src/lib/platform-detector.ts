@@ -86,12 +86,18 @@ export function detectPlatform(columns: string[]): DetectionResult {
         const matched = config.columns.filter((fp) =>
             normalizedCols.some((col) => {
                 const nfp = normalize(fp);
-                return col === nfp || col.includes(nfp) || nfp.includes(col);
+                // Only allow exact match, or if the column name CONTAINS the fingerprint.
+                // We REMOVED `nfp.includes(col)` because it causes false positives (e.g. "jumlah" matching "jumlah barang").
+                return col === nfp || col.includes(nfp);
             })
         );
 
+        // Score based on how many required fingerprint columns are matched.
+        // If a platform has 11 signature columns, finding 10 gives high score.
         const score = matched.length / config.columns.length;
-        if (score > bestScore) {
+        
+        // We require at least 3 matching signature columns to even consider a platform
+        if (score > bestScore && matched.length >= 3) {
             bestScore = score;
             bestPlatform = platform as Platform;
             bestMatches = matched;
